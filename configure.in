@@ -54,7 +54,7 @@ AC_ARG_WITH(ifuciolibs,
          [ac_ifuciolibs=$withval], 
          [ac_ifuciolibs=])
 dnl If the user does not provide one, try to see if somthing acceptable is found
-ac_ifuciolibs_vers_ok_list="6.0c"
+ac_ifuciolibs_vers_ok_list="6.0c 6.0d"
 
 dnl try to find a valid version
 if test -z "$ac_ifuciolibs"

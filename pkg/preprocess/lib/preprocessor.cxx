@@ -186,28 +186,10 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     
   }
 
-
-
-#ifdef OLD
-  // Fill the images with the data content
-  Section sec;
-  sec.SetX1(dataSec.X1());
-  sec.SetX2(dataSec.X2()/2-isRaster);
-  sec.SetY1(dataSec.Y1());
-  sec.SetY2(dataSec.Y2());
-  im[0]->ImportSection(image,&sec,1,1,1,1);
-  sec.SetX1(dataSec.X2()/2+1+isRaster);
-  sec.SetX2(dataSec.X2());
-  im[1]->ImportSection(image,&sec,dataSec.X2()/2,1,-1,1);
-  sec.SetX1(biasSec.X1());
-  sec.SetX2(biasSec.X1()-1+biasSec.XLength()/2);
-  im[0]->ImportSection(image,&sec,dataSec.X2()/2+1,1,1,1);
-  sec.SetX1(biasSec.X1()+biasSec.XLength()/2);
-  sec.SetX2(biasSec.X2());
-  im[1]->ImportSection(image,&sec,im[1]->Nx(),1,-1,1);
-#endif
   // needs the images 
   bichip->SetAlgo("OTCOM");
+  delete image;
+  
   return bichip;
 }
 

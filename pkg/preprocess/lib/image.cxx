@@ -72,7 +72,10 @@ ImageSimple::ImageSimple(const ImageSimple &image,char* newname,short newtype,in
 ImageSimple::~ImageSimple(){
   if (fVariance)
     delete fVariance;
-  CloseFrame();
+  if (strstr(Name(),"mem://"))
+    DeleteFrame();
+  else
+    CloseFrame();
   delete fIo;
 }
 

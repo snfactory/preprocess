@@ -27,8 +27,12 @@ IoPlain::IoPlain() {
 
 /* ----- ~IoPlain ------------------------------------------------- */
 IoPlain::~IoPlain(){
-  if (fLoaded)
-    CloseFrame();
+  if (fLoaded) {
+    if (strstr(Name(),"mem://"))
+      DeleteFrame();
+    else
+      CloseFrame();
+  }  
   delete fFrame;
 }
 
@@ -72,6 +76,8 @@ int IoPlain::CloseFrame(){
 int IoPlain::DeleteFrame(){
   // Wrapper to delete_frame
   fLoaded=false;
+  //  close_frame_fast(Frame());
+  free_frame_mem(Frame());
   return delete_frame(Frame());
 }
 

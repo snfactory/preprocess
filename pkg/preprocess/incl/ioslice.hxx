@@ -36,7 +36,6 @@ class IoSlice : public IoPlain{
     virtual double RdFrame(int line, int col); 
     virtual int OpenFrame(char *name, char *mode="Input");
     virtual int CloseFrame();
-    virtual int DeleteFrame();
     virtual int CreateFrame(char *name,int nx, int ny, short Type=FLOAT );
     virtual int CreateFrameFull(char *name,int *Npix,double* Start, double* Step, short Type,char* Ident, char* U);
     virtual IoMethod_t IoType() const {return kIoSlice;}

@@ -44,8 +44,12 @@ IoSlice::IoSlice(int MaxLines) : IoPlain() {
 
 /* ----- ~ImageSimple ------------------------------------------------- */
 IoSlice::~IoSlice(){
-  if (fLoaded)
-    CloseFrame();
+  if (fLoaded) {
+    if (strstr(Name(),"mem://"))
+      DeleteFrame();
+    else
+      CloseFrame();
+  }  
 }
 
 /* ===== Overwritten virtual methods ================================== */
@@ -92,16 +96,6 @@ int IoSlice::CloseFrame(){
     return 0;
   }
 }
-
-/* ----- DeleteFrame --------------------------------------------------- */
-int IoSlice::DeleteFrame(){
-  // Wrapper to delete_frame
-  // Note that the file should be closed first. (at least in iolibs 6.0b++)
-  if (fLoaded)
-    print_error("IoSlice::DeleteFrame image %s is not closed ...",Name());
-  return delete_frame(Frame());
-}
-
 
 /* ----- CreateFrame -------------------------------------------------- */
 int IoSlice::CreateFrame(char *Name,int Nx, int Ny, short Type ){
