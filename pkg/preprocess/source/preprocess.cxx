@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     
-    printf("Processing %s\n",inName);
+    print_msg("Processing %s",inName);
     ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat);
     delete out;
   }
