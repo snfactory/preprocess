@@ -33,11 +33,12 @@ The input catalog is supposed to be of homogeneous
 /* ===== constructor/destructor ======================================= */
 
 /* ----- ImageStackSnifs  -------------------------------------------------- */
-ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode){
+ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode,  int NLines){
   /* first loads the headers - to check the homogeneity of the catalog */
   /* the ioslice is used, this means the numer of loaded lines has to be 
    reworked for image-based processing */
-  
+  fNLinesMem = NLines;
+
   char fileName[lg_name+1];
   if (!Cat->NextFile(fileName)) {
     print_error("ImageStackSnifs::ImageStackSnifs : unable to read %s",Cat->Name());
@@ -53,7 +54,7 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode){
       }
 
     // loads the image
-    ImageSnifs * image = new ImageSnifs(fileName,Mode,kIoSlice,1);
+    ImageSnifs * image = new ImageSnifs(fileName,Mode,kIoSlice,fNLinesMem);
     fImages.push_back(image);
     if (!nDone) {
       imRef = image;

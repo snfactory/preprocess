@@ -132,6 +132,20 @@ double ImageAnalyser::StatsVariance(){
   return fVar = gsl_stats_variance_m(fVal,1,fNVal,mean);
 }
 
+/* ----- MeanMapVariance ------------------------------ */
+double ImageAnalyser::MeanMapVariance() {
+  if (!fImage->Variance()) {
+    return -1;
+  }
+  double weight=0;
+  for (int j=fSec->YFirst(); j< fSec->YLast();j++) 
+    for (int i=fSec->YFirst(); i< fSec->YLast();i++) {
+      weight += 1/fImage->Variance()->RdFrame(i,j);
+    }
+  return 1/weight;
+}
+  
+
 /* ----- NPixOut -------------------------------------- */
 int ImageAnalyser::NPixOut(double SigmaCut){
   double mean = MeanLevel();

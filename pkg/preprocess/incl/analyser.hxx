@@ -49,6 +49,7 @@ public :
   /* ----- Analysis ---------------------------------------- */
   double MeanLevel();
   double StatsVariance();
+  double MeanMapVariance();
   int NPixOut(double SigmaCut);
   int NPixOver(double Value);
   double OutPixMean(double SigmaCut);

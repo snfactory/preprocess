@@ -16,11 +16,11 @@ int main(int argc, char **argv) {
   int nlines;
   get_argval(3,"%d",&nlines);
   
-  BiChipStackSnifs * in=new BiChipStackSnifs(&catIn,"I",nlines);
+  ImageStackSnifs * in=new ImageStackSnifs(&catIn,"I",nlines);
   double sigma;
   get_argval(2,"%lf", &sigma);
   KGauss k(sigma);
-  BiChipSnifs* out = in->Kombine(argval[1],&k);
+  ImageSnifs* out = in->Kombine(argval[1],&k);
   delete out;
   
   delete in;

@@ -279,8 +279,9 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     //   if (fChip[chip]->RdIfDesc("NSATU",INT,1,&chipSatu) > 0)
     //  nSatu += chipSatu;
 
-    // propagetes the RdNoises
+    // propagates the RdNoises
     fChip[chip]->RdDesc("RDNOISE",DOUBLE,1,rdnoise+chip);
+    rdnoise[chip]*=gain;
   }
   
   // ... remains to update DATASEC and remove BIASSEC
@@ -294,7 +295,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     variance->WrDesc("DATASEC",CHAR,lg_name+1,key);
     variance->DeleteDesc("BIASSEC");
   }
-  // the RDNOISi
+  
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
 
   // and update the number of saturating pixels
