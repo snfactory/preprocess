@@ -17,6 +17,12 @@
 #include "utils.h"
 #include "algocams.hxx"
 
+/* ##### Data ################################################# */
+
+static double kGainBlue[2]={0.773,0.744};
+static double kGainRed[2]={0.736,0.792};
+static double kGainPhot[4]={1.618,1.576,1.51,1.52};
+
 /* ##### BiChipSnifs ################################################# */
 
 /* ===== constructor/destructor ======================================= */
@@ -408,9 +414,10 @@ void  BiChipSnifs:: HackFitsKeywords()  {
   }
   
   // Easier place for the channel hack
+  int channel;
+  int nAmp;
+
   if (fChip[0]->Algo()->GetId() == kOtcom) {
-    int channel;
-    int nAmp;
     fChip[0]->RdDesc("CCDNAMP",INT,1,&nAmp);
     // assume OTCOM 2amps = RED
     // OTCOM 4 amps 2 chips = Photomatric
@@ -426,20 +433,24 @@ void  BiChipSnifs:: HackFitsKeywords()  {
         fChip[chip]->SetChannel(channel);
       }
     }
-  }   
-
-  float gain;
-  if (fChip[0]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
-    gain = 0.7;
-    fChip[0]->WrDesc("GAIN",FLOAT,1,&gain);
-    print_warning("BiChipSnifs::HackFitsKeywords Hacking the GAIN");
   }
 
-  if (fChip[1]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
-    // but this gain may vary...
-    gain = 0.7;
-    fChip[1]->WrDesc("GAIN",FLOAT,1,&gain);
-    print_warning("BiChipSnifs::HackFitsKeywords Hacking the GAIN");
+  // hack the gains
+ // gain hack
+  if (channel == kBlueChannel) {
+    for (int i=0;i<NChips();i++) {
+      fChip[i]->WrDesc("GAIN",DOUBLE,1,&kGainBlue[i]);
+    }
+  }
+  if (channel == kRedChannel) {
+    for (int i=0;i<NChips();i++) {
+      fChip[i]->WrDesc("GAIN",DOUBLE,1,&kGainRed[i]);
+    }
+  }
+  if (channel & kPhotometric) {
+    for (int i=0;i<NChips();i++) {
+      fChip[i]->WrDesc("GAIN",DOUBLE,1,&kGainPhot[i]);
+    }
   }
 }
 
