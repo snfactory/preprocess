@@ -38,7 +38,9 @@ SRCC = bichip.cxx\
 	algocams.cxx\
 	overscan.cxx\
 
-OBJ = $(patsubst %.c, $(O)/%.o, $(SRC))  $(patsubst %.cxx, $(O)/%.o, $(SRCC))
+COBJ = $(patsubst %.c, $(O)/%.o, $(SRC))
+CCOBJ = $(patsubst %.cxx, $(O)/%.o, $(SRCC))
+OBJ = $(COBJ) $(CCOBJ)
 
 LIB = $(O)/libpreprocess.a 
 
@@ -49,15 +51,15 @@ include make.depend
 OUT : dirobj $(LIB)
 
 # Objects
-$(O)/%.o : %.c $(STAND_INC) makefile
+$(COBJ) : $(O)/%.o : %.c $(STAND_INC) makefile
 	$(C_COMPILE)
 
 # Objects C++
-$(O)/%.o : %.cxx $(STAND_INC) makefile
+$(CCOBJ) : $(O)/%.o : %.cxx $(STAND_INC) makefile
 	$(CXXCOMPILE)
 
 # Library
-$(LIB) : $(OBJ)
+$(LIB) : $(OBJ) $(OBJ)
 	$(AR) rv $(LIB) $(OBJ)
 	$(RANLIB) $@
 
