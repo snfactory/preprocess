@@ -8,7 +8,7 @@ user, run
 > automake -a --foreign
 > configure 
 > make
-or alternatively run first_time.csh
+or alternatively run first_time.csh (set the +x permission if needed)
 
 During developpment, then just 'make' would ideally be needed - but this 
 perfect world is not yet achieved...
