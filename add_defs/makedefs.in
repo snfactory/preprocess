@@ -22,7 +22,7 @@ STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
 #INTERPLIB = $(C_mathLIBS_PATH)/C_libs/obj/interplib.a
 #LEASTSQLIB = $(C_mathLIBS_PATH)/C_libs/obj/least_sqlib.a
 #POLYLIB = $(C_mathLIBS_PATH)/C_libs/obj/polylib.a
-GSLLIB = @ac_gsl@/.libs/libgsl.a
+GSLLIB = @ac_gsl@/lib/libgsl.a
 
 
 MATHLIB = $(STATLIB) $(INTERPLIB) $(LEASTSQLIB) $(POLYLIB) $(NAGLIB) $(GSLLIB)
@@ -46,7 +46,7 @@ MIDASOBJ =
 # Includes ==============================
 INC =  $(C_ioLIBS_PATH)/incl
 LINC = $(C_mathLIBS_PATH)/incl
-GSLINC = @ac_gsl@
+GSLINC = @ac_gsl@/include
 FITSINC = $(C_ioLIBS_PATH)/C_libs/io/cfitsio
 PKG_INC = ../../incl
 USER_INC = ../incl
