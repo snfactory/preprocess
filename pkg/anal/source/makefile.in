@@ -16,8 +16,8 @@ include $(topdir)/add_defs/makedefs.local
 
 #  ============================================================
 
-LOCLIB = $(O)/libanal.so
-LOCLIBPATH = -L$(O) -lanal
+LOCLIB = $(L)/libanal.so
+LOCLIBPATH = -L$(L) -lanal
 
 # Targets
 

@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Jun 22 15:16:06 2004
+## Modified at:   Tue Jun 22 17:16:39 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -25,14 +25,14 @@ SRCC = roothistos.cxx\
 
 OBJ = $(patsubst %.c, $(O)/%.o, $(SRC))  $(patsubst %.cxx, $(O)/%.o, $(SRCC))
 
-LIB = $(O)/libanal.a 
-SOLIB = $(O)/libanal.so 
+LIB = $(L)/libanal.a 
+SOLIB = $(L)/libanal.so 
 
 include make.depend
 
 # ============================================================
 
-OUT : dirobj $(LIB) $(SOLIB)
+OUT : dirobj dirlib $(LIB) $(SOLIB)
 
 # dictionnary
 dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h

@@ -87,6 +87,7 @@ OYACC_OUTPUT = y.tab.o
 # Directories ==============================
 E = ../../../user/bin
 O = ../obj
+L = ../../../user/lib
 TK= ../../../user/tk
 PAR= ../../../user/par
 
@@ -105,6 +106,9 @@ all : OUT
 
 dirobj :
 	@ if [ ! -d $(O) ]; then (mkdir -p $(O);) fi
+
+dirlib :
+	@ if [ ! -d $(L) ]; then (mkdir -p $(L);) fi
 
 dirbin :
 	@ if [ ! -d $(E) ]; then (mkdir -p $(E);) fi
