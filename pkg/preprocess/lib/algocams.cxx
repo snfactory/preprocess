@@ -138,7 +138,10 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
   }
   
   char type[lg_name+1];
-  I->RdDesc("IMAGETYP",CHAR,lg_name+1,type);
+  if (I->RdIfDesc("IMAGETYP",CHAR,lg_name+1,type) <=0){
+    print_warning("AlgoOtcom::HackFitsKeywords no IMAGETYP keyword found");
+    type[0]=0;
+  }
   I->WrDesc("OBSTYPE",CHAR,lg_name+1,type);
 
   // The BiasSec contains a bad line (the last one)

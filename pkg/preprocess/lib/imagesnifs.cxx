@@ -176,7 +176,7 @@ void ImageSnifs::SubstractOverscan() {
   // set the biasframe if allowed
   char obstype[lg_name+1];
   RdDesc("OBSTYPE",CHAR,lg_name+1,obstype);
-  if (! strcmp(obstype,"BIAS")) {
+  if (! strcmp(obstype,"BIAS") ||GetFClass() == RAW_BIAS ) {
     int biasFrame=1;
     WrDesc("BIASFRAM",INT,1,&biasFrame);
   }
@@ -259,7 +259,7 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
   // set the darkframe if allowed
   char obstype[lg_name+1];
   RdDesc("OBSTYPE",CHAR,lg_name+1,obstype);
-  if (! strcmp(obstype,"DARK")) {
+  if (! strcmp(obstype,"DARK") || GetFClass()==RAW_DARK_FRAME ) {
     int darkFrame=1;
     WrDesc("DARKFRAM",INT,1,&darkFrame);
   }

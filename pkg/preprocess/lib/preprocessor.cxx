@@ -57,10 +57,13 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
 
   // build the names
   char imname[lg_name+1];
-  strcpy(imname,outName);
-  if (!outName[0])
+  if (!outName[0]) {
+    strcpy(imname,name);
     ut_build_tmp_name(imname,"bichip");
-  
+  }
+  else
+    strcpy(imname,outName);
+
   // store some data
   char dataSecString[lg_name+1],biasSecString[lg_name+1];
   image->RdDesc("DATASEC",CHAR,lg_name+1,dataSecString);
@@ -68,23 +71,37 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   Section dataSec(dataSecString);
   Section biasSec(biasSecString);
 
+  // detect if it is a raster
+  int isRaster=0;
+  int nAmp;
+  char ccdSecString[lg_name+1];
+  image->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  image->RdDesc("CCDNAMP",INT,1,&nAmp);
+  Section ccdSec(ccdSecString);
+  if (ccdSec.XLength()!=1024*nAmp) {
+    print_msg("Preprocessor::BuildRawBiChip detected a Raster image");
+    isRaster=1;
+  }
+
   // build now the images
   for (int chip=0;chip<2;chip++) {
     char extName[lg_name+1];
-    
+    int newDataXLength=dataSec.XLength()/2 - isRaster;
+    int newBiasXLength=biasSec.XLength()/2;
+
     im[chip] = new ImageSnifs(fMode,kIoAll);
     sprintf(extName,"%s[chip0%d]",imname,chip);
-    im[chip]->CreateFrame(extName,(dataSec.XLength()+biasSec.XLength())/2 , dataSec.YLength());
+    im[chip]->CreateFrame(extName,newDataXLength + newBiasXLength, dataSec.YLength());
     im[chip]->ImportHeader(image);
     double gain;
     char gainKey[lg_name+1];
     sprintf(gainKey,"CCD%dGAIN",chip);
     image->RdDesc(gainKey,DOUBLE,1,&gain);
     im[chip]->WrDesc("GAIN",DOUBLE,1,&gain);
-    sprintf(dataSecString,"[%d:%d,%d:%d]",1,dataSec.XLength()/2,1,dataSec.YLength());
+    sprintf(dataSecString,"[%d:%d,%d:%d]",1,newDataXLength,1,dataSec.YLength());
     
     im[chip]->WrDesc("DATASEC",CHAR,lg_name+1,dataSecString);
-    sprintf(biasSecString,"[%d:%d,%d:%d]",dataSec.XLength()/2+1,dataSec.XLength()/2+biasSec.XLength()/2,1,dataSec.YLength());
+    sprintf(biasSecString,"[%d:%d,%d:%d]",newDataXLength+1,newDataXLength+newBiasXLength,1,dataSec.YLength());
     
     im[chip]->WrDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
     bichip->SetChip(chip,im[chip]);
@@ -92,11 +109,11 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   // build the data section for frame 1
   Section sec;
   sec.SetX1(dataSec.X1());
-  sec.SetX2(dataSec.X2()/2);
+  sec.SetX2(dataSec.X2()/2-isRaster);
   sec.SetY1(dataSec.Y1());
   sec.SetY2(dataSec.Y2());
   im[0]->ImportSection(image,&sec,1,1,1,1);
-  sec.SetX1(dataSec.X2()/2+1);
+  sec.SetX1(dataSec.X2()/2+1+isRaster);
   sec.SetX2(dataSec.X2());
   im[1]->ImportSection(image,&sec,dataSec.X2()/2,1,-1,1);
   sec.SetX1(biasSec.X1());
@@ -120,9 +137,12 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
 
   // build the names
   char imName[lg_name+1];
-  strcpy(imName,outName);
-  if (!outName[0])
+  if (!outName[0]) {
+    strcpy(imName,name);
     ut_build_tmp_name(imName,"bias");
+  }
+  else
+    strcpy(imName,outName);
 
   BiChipSnifs * out = new BiChipSnifs(*bichip,imName,FLOAT,1,fMode,kIoAll);
   delete bichip;
