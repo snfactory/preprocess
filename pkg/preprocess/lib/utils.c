@@ -406,12 +406,12 @@ void ut_build_tmp_name(char* filename, char* tmp_prefix){
     pt_name = filename;
   else 
     pt_name = pt_name+1;
-  //  sprintf(imname,"mem://%s_%s",tmp_prefix,pt_name);
-  sprintf(imname,"%s_%s",tmp_prefix,pt_name);
+  sprintf(imname,"mem://%s_%s",tmp_prefix,pt_name);
+  //  sprintf(imname,"%s_%s",tmp_prefix,pt_name);
   strcpy(filename,imname);
 }
 
-/*-------------------- ut_build_tmp_name ----------------------*/
+/*-------------------- ut_primary_header_name ----------------------*/
 void ut_primary_header_name(char* full_name, char* primary_name){
   /* the primary header is the image name without any extension*/
 

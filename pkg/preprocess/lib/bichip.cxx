@@ -467,13 +467,22 @@ ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *
 /* ===== Ugly part ====================================================== */
 
 /* ----- HackFitsSecKeywords()  ------------------------------------------- */
-void  BiChipSnifs:: HackFitsKeywords()  {
+void  BiChipSnifs:: HackFitsKeywords(char* PrimaryName)  {
 
+  /* Unable to open the primary header !!!*/
+#ifdef FOR_FUTURE 
+  if (PrimaryName) { 
+    // overwrite the current header with the primary info
+    Anyfile primary_header;
+    open_primary_hd(&primary_header,PrimaryName,"I");
+    for (int chip=0;chip<NChips();chip++)
+      CP_non_std_desc(&primary_header,fChip[chip]->Frame());
+  }
+#endif
 
-  //for (int chip=0;chip<NChips();chip++) {
-  //  CP_non_std_desc(fPrimaryHeader,fChip[chip]->Frame());
-  //  fChip[chip]->HackFitsKeywords();
-  // }
+  for (int chip=0;chip<NChips();chip++) 
+    fChip[chip]->HackFitsKeywords();
+  
   
   // Easier place for the channel hack
   int channel=kBlueChannel;

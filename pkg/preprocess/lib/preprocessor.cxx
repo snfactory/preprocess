@@ -218,18 +218,23 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
 
     out = new BiChipSnifs(*bichip,imName,FLOAT,1,fMode,kIoAll);
     out->SetAlgo("DETCOM");
+    // keywords hacking
+    char primary_name[lg_name+1];
+    ut_primary_header_name(out->Chip(0)->Name(),primary_name);
+    out->HackFitsKeywords(primary_name);
     delete bichip;
   } else { 
     // otcom image : no need for an additional copy (was done in BuildRawBiChip )
     out = bichip;
+    // keywords hacking
+    out->HackFitsKeywords();
+
   }
     
   //
   // OK, we have now a working copy of the image !
   //
 
-  // keywords hacking
-  out->HackFitsKeywords();
 
   // variance creation
   if (!FastMode()) {

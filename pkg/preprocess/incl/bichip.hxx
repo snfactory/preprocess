@@ -61,22 +61,15 @@ class BiChipSnifs {
 
     void CreateVarianceFrame(char* VarianceNameRecipee="");
     void HandleSaturation();
-  //void AddOverscanVariance();
-    // void PreprocessBias();
-    //ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);
-    //ImageSnifs* PreprocessDark(char* OutName,BiChipSnifs *bias);
-    //ImageSnifs* PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark);
-    //ImageSnifs* Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs *flat);
 
     // Hacks
 
-    void HackFitsKeywords();
+    void HackFitsKeywords( char * PrimaryName=0 );
     void HackGainRatio();
 
   protected :
     ImageSnifs** fChip;
     int fNChips;
-  //    Anyfile* fPrimaryHeader;
   
 };
 

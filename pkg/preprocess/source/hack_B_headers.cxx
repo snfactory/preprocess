@@ -48,7 +48,8 @@ int main(int argc, char **argv) {
     char primary_name[lg_name+1];
     ut_primary_header_name(out->Chip(0)->Name(),primary_name);
     Anyfile primary_header;
-    open_primary_hd(&primary_header,primary_name,"IO");
+    //    open_primary_hd(&primary_header,primary_name,"IO");
+    open_primary_hd(&primary_header,primary_name,"I");
     for (int i=0;i<out->NChips();i++)
       
 
