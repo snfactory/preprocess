@@ -270,7 +270,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
 
 
     // ImportSection takes care of variance !
-    if (!chip%2)
+    if (!(chip%2))
       compound->ImportSection(fChip[chip],Sec,xStart+(chip*Sec->XLength())*xDir,yStart,xDir,yDir,gain);
     else
       compound->ImportSection(fChip[chip],Sec,xStart-xDir + (1+chip)*Sec->XLength()*xDir,yStart,-xDir,yDir,gain);
@@ -301,6 +301,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   // compound->WrDesc("NSATU",INT,1,&nSatu);
   // well ... bad idea
 
+  delete Sec;
   return compound;
 }
 
@@ -507,5 +508,7 @@ void  BiChipSnifs:: HackGainRatio()  {
   print_msg("GainRatio is %f\n",ratio);
 
   fChip[1]->WrDesc("GAIN",FLOAT,1,&gain);
+
+  delete sec;
 
 }
