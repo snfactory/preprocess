@@ -53,7 +53,7 @@ ImageStack::ImageStack(vector<ImageSimple*> Images) {
 ImageStack::ImageStack(CatOrFile *Cat, char * Mode){
   // The files are open in slice mode with 1 line buffer : 
   // the buffering is negligible with respect to the ios
-  char * fileName;
+  char fileName[lg_name+1];
   while(Cat->NextFile(fileName)) {
     ImageSimple * image = new ImageSimple(fileName,Mode,kIoSlice,1);
     fImageList.push_back(image);

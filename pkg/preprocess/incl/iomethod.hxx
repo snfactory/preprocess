@@ -26,15 +26,15 @@ class ImageSimple;
 
 
 /* ===== IO METHOD T ============================== */
-enum IoMethod_t {kIoPlain, kIoSlice};
-const int kIoAll = -1;
+enum IoMethod_t {kIoPlain, kIoSlice, kIoPlainDouble};
+const int kIoAll = -1; // flag to open all lines in Slice mode
 
 /* ===== IO METHOD ============================== */
 
 class IoMethod {
   public :
-    int Nx() const { return Frame()->nx;}
-    int Ny() const { return Frame()->ny;}
+    int Nx() const { return fFrame->nx;}
+    int Ny() const { return fFrame->ny;}
     char* Name() const { return Frame()->name; }
 
     // Wrappers to IMAGE2D methods (and very simple methods)

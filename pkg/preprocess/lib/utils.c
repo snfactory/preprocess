@@ -12,6 +12,20 @@ This files contains some generic utilities
 #include <gsl/gsl_sort.h>
 #include "IFU_io.h"
 #include "IFU_math.h"
+/* ----- Specific IFU includes ----- */
+#include "data_io.h"
+#ifdef FITS
+#include "fitsio.h"
+#endif
+#ifdef MIDAS
+#include "midas_defs.h"
+#include "tbldef.h"
+#include "fctext.h"
+#include "ldbext.h"
+#include "proto_st.h"
+
+#endif
+extern IO_Format InputIO, OutputIO;
 
 /* ----- local includes ----- */
 #include "utils.h"
@@ -52,7 +66,7 @@ double ut_min(double* values, int n)
   return min;
 }
 
-//---------------------------------- ut_trunc_sigma_known ------------------
+/* ----------------------------- ut_trunc_sigma_known -------------- */
 void ut_trunc_sigma_known(double** values, int * nitems, double sigma, double sigcut){
      /* trunc the data set, removing any value outside +/- sigcut sigma
        if sigcut<0, does noting .
@@ -99,7 +113,7 @@ void ut_trunc_sigma_known(double** values, int * nitems, double sigma, double si
 }
 
 
-//---------------------------------- ut_trunc_sigma_unknown ------------------
+/* ------------------------------- ut_trunc_sigma_unknown ------------------ */
 void ut_trunc_sigma_unknown(double** values, int * nitems, double sigcut){
      /* trunc the data set, removing any value outside +/- sigcut sigma
        if sigcut<0, does noting .
@@ -202,7 +216,7 @@ double ut_mode(double* val,int n){
     else if ( fabs(med - val[index[nmin]])  < fabs (med - val[index[nmax-1]]) )
       /* rounding in the good direction  in order to include the median place */
       nmax =  ( nmin + nmax)/2 + 1;
-    else // stop in case of equality
+    else /* stop in case of equality */
       nmax = nmin;
   } while (nmax-nmin > 2);
   
@@ -214,7 +228,7 @@ void ut_autocovariance(double* data, double* autocorr, int n) {
 /* data is of dim n, autocorr of dim n */
   int decal,i;
   double mean;
-  //  double var;
+  /*  double var; */
   double *mdata = malloc(sizeof(double)*n);
 
   /* compute the mean */
@@ -231,8 +245,8 @@ void ut_autocovariance(double* data, double* autocorr, int n) {
     autocorr[0]+=mdata[i]*mdata[i];
   }
   autocorr[0] /= n;
-  //var = autocorr[0];
-  //autocorr[0] = 1.0;
+  /* var = autocorr[0]; */
+  /* autocorr[0] = 1.0; */
 
   /* n^2 part */
   for (decal=1; decal<n; decal ++) {
@@ -241,7 +255,7 @@ void ut_autocovariance(double* data, double* autocorr, int n) {
       autocorr[decal]+=mdata[i]*mdata[i+decal];
     }
     autocorr[decal] /= (n-decal);
-    //    autocorr[decal] /= var;
+    /*    autocorr[decal] /= var; */
   }
   free(mdata);
   
@@ -261,6 +275,10 @@ void ut_varname_from_imname(char* imname,char* varname){
     strcpy(extname,"[var00]");
   if (strstr(imname,"[chip01]"))
     strcpy(extname,"[var01]");
+  if (strstr(imname,"[chip02]"))
+    strcpy(extname,"[var02]");
+  if (strstr(imname,"[chip03]"))
+    strcpy(extname,"[var03]");
   if (strstr(imname,"[image]"))
     strcpy(extname,"[variance]");
 
@@ -302,8 +320,7 @@ char* ut_create_check_name(char* name){
 
 /*-------------------- ut_varname_from_imname ----------------------*/
 int ut_is_bichip_detcom(char* filename){
-  /* returns the name of the variance image from the name of 
-   the image */
+  /* returns 1 if the name corresponds to a detcom image */
 
   char testName[lg_name+1];
   if (strstr(filename,"%d"))
@@ -318,10 +335,10 @@ int ut_is_bichip_detcom(char* filename){
 }
 
 
-/*-------------------- ut_varname_from_imname ----------------------*/
+/*-------------------- ut_build_tmp_name ----------------------*/
 void ut_build_tmp_name(char* filename, char* tmp_prefix){
-  /* returns the name of the variance image from the name of 
-   the image */
+  /* builds a temporary memory file name from the image name and a
+  prefix */
   char imname[lg_name+1], *pt_name;
 
   if (!(pt_name = strrchr(filename,'/')))
@@ -332,6 +349,386 @@ void ut_build_tmp_name(char* filename, char* tmp_prefix){
   strcpy(filename,imname);
 }
 
+/* ===== IFU lib disagreement ======================================== */
 
 
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!
+!.func                        open_frame_fast()
+!
+!.purp          opens a 2D frame and updates the image structure items
+!.desc
+! open_frame(frame,name,mode)	
+!
+! IMAGE2D *frame;       image structure
+! char *name;           frame name
+! char *mode;           open mode (Input,Ouput,IO)
+!.ed
+-------------------------------------------------------------------- */
+int 
+open_frame_fast(IMAGE2D *frame, char *name, char *mode)		
+{
+	char errtext[132], filename[lg_name+1];
+  	int status, nbaxes, iomode, int_datatype;
+  	int one=1;
+  	float cuts[4];
+	int info[5];
+#ifdef IRAF
+  	int two_dim=2;
+	int len;
+#endif
+#ifdef FITS
+    fitsfile *fptr;
+    int nbread;
+	int npix;
+	int group = 0;
+#endif
+
+	memset(frame->ident,' ',lg_ident);
+	frame->ident[lg_ident] = '\0';
+	memset(frame->cunit,' ',lg_unit);
+	frame->cunit[lg_unit] = '\0';
+	memset(frame->history,' ',lg_hist);
+	frame->history[lg_hist] = '\0';
+	frame->external_info = 0;
+	frame->file_type = IMA_TYPE;
+	frame->data_format = InputIO.basic_io;
+
+	strcpy(filename,name);
+ 	first_blk(filename); 
+	strcpy(frame->name,filename);
+	append_ima_extension(frame->name,InputIO.basic_io);
+
+	strcpy(filename,frame->name);
+
+	if (!exist(filename)) { /* check if fil exists */
+		status = ERR_OPEN;
+		sprintf(errtext,"open_frame: frame %s",filename);
+		Handle_Error(errtext,status);
+		return(status);
+        }
+
+	switch(mode[0]) {
+		case 'I' : 
+			if (mode[1] == 'O')
+				frame->iomode = (int)IO_MODE;
+			else
+				frame->iomode = (int)I_MODE;
+			break;
+		case 'O' : frame->iomode = (int)O_MODE;
+			break;
+		default  : frame->iomode = (int)I_MODE;
+			break;
+	}
+	
+    iomode = get_iomode_code(InputIO.basic_io,frame->iomode);
+
+    switch (InputIO.basic_io) {
+
+#ifdef MIDAS
+	case MIDAS_FORMAT :
+		status = SCFINF(filename,2,info);  
+		if (status == 0) {
+  			status = SCIGET(filename, info[1], iomode, F_IMA_TYPE, 2, 
+  		    &nbaxes, &(frame->nx), &(frame->startx), &(frame->stepx),
+  		    frame->ident, frame->cunit, (char **)(&(frame->data)), 
+  		    &(frame->imno));
+		    frame->data_type = info[1];
+		    frame->data_type = decode_datatype(InputIO.basic_io,frame->data_type);
+
+		    if(nbaxes!=2) /* We open a spectrum like an image , and that's not good */
+		      status = ERR_OPEN; 
+
+		}
+		break;
+#endif
+#ifdef IRAF
+    case IRAF_FORMAT :
+    case STSDAS_FORMAT :
+		len = strlen(filename);
+        uimopn(filename,&iomode,&(frame->imno),&status,len);
+        if (status != 0) 
+			break;
+        uimgid(&(frame->imno),&int_datatype,&two_dim,&(frame->nx),&status);
+		frame->data_type = decode_datatype(InputIO.basic_io,(short)(int_datatype));
+       	if (status != 0)
+			break;
+		alloc_frame_mem(frame, datatype);
+		switch(frame->data_type) {
+		case SHORT :
+   			uigs2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.s_data,&status);
+			break;
+		case INT :
+		case LONG :
+   			uigs2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.l_data,&status);
+			break;
+		case FLOAT :
+   			uigs2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.f_data,&status);
+			break;
+		case DOUBLE :
+   			uigs2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.d_data,&status);
+			break;
+        }
+		disable_user_warnings();
+	  	RD_desc(frame,"IDENT",CHAR,lg_ident,frame->ident);
+		restore_user_warnings();
+		break;
+#endif
+#ifdef FITS
+	case FITS_A_FORMAT :
+    case FITS_B_FORMAT :
+	status =0;
+	if (fits_open_file(&fptr,filename,iomode,&status)) {
+		status = ERR_ACCESS; break;
+	}
+	frame->external_info = (void *)fptr;
+	if (fits_read_key(fptr, TINT,"NAXIS", &nbaxes,NULL, &status)) {
+		status = ERR_READ; break;
+	}
+	if (nbaxes != 2) {
+		status = ERR_IMA_HEAD; break;
+	}
+        if (fits_read_key(fptr, TINT, "NAXIS1",
+		&(frame->nx), NULL, &status)) {
+		status = ERR_READ; break;
+	}
+        if (fits_read_key(fptr, TINT, "NAXIS2",
+		&(frame->ny), NULL, &status)) {
+		status = ERR_READ; break;
+	}
+	if (status == 0) {
+		fits_read_key(fptr, TINT, "CRPIX1", &one, NULL, &status);
+		if (status) { status = 0; one = 1; }
+		fits_read_key(fptr, TDOUBLE, "CRVAL1", &(frame->startx), NULL, &status);
+		if (status) { status = 0; frame->startx = (double)1; }
+		fits_read_key(fptr, TDOUBLE, "CDELT1", &(frame->stepx), NULL, &status);
+		if (status) { status = 0; frame->stepx = (double)1; }
+	    	frame->startx -= (one-1)*frame->stepx;
+		fits_read_key(fptr, TINT, "CRPIX2", &one, NULL, &status);
+		if (status) { status = 0; one = 1; }
+		fits_read_key(fptr, TDOUBLE, "CRVAL2", &(frame->starty), NULL, &status);
+		if (status) { status = 0; frame->starty = (double)1; }
+		fits_read_key(fptr, TDOUBLE, "CDELT2", &(frame->stepy), NULL, &status);
+		if (status) { status = 0; frame->stepy = (double)1; }
+	    frame->starty -= (one-1)*frame->stepy;
+	}
+	else
+		break;
+
+	int_datatype = (fptr->Fptr->tableptr)->tdatatype;
+	frame->data_type = decode_datatype(InputIO.basic_io,(short)int_datatype);
+	if (frame->data_type == SHORT) {
+		if (fptr->Fptr->tableptr[1].tscale == 1 && fptr->Fptr->tableptr[1].tzero == 32768)
+			/* unsigned short !!! */
+			frame->data_type = LONG;
+	}
+
+	if (alloc_frame_mem(frame, frame->data_type) < 0) {
+		fits_close_file(fptr,&status);
+		status = ERR_ALLOC;
+		break;
+	}
+
+	npix = frame->nx*frame->ny;
+	switch (frame->data_type) {
+	case SHORT :
+		if (fits_read_img_sht(fptr,group,1L,npix,(short)0,
+			frame->data.s_data,&nbread,&status)) {
+			status = ERR_READ; break;
+		}
+		break;
+	case LONG :
+	case INT :
+		if (fits_read_img_lng(fptr,group,1L,npix,(int)0,
+			frame->data.l_data,&nbread,&status)) {
+			status = ERR_READ; break;
+		}
+		break;
+	case FLOAT :
+		if (fits_read_img_flt(fptr,group,1L,npix,(float)0,
+			frame->data.f_data,&nbread,&status)) {
+			status = ERR_READ; break;
+		}
+		break;
+	case DOUBLE :
+		if (fits_read_img_dbl(fptr,group,1L,npix,(double)0,
+			frame->data.d_data,&nbread,&status)) {
+			status = ERR_READ; break;
+		}
+		break;
+	}
+		break;
+#endif
+	}
+
+  	if (status) {
+		sprintf(errtext,"open_frame: frame %s",filename);
+		status = get_tiger_errcode(frame->data_format,status);
+		Handle_Error(errtext,status);
+	}
+  	else {
+		disable_user_warnings();
+	  	status = RD_desc(frame,"LHCUTS",FLOAT,4,cuts);
+		RD_desc(frame,"HISTORY",CHAR,lg_hist,frame->history);
+		restore_user_warnings();
+
+  		frame->endx = frame->startx + (frame->nx -1)*frame->stepx;
+  		frame->endy = frame->starty + (frame->ny -1)*frame->stepy;
+                /* image_minmax is a really slow routine, and most of the time useless */
+		if (status <= 0) {
+                  frame->min = -ut_big_value;
+                  frame->max = +ut_big_value;
+                  /*			image_minmax(frame); */
+		}
+		else {
+	  		frame->min = cuts[2];
+	  		frame->max = cuts[3];
+		}
+		status = 0;
+  	}
+  	return(status);
+}
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!
+!.func                       close_frame_fast()
+!
+!.purp             closes a currently active 2D frame 
+!.desc
+! close_frame(frame)	
+!
+! IMAGE2D *frame;       image structure
+!.ed
+-------------------------------------------------------------------- */
+int 
+close_frame_fast(IMAGE2D *frame)			/* close active frame */
+{
+	char   errtext[132], filename[lg_name+1];
+	int    stat, int_datatype;
+        /*	float  cuts[4]; */
+#ifdef IRAF
+	int one=1;
+#endif
+#ifdef FITS
+    fitsfile *fptr;
+	int npix;
+#endif
+
+	strcpy(filename,frame->name);
+
+	if (frame->iomode == (int)I_MODE) {
+		switch (frame->data_format) {
+#ifdef MIDAS
+		case MIDAS_FORMAT :
+			stat = SCFCLO(frame->imno);
+			break;
+#endif
+#ifdef IRAF
+		case IRAF_FORMAT :
+		case STSDAS_FORMAT :
+		uimclo(&(frame->imno),&stat);
+		break;
+#endif
+#ifdef FITS
+		case FITS_A_FORMAT :
+    		case FITS_B_FORMAT :
+			stat =0;
+			fptr = (fitsfile *)frame->external_info;
+	    		fits_close_file(fptr,&stat);
+			free_frame_mem(frame);
+			frame->external_info = NULL;
+			break;
+#endif
+		}
+  		if (stat) {
+			sprintf(errtext,"close_frame: frame %s",filename);
+			stat = get_tiger_errcode(frame->data_format,stat);
+			Handle_Error(errtext,stat);
+		}
+	  	return(stat);
+	}
+        /* image_minmax is a really slow routine, and most of the time useless */
+        /*
+	if (frame->data.d_data != NULL) {
+		image_minmax(frame);
+
+		cuts[0]=frame->min; cuts[2]=frame->min;
+		cuts[1]=frame->max; cuts[3]=frame->max;
+		stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
+	}
+        */
+	WR_history(frame, (Anyfile *)0);
+
+	switch (frame->data_format) {
+#ifdef MIDAS
+	case MIDAS_FORMAT :
+		stat = SCFCLO(frame->imno);
+		break;
+#endif
+#ifdef IRAF
+	case IRAF_FORMAT :
+	case STSDAS_FORMAT :
+		switch(frame->data_type) {
+		case SHORT :
+        	uips2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.s_data,&stat);
+			break;
+		case INT :
+		case LONG :
+        	uips2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.l_data,&stat);
+			break;
+		case FLOAT :
+        	uips2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.f_data,&stat);
+			break;
+		case DOUBLE :
+        	uips2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+				frame->data.d_data,&stat);
+			break;
+		}
+		if (stat == 0)  
+			uimclo(&(frame->imno),&stat);
+		free_frame_mem(frame);
+	break;
+#endif
+#ifdef FITS
+	case FITS_A_FORMAT :
+    case FITS_B_FORMAT :
+	stat = 0;
+	fptr = (fitsfile *)frame->external_info;
+	if (frame->iomode != (int)I_MODE) {
+		if (frame->data.d_data != NULL) {
+			int_datatype = get_datatype_code(OutputIO.basic_io,frame->data_type);
+			npix = frame->nx*frame->ny;
+			if (fits_write_img(fptr,int_datatype,1L,npix,
+				frame->data.s_data,&stat)) {
+				stat = ERR_WRIT;
+			}
+		}
+	}
+	if (! stat)
+	    fits_close_file(fptr,&stat);
+	free_frame_mem(frame);
+	frame->external_info = NULL;
+	break;
+#endif
+	}
+  	if (stat) {
+		sprintf(errtext,"close_frame: frame %s",filename);
+		stat = get_tiger_errcode(frame->data_format,stat);
+		Handle_Error(errtext,stat);
+	} else {
+		if(TK && (frame->iomode == O_MODE || frame->iomode == IO_MODE))
+		{
+			printf("@ N {%s}\n",filename);
+		}
+	}
+
+  	return(stat);
+}
 

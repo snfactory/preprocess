@@ -67,8 +67,10 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
   
   int fclass;
   if (I->RdIfDesc("FCLASS",INT,1,&fclass)<=0) {
+    // The logic is that if no fclass, don't propagate.
     // no fclass -> put one
-    I->SetFClass(DONT_KNOW);
+    // print_warning("AlgoDetcom::HackFitsKeywords : no FCLASS found");
+    //    I->SetFClass(DONT_KNOW);
   }
 }
 
@@ -151,7 +153,7 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
 
   int saturate = 65535;
   if (I->RdIfDesc("SATURATE",INT,1,&saturate) <=0) {
-    print_warning("AlgoOtcom::HackFitsKeywords no SATURATE keyword found");
+    //    print_warning("AlgoOtcom::HackFitsKeywords no SATURATE keyword found");
     I->WrDesc("SATURATE",INT,1,&saturate);
   }
   
@@ -173,7 +175,8 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
   int fclass;
   if (I->RdIfDesc("FCLASS",INT,1,&fclass)<=0) {
     // no fclass -> put one
-    I->SetFClass(DONT_KNOW);
+    // print_warning("AlgoOtcom::HackFitsKeywords : no FCLASS found");
+    //    I->SetFClass(DONT_KNOW);
   }
 }
 

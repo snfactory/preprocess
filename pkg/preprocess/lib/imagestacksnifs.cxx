@@ -45,7 +45,7 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode){
   }
 
   int nDone=0;
-  ImageSnifs * imRef;
+  ImageSnifs * imRef=0;
   do {
     if (ut_is_bichip_detcom(fileName)) {
       print_error("ImageStackSnifs::ImageStackSnifs can not read bichips %s",fileName);

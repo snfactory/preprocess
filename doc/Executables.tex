@@ -24,13 +24,21 @@ An ideal session of preprocessing could look like this
    -bias BIAS_FRAME.fits -dark PRE_DARK_FRAME.fits
 > preprocess -in RAW_OBJ_FRAME.cat -out almost_PRE_OBJ_FRAME.cat\
    -bias BIAS_FRAME.fits -dark PRE_DARK_FRAME.fits -flat\
-   PRE_flat_FRAME.fits
+   PRE_flat_FRAME.fits 
 \end{verbatim}
 If you are only interested in basic preprocessing without bias, dark
-of flat-field corrections, you can directly use
+of flat-field corrections, and do not need any variance frame, you can
+directly use 
 \begin{verbatim}
-> preprocess -in RAW_OBJ_FRAME.cat -out almost_PRE_OBJ_FRAME.cat
+> preprocess -in RAW_OBJ_FRAME.cat -out almost_PRE_OBJ_FRAME.cat -fast
 \end{verbatim}
+By default, the preprocessing does not handle the guiding image. If
+you want it glued together to the photometric image, you have to add a
+-all option : 
+\begin{verbatim}
+> preprocess -in RAW_OBJ_FRAME.cat -out almost_PRE_OBJ_FRAME.cat -all
+\end{verbatim}
+
 These steps can then be completed,
 for the photometric channel by
 \begin{verbatim}
@@ -51,7 +59,13 @@ subdirectory.
 The rest of the line consists of program arguments. The {\tt -xx}
 arguments can be placed in any order on the command line, but must be
 followed by their non-dashed parameters (so this is the entire block
-like {\tt -xx yy.fits} that may be moved). The
+like {\tt -xx yy.fits} that may be moved). In addition to the specific
+arguments listed above, there are all the IFU library standard
+arguments available. The most useful are {\tt -h} 
+for summary help
+and {\tt -noask} if you don't want the prompt before overwriting an
+existing file.
+The
 {\verb \  } 
 indicates the continuation of the command line to the next one.
 The file arguments are indicated as fits files ({\tt .fits}) or catalogs ({\tt .cat}).
@@ -134,25 +148,22 @@ routine from the library (see the corresponding chapter for developpers).
 
 \begin{subsection}{Current limitations of the preprocessing code}
 
-The list of the code limitations is part of a todo list, and part of
-features which come from the non-perfect online state of the raw
-datas
+The list of the code limitations contains both things that will be
+improved in the future, and a list of code features, which are listed
+for the knoiwledge
 
 \begin{itemize}
-\item There are reports that the code produces a run-time error if
-compiled with gcc 2.95. It is working with gcc 2.96 and gcc 3.2.
-\item OTcom images containing 4 preamplifiers glued together are not
-supported. (Photometric channel)
 \item Raster images are glued together, even if it is not a contiguous
 image. 
 OTcom raster images get 2 lines with bad data in the middle
 columns of the exposure. Those lines are removed at the preprocessing
 stage.
 \item Most of detcom raster images will not contain an overscan
-region. In addition, the DATASEC keyword may not be accurate. 
-The preprocessing code was not tested in that case and will surely
-fail. Even if it does not fail, the absence of an overscan information
-can not be cured at the preprocessing stage.
+region. In that case, an estimate of the offset is performed from the
+data region itself. This of course only senseful for exposures where
+most of the pixels measure zero, like for instance an arc exposure.
+This behaviour is useful for the focus exposures. Other detcom raster
+exposures will have an uncontrolled zero substracted to them...
 \item The preprocessing does not know how to handle a DETCOM binned image,
 or a DETCOM raster image with overscan. In addition, in case of a DETCOM
 raster, the CCDSEC fits keyword is wrong from online, and is not
@@ -162,11 +173,13 @@ it will not help improving the noise.
 \item The {\tt -stackout} option for {\tt preprocess\_dark} was not
 fully tested, but is believed to work.
 \item The {\tt preprocess\_flat} program assumes a photometric
-exposure. No high-frequency flat-field is done.
+exposure. No high-frequency flat-field is performed.
 \item The {\tt split\_image} program does not smartly guess the
-multi-filter parts.
-\item No defringing is performed
+multi-filter parts, and the values are hardcoded from theoretical
+regions, and were not updated with respect to real data.
+\item No defringing is performed.
 \item No linearity correction is applied.
+\item No cosmetic map is applied
 \item If the fits headers do not contain accurate inverse gain
 numbers, the scaling of the image between left and right side will be
 random.
@@ -211,7 +224,7 @@ loading of images mechanism, and is here only for benchmarking.
 \item {\tt test\_extension} is a test program for the IFU library, to
 see
 how it handles fits file extensions.
-\item {\tt wr\_desc} is a clone of the gentool wr\_desc, but with the
+\item {\tt wr\_desc\_cat} is a clone of the gentool wr\_desc, but with the
 following modifications : it only accepts 2D frames, but it handles
 catalog as input and output.
 \end{itemize}

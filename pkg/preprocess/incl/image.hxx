@@ -39,13 +39,13 @@ class ImageSimple {
     virtual ~ImageSimple();
 
     // Wrappers to IMAGE2D content
-    int Nx() const { return Io()->Nx();}
-    int Ny() const { return Io()->Ny();}
+    int Nx() const { return fIo->Nx();}
+    int Ny() const { return fIo->Ny();}
     char* Name() const { return Io()->Name(); }
 
     // Wrappers to IMAGE2D methods (and very simple methods)
-    void WrFrame(int col, int line, double value) {Io()->WrFrame(col,line,value);};
-    double RdFrame(int col, int line) const {return Io()->RdFrame(col,line);}
+    void WrFrame(int col, int line, double value) {fIo->WrFrame(col,line,value);};
+    double RdFrame(int col, int line) const {return fIo->RdFrame(col,line);}
     int WrDesc(char* Descr, short Type, int NbElements, void* Values);
     int RdDesc(char* Descr, short Type, int NbElements, void* Values) const;
     int RdIfDesc(char* Descr, short Type, int NbElements, void* Values) const;

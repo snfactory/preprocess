@@ -216,7 +216,7 @@ void IoSlice::LoadFromLine(int Line,int Read){
   else
     fLastLine = Ny();
   // load only existing lines
-  int first;
+  int first=-111; // arbitrary value to placate compiler
   for (int line = fFirstLine; line < fLastLine; line++ ) {
     while (line <fLastLine && !fExists[line])
       line++;
@@ -275,7 +275,7 @@ void IoSlice::LoadLineRange(int First, int Last){
   }
 }
 
-/* ----- SetMaxLines ---------------------------------------------- */
+/* ----- WriteCurrent ---------------------------------------------- */
 void IoSlice::WriteCurrent(){
 
   if (Frame()->iomode == (int)I_MODE)

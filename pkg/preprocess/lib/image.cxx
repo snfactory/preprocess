@@ -136,7 +136,7 @@ int ImageSimple::Inside(int Xc,int Yc) const {
     return 0;
 }
 
-/* ----- Inside  -------------------------------------------------- */
+/* ----- MinMax  -------------------------------------------------- */
 void ImageSimple::MinMax(Section* Sec, double * min, double * max) {
   // sets the minimum and maximum value of the frame
 
@@ -155,7 +155,7 @@ void ImageSimple::MinMax(Section* Sec, double * min, double * max) {
 
 /* ----- ImportSection  -------------------------------------------------- */
 void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir,int YDir,double ZScale) {
-  // puts the section Sec at starting pos X1Start,
+  // puts the section Sec at starting pos X1Start (1=first),
   // and clips the image without warnings if it goes outside bounds
   // X/Y Dir are set to -1 to flip the image
   // ZScale will scale the image imported
@@ -167,7 +167,7 @@ void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Sta
   }
 
   double val;
-
+  /* OLD 
   for (int iy = Sec->YFirst(); iy<Sec->YLast();iy++)
     for (int ix = Sec->XFirst(); ix<Sec->XLast();ix++)
       if ( From->Inside(ix,iy) 
@@ -178,6 +178,57 @@ void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Sta
         WrFrame( X1Start-1+(ix-Sec->XFirst())*XDir,
                  Y1Start-1+(iy-Sec->YFirst())*YDir,val);
       }
+  */
+  int iylow = Sec->YFirst();
+  if (iylow <0) 
+    iylow=0;
+  int iyup = Sec->YLast();
+  if (iyup > From->Ny())
+    iyup = From->Ny();
+  if (YDir==1) {
+    if ((Y1Start-1+(iylow-Sec->YFirst())) <0)
+      iylow = -Y1Start+1+Sec->YFirst();
+    if ((Y1Start-1+(iyup-Sec->YFirst())) >Ny() )
+      iyup = Ny()-Y1Start+1+Sec->YFirst();
+  } else {
+    if ((Y1Start-1-(iylow-Sec->YFirst())) >=Ny())
+      iylow = Y1Start + Sec->YFirst() - Ny();
+    if ((Y1Start-1-(iyup-Sec->YFirst())) <-1 )
+      iyup = Y1Start + Sec->YFirst();
+  }
+  int ixlow = Sec->XFirst();
+  if (ixlow<0)
+    ixlow = 0;
+  int ixup = Sec->XLast();
+  if (ixup>From->Nx())
+    ixup = From->Nx();
+  if (XDir==1) {
+    if ((X1Start-1+(ixlow-Sec->XFirst())) <0)
+      ixlow = -X1Start+1+Sec->XFirst();
+    if ((X1Start-1+(ixup-Sec->XFirst())) >Nx() )
+      ixup = Nx()-X1Start+1+Sec->XFirst();
+  } else {
+    if ((X1Start-1-(ixlow-Sec->XFirst())) >=Nx())
+      ixlow = X1Start + Sec->XFirst() - Nx();
+    if ((X1Start-1-(ixup-Sec->XFirst())) <-1 )
+      ixup = X1Start + Sec->XFirst();
+  }
+
+  // inlining
+  int SecYFirst = Sec->YFirst();
+  int SecXFirst = Sec->XFirst();
+
+  for (int iy = iylow; iy<iyup;iy++)
+    for (int ix = ixlow; ix<ixup;ix++) {
+      //      if ( From->Inside(ix,iy) 
+      //     && Inside ( X1Start-1+(ix-Sec->XFirst())*XDir,
+      //                 Y1Start-1+(iy-SecYFirst)*YDir)) {
+ 
+        val = From->RdFrame(ix,iy)*ZScale;
+        WrFrame( X1Start-1+(ix-SecXFirst)*XDir,
+                 Y1Start-1+(iy-SecYFirst)*YDir,val);
+    }
+
 }
 
 /* ----- ImportSection  -------------------------------------------------- */
@@ -317,7 +368,7 @@ double ImageSimple::MeanValue(Section* Sec,int step) {
   //Computes the mean value of the section data
   // the step factor is here to speed-up the computation
   
-  double sum;
+  double sum=0;
   int i,j,n=0;
 
   i = Sec->XFirst();
@@ -605,21 +656,26 @@ void ImageSimple::OddEvenCorrect(Section* S,double* param, double sigcut ) {
 /* ----- AddPoissonNoise-------------------------------------------------- */
 void ImageSimple::AddPoissonNoise() {
   
+  double poisNois;
   for (int j=0;j<Ny();j++)
     for (int i=0;i<Nx();i++) {
-      if (RdFrame(i,j)>0) { 
-        double val = Variance()->RdFrame(i,j)+RdFrame(i,j);
+      if ((poisNois = RdFrame(i,j))>0) { 
+        double val = Variance()->RdFrame(i,j)+poisNois;
         Variance()->WrFrame(i,j,val);
       }
     }
 }
 
-/* ----- AddPoissonNoise-------------------------------------------------- */
+/* ----- HandleSaturation -------------------------------------------------- */
 void ImageSimple::HandleSaturation(double Level) {
+  // there is an additional trick, in order to remove ptential bleeding 
   for (int j=0;j<Ny();j++)
     for (int i=0;i<Nx();i++) {
-      if (RdFrame(i,j)>=Level)
-        Variance()->WrFrame(i,j,1.e10);
+      if (RdFrame(i,j)>=Level) {
+        Variance()->WrFrame(i,j,ut_big_value);
+        if (j>0) Variance()->WrFrame(i,j-1,ut_big_value);
+        if (j+1<Ny()) Variance()->WrFrame(i,j+1,ut_big_value);
+      }
     }
 }
 

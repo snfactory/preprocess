@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -bias null -dark null -flat null -fast");
+  set_arglist("-in none -out none -bias null -dark null -flat null -fast -all");
   init_session(argv,argc,&arglabel,&argval);
 
   char inName[lg_name+1],outName[lg_name+1];
@@ -45,6 +45,8 @@ int main(int argc, char **argv) {
   Preprocessor P;
   if (is_true(argval[5]))
     P.SetFastMode(1);
+  if (is_true(argval[6]))
+    P.SetAllImage(1);
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     

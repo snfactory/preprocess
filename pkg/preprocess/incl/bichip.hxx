@@ -16,6 +16,9 @@
 /*
   BiChip : methods that are relevant to a CCd image split in 2 readout preamps.
   We suppose here the SNIFS environment
+
+  There is a special case of bichips having 4 amplifiers : this corresponds to 
+  the phtometric + guider images.
 */
 
 /* ----- local includes -----*/
@@ -29,10 +32,13 @@ class AlgoCams;
 class BiChipSnifs {
   public :
 
-    BiChipSnifs();
+    BiChipSnifs(int NChips=2);
     BiChipSnifs(char* ChipNameRecipee,char* mode="Input", IoMethod_t Method=kIoPlain,int MParam=0);
     BiChipSnifs(const BiChipSnifs &image,char* NewNameRecipee,short newtype = 0,int copydata=0,IoMethod_t Method=kIoPlain,int MParam=0);
     ~BiChipSnifs();
+
+    // Getters
+    int NChips() const {return fNChips;}
 
     // Utilities
     void CheckNameRecipee(char* ChipNameRecipee);  
@@ -67,7 +73,9 @@ class BiChipSnifs {
     void HackGainRatio();
 
   protected :
-    ImageSnifs* fChip[2];
+    ImageSnifs** fChip;
+    int fNChips;
+  
 };
 
 

@@ -13,8 +13,12 @@ C_mathLIBS_PATH = @ac_ifucmathlibs@
 
 # I/O and general
 GENLIB = $(C_ioLIBS_PATH)/C_libs/obj/genlib.a 
-
 IOLIB = $(C_ioLIBS_PATH)/C_libs/io/obj/libio.a $(GENLIB)
+
+# Specific flags
+FITS_FLAG = -DFITS
+MIDAS_FLAG = -DMIDAS
+IRAF_FLAG =
 
 # Maths
 #NAGLIB = $(C_mathLIBS_PATH)/C_libs/obj/sublibnag.a 
@@ -48,6 +52,8 @@ INC =  $(C_ioLIBS_PATH)/incl
 LINC = $(C_mathLIBS_PATH)/incl
 GSLINC = @ac_gsl@/include
 FITSINC = $(C_ioLIBS_PATH)/C_libs/io/cfitsio
+MIDASINC = $(C_ioLIBS_PATH)/C_libs/io/midas_io
+
 PKG_INC = ../../incl
 USER_INC = ../incl
 LOCAL_INC =  /usr/local/include
@@ -56,8 +62,10 @@ MISC_INC = $(topdir)/../Snifs_misc/incl/
 
 # Compilation commands ==============================
 C_ADDOPT = @C_ADDOPT@
+DEBUG = @DEBUG@
+STRIP = @STRIP@
 
-CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV -I$(MISC_INC)
+CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) -I$(MIDASINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV -I$(MISC_INC)
 FFLAGS = $(F_OPT) -I$(PKG_INC) -I$(INC) -I$(USER_INC) -I$(LOCAL_INC)
 
 C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
@@ -68,8 +76,8 @@ CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
 		$(ADD_LIBS) $(DISLIB)
 
 F_COMPILE = $(F77) $(DEBUG) $(FFLAGS) -c $(@F:.o=.f) && mv $(@F) $@
-LDF = -lm
-LDSOF = -lm -shared
+LDF = -lm @LDF@
+LDSOF = -lm -shared @LDF@
 
 # Lex & Yacc ==============================
 LEXOUTPUT = y.tab.o
@@ -85,15 +93,11 @@ PAR= ../../../user/par
 OBJ =
 EXE =
 
-DEBUG = 
-
 # Tcl/tk ==============================
 UPDATE_BIN = cp $? $(E)
 UPDATE_PAR = cp $? $(PAR)
 UPDATE_TK = cp $? $(TK)
 REINDEX   = echo "auto_mkindex ." > reindex; tclsh reindex; rm reindex
-
-STRIP = strip
 
 .SUFFIXES: .o .c .for .h .l .y
 

@@ -49,6 +49,9 @@ class Preprocessor {
     void SetOverscanAuto(ImageSnifs* Image);
     void SetFastMode(int IsFast) {fFast = IsFast;}
     int FastMode() {return fFast;}
+    void SetAllImage(int IsAll) {fAllImage = IsAll;}
+    int GetAllImage() {return fAllImage;}
+  
 
     // method
 
@@ -72,7 +75,7 @@ class Preprocessor {
     OverscanSnifs * fOverscanSnifs;
     OverscanSnifs * fOverscanRescue;
     int fFast; // if =1 : only basic algorithms applied
-  
+    int fAllImage; // =1 => all image =0 => only 2 first chips
 };
 
 

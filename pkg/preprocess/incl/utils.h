@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 const double ut_big_value = 1e31;
-  
+#include "IFU_io.h"  
 
 /* ----- median of the values ----- */
 double ut_median(double* values, int n);
@@ -30,12 +30,15 @@ void ut_varname_from_imname(char* imname,char* varname);
 
 char* ut_open_check_name(char* name);
 
-
 char* ut_create_check_name(char* name);
   
 int ut_is_bichip_detcom(char* filename);
 
 void ut_build_tmp_name(char* filename, char* tmp_prefix);
+
+int close_frame_fast(IMAGE2D *frame);
+
+int open_frame_fast(IMAGE2D *frame, char *name, char *mode);
   
 
 #ifdef __cplusplus

@@ -77,7 +77,7 @@ ImageSnifs::~ImageSnifs(){
 /* ----- FClass  ------------------------------ */
 int ImageSnifs::GetFClass(){
   int fclass=DONT_KNOW;
-  RdDesc("FCLASS",INT,1,&fclass);
+  RdIfDesc("FCLASS",INT,1,&fclass);
   return fclass;
 }
 

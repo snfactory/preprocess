@@ -33,6 +33,7 @@ Preprocessor::Preprocessor () {
   fOverscanRescue = new OverscanFromData();
   fOverscan = fOverscanSnifs; // default current overscan
   fFast=0;
+  fAllImage=0;
 }
 
 /* ----- destructor ---------------------------------------- */
@@ -61,30 +62,12 @@ void Preprocessor::SetOverscanAuto(ImageSnifs* Image){
 
 /* ----- BuildRawBiChip -------------------------------------------------- */
 BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
+  // returns the original bichip for detcom image
+  // reconstructs a bichip from raw data for otcom image.
+
   // detcom bichips are with extensions [chip00] or must contain a %d in name
   // so we check the %
   // by default, the bichip is loaded read only in totality
-  BiChipSnifs* bichip;
-
-  if (ut_is_bichip_detcom(name)) {
-    bichip = new BiChipSnifs(name,"I",fMode,kIoAll);
-    // not allowed because I mode
-    //    bichip->SetAlgo("DETCOM");
-    return bichip;
-  }
-  
-  // we may have an otcom bichip
-  ImageSnifs* image = new ImageSnifs(name);
-
-  // otcom image is already assembled, with bias put somewhere at the end
-  // a part of the bias is not OK, but I do not know yet how the bias is 
-  // ordered with respect to readout time. 
-  // so I assume :
-  // chip0 1->1024 chip1 1024->1 bias0 1025->1057 bias 1 1057->1025
-
-  // build the bichip and read necessary values from the image
-  bichip = new BiChipSnifs();
-  ImageSnifs* im[2];
 
   // build the names
   char imname[lg_name+1];
@@ -95,14 +78,39 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   else
     strcpy(imname,outName);
 
-  // store some data
+  BiChipSnifs* bichip;
+
+  // First case : DETCOM
+
+  // We could have made a copy of the bichip at this stage,
+  // but we want to allow for an utilitary routine converting
+  // otcom->detcom without time overhead in case of an original
+  // detcom image
+  if (ut_is_bichip_detcom(name)) {
+    bichip = new BiChipSnifs(name,"I",fMode,kIoAll);
+    // not allowed because I mode
+    //    bichip->SetAlgo("DETCOM");
+    return bichip;
+  }
+  
+  // Default : OTCOM
+  //
+  // otcom image is already assembled, with bias put somewhere at the end
+  // so I assume :
+  // chip0 1->1024 chip1 1024->1 bias0 1025->1057 bias 1 1057->1025
+
+  ImageSnifs* image = new ImageSnifs(name);
+
+  // read necessary values for the image
   char dataSecString[lg_name+1],biasSecString[lg_name+1];
   image->RdDesc("DATASEC",CHAR,lg_name+1,dataSecString);
   image->RdDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
   Section dataSec(dataSecString);
   Section biasSec(biasSecString);
 
-  // detect if it is a raster
+  // detect if it is a raster : 
+  // in case of a raster, substract 1 column of bad data. 
+  // (last one 'before'(=in 1 channel readout sequence) the overscan )
   int isRaster=0;
   int nAmp;
   char ccdSecString[lg_name+1];
@@ -114,11 +122,18 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     isRaster=1;
   }
 
-  // build now the images
-  for (int chip=0;chip<2;chip++) {
+  // build the bichip
+  if (nAmp != 2 && GetAllImage())
+    bichip = new BiChipSnifs(nAmp);
+  else
+     bichip = new BiChipSnifs(2);
+  ImageSnifs* im[bichip->NChips()];
+
+  // build now the images and the headers
+  for (int chip=0;chip<bichip->NChips();chip++) {
     char extName[lg_name+1];
-    int newDataXLength=dataSec.XLength()/2 - isRaster;
-    int newBiasXLength=biasSec.XLength()/2;
+    int newDataXLength=dataSec.XLength()/nAmp - isRaster;
+    int newBiasXLength=biasSec.XLength()/nAmp;
 
     im[chip] = new ImageSnifs(fMode,kIoAll);
     sprintf(extName,"%s[chip0%d]",imname,chip);
@@ -136,8 +151,36 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     
     im[chip]->WrDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
     bichip->SetChip(chip,im[chip]);
+
+    Section sec;
+    if (chip%2==0) {
+      sec.SetX1(dataSec.X1()+(chip*dataSec.XLength())/nAmp);
+      sec.SetX2(sec.X1() + newDataXLength - 1 );
+      sec.SetY1(dataSec.Y1());
+      sec.SetY2(dataSec.Y2());
+      im[chip]->ImportSection(image,&sec,1,1,1,1);
+      sec.SetX1(biasSec.X1()+(chip*biasSec.XLength())/nAmp);
+      sec.SetX2(sec.X1() + newBiasXLength - 1);
+      sec.SetY1(biasSec.Y1());
+      sec.SetY2(biasSec.Y2());
+      im[chip]->ImportSection(image,&sec,newDataXLength+1,1,1,1);
+    } else {
+      sec.SetX1(dataSec.X1()+(chip*dataSec.XLength())/nAmp + isRaster);
+      sec.SetX2(sec.X1() + newDataXLength - 1);
+      sec.SetY1(dataSec.Y1());
+      sec.SetY2(dataSec.Y2());
+      im[chip]->ImportSection(image,&sec,newDataXLength,1,-1,1);
+      sec.SetX1(biasSec.X1()+(chip*biasSec.XLength())/nAmp);
+      sec.SetX2(sec.X1() + newBiasXLength - 1);
+      sec.SetY1(biasSec.Y1());
+      sec.SetY2(biasSec.Y2());
+      im[chip]->ImportSection(image,&sec,newDataXLength+newBiasXLength,1,-1,1);
+    }
+    
   }
-  // build the data section for frame 1
+
+#ifdef OLD
+  // Fill the images with the data content
   Section sec;
   sec.SetX1(dataSec.X1());
   sec.SetX2(dataSec.X2()/2-isRaster);
@@ -153,7 +196,8 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   sec.SetX1(biasSec.X1()+biasSec.XLength()/2);
   sec.SetX2(biasSec.X2());
   im[1]->ImportSection(image,&sec,im[1]->Nx(),1,-1,1);
-  
+#endif
+  // needs the images 
   bichip->SetAlgo("OTCOM");
   return bichip;
 }
@@ -161,12 +205,11 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
 /* ----- PreprocessBias -------------------------------------------------- */
 BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
   // simply returns the debiased bichip
-  IoMethod_t mode = fMode;
-  SetIoMethod(kIoPlain);
 
   BiChipSnifs * bichip = BuildRawBiChip(name);
   BiChipSnifs * out;
-  SetIoMethod(mode);
+
+  // Preliminary : getting an IO copy
 
   // Detcom image -> copy to out to be able to set keywords, etc...
   // if algo not set, assume it is detcom
@@ -188,7 +231,9 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
     out = bichip;
   }
     
+  //
   // OK, we have now a working copy of the image !
+  //
 
   // keywords hacking
   out->HackFitsKeywords();
@@ -200,8 +245,8 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
   }
   
   // overscan substraction
-  // normal exposure with an overscan
   if (out->Chip(0)->HasOverscan()) {
+    // normal exposure with an overscan
     if (FastMode())
       fOverscanSnifs->SetOddEven(0);
     else

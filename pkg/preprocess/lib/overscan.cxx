@@ -92,7 +92,8 @@ void OverscanBase::SubstractRamp(double *ov, double * var) {
 
   // hack in order to minimize debugging
   Section* S = fBiasSec;
-  
+  // hack for inlining speed
+  int SYFirst = S->YFirst();
   
   // Substract the overscan - makes a ramp between left and right
   // overscans. Left overscan = right line before. The fixed point
@@ -101,30 +102,36 @@ void OverscanBase::SubstractRamp(double *ov, double * var) {
   // As it amounts to about 14 points, it is considered as a negligible
   // approximation 
   for (int col=fSubSec->YFirst();col<fSubSec->YLast();col++) {
+    double ovGuessAdd, ovGuessMul;
+    // result will be (Add + line * Mul )
+    // no data before - be careful
+    if (col<SYFirst) {
+      ovGuessAdd=ov[0];
+      ovGuessMul=0;
+    }
+    // no data after - no info
+    else if (col>=S->YLast()) {
+      ovGuessAdd = ov[S->YLength()-1];
+      ovGuessMul = 0;
+    }
+    // first line : extrapolate the slope (best guess)
+    else if (col==SYFirst) {
+      // fLineZero = (S->X1()+S->X2())/2.0+1+Nx()
+      // fLineLength = Nx()
+      ovGuessMul = (ov[SYFirst+1]-ov[SYFirst]) / fLineLength ;
+      ovGuessAdd = (ov[SYFirst+1]-ov[SYFirst])
+        * ( - fLineZero +fLineLength ) / fLineLength 
+        + 2*ov[SYFirst] - ov[SYFirst+1];;
+    }
+    // Ok, do it.
+    else {
+      ovGuessAdd = (ov[col-SYFirst]-ov[col-SYFirst-1])
+        * ( - fLineZero +fLineLength) / fLineLength 
+        + ov[col-SYFirst-1];
+      ovGuessMul = (ov[col-SYFirst]-ov[col-SYFirst-1]) / fLineLength ;
+    }
     for (int line=fSubSec->XFirst();line<fSubSec->XLast();line++) {
-      double ovGuess;
-      // no data before - be careful
-      if (col<S->YFirst())
-        ovGuess=ov[0];
-      // no data after - no info
-      else if (col>=S->YLast())
-        ovGuess = ov[S->YLength()-1];
-      // first line : extrapolate the slope (best guess)
-      else if (col==S->YFirst()) {
-        ovGuess = (ov[S->YFirst()+1]-ov[S->YFirst()])
-          // fLineZero = (S->X1()+S->X2())/2.0+1+Nx()
-          // fLineLength = Nx()
-          * (line- fLineZero +fLineLength ) / fLineLength 
-          + 2*ov[S->YFirst()] - ov[S->YFirst()+1];
-      }
-      // Ok, do it.
-      else {
-        ovGuess = (ov[col-S->YFirst()]-ov[col-S->YFirst()-1])
-          * (line- fLineZero +fLineLength) / fLineLength 
-          + ov[col-S->YFirst()-1];
-
-      }
-      double val = fImage->RdFrame(line,col) -ovGuess;
+      double val = fImage->RdFrame(line,col) -ovGuessAdd - ovGuessMul * line;
       fImage->WrFrame(line,col,val);   
     } // for line
   }
@@ -132,24 +139,28 @@ void OverscanBase::SubstractRamp(double *ov, double * var) {
   // And now the effect on the variance
   if (fImage->Variance()) {
     for (int col=fSubSec->YFirst();col<fSubSec->YLast();col++) {
+      double addedVarAdd, addedVarMul;
+      // no data before - be careful
+      if (col<=SYFirst) {
+        addedVarAdd=var[0];
+        addedVarMul=0;
+      }
+      // no data after - no info
+      else if (col>=S->YLast()) {
+        addedVarAdd = var[S->YLength()-1];
+        addedVarMul=0;
+      }
+      // Ok, do it. As the values may be correlated, this is perhaps just wrong
+      // So we make an educated guess, in case of full correlation
+      // in the case of ImproveMedian
+      else {
+        addedVarAdd = (var[col-SYFirst]-var[col-SYFirst-1])
+          * ( - fLineZero +fLineLength) / fLineLength 
+          + var[col-SYFirst-1];
+        addedVarMul = (var[col-SYFirst]-var[col-SYFirst-1]) / fLineLength ;
+      }
       for (int line=fSubSec->XFirst();line<fSubSec->XLast();line++) {
-        double addedVar;
-        // no data before - be careful
-        if (col<=S->YFirst())
-          addedVar=var[0];
-        // no data after - no info
-        else if (col>=S->YLast())
-          addedVar = var[S->YLength()-1];
-        // Ok, do it. As the values may be correlated, this is perhaps just wrong
-        // So we make an educated guess, in case of full correlation
-        // in the case of ImproveMedian
-        else {
-          addedVar = (var[col-S->YFirst()]-var[col-S->YFirst()-1])
-            * (line- fLineZero +fLineLength) / fLineLength 
-            + var[col-S->YFirst()-1];
-          
-        }
-        double val = fImage->Variance()->RdFrame(line,col) + addedVar;
+        double val = fImage->Variance()->RdFrame(line,col) + addedVarAdd + addedVarMul * line;
         fImage->Variance()->WrFrame(line,col,val);   
       } // for line
     }
@@ -458,7 +469,7 @@ void OverscanSnifs::SetImage(ImageSnifs* Image)
 
 /* ----- Correct ----------------------------------------*/
 void OverscanSnifs::Correct(BiChipSnifs* BiChip) {
-  for (int i=0;i<2;i++) {
+  for (int i=0;i<BiChip->NChips();i++) {
     Correct(BiChip->Chip(i));
   }
 }

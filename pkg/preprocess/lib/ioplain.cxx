@@ -12,6 +12,7 @@
 /* =========================================================== */
 
 #include "ioplain.hxx"
+#include "utils.h"
 
 /* ##### IO PLAIN ################################################# */
 
@@ -33,23 +34,27 @@ IoPlain::~IoPlain(){
 
 /* ===== Wrappers to IMAGE2D methods ================================== */
 
+// note : the CPU cost is about 1/2 in the function call and 1/2 in the WR_frame switch
+// so there is no point trying ot improve the timing by removing the if's on WR_frame
+// and RD_frame
+
 /* ----- WrFrame ------------------------------------------------------ */
 void IoPlain::WrFrame(int line, int col, double value){
   //Wrapper to WR_frame
-  WR_frame(Frame(),line,col,value);
+  WR_frame(fFrame,line,col,value);
 }
 
 /* ----- RdFrame ------------------------------------------------------ */
 double IoPlain::RdFrame(int line, int col) {
   //Wrapper to RD_frame
-  return (double) RD_frame(Frame(),line,col);
+  return (double) RD_frame(fFrame,line,col);
 }
 
 /* ----- OpenFrame ---------------------------------------------------- */
 int IoPlain::OpenFrame(char *name, char *mode){
   // Wrapper to open_frame
   fLoaded=true;
-  return open_frame(Frame(),name,mode);
+  return open_frame_fast(Frame(),name,mode);
 }
 
 /* ----- CloseFrame --------------------------------------------------- */
@@ -57,7 +62,7 @@ int IoPlain::CloseFrame(){
   // Wrapper to close_frame
   if (fLoaded) {
     fLoaded=false;
-    return close_frame(Frame());
+    return close_frame_fast(Frame());
   } else {
     return 0;
   }
@@ -93,3 +98,6 @@ int IoPlain::CreateFrameFull(char *name,int *Npix,double* Start, double* Step, s
   fLoaded=true;
   return create_frame(Frame(),name,Npix,Start,Step,Type,Ident,U);
 }
+
+
+
