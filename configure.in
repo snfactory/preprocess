@@ -45,7 +45,7 @@ AC_F77_LIBRARY_LDFLAGS
                           
 dnl Checks for libraries ==============================
 
-dnl IFU_C_iolibs, > 6.0b ------------------------------
+dnl IFU_C_iolibs, >= 6.0d ------------------------------
 dnl AC_HELP_STRING valid only for recent autoconfs
 
 AC_MSG_CHECKING([for a valid IFU_C_iolibs])
@@ -54,7 +54,7 @@ AC_ARG_WITH(ifuciolibs,
          [ac_ifuciolibs=$withval], 
          [ac_ifuciolibs=])
 dnl If the user does not provide one, try to see if somthing acceptable is found
-ac_ifuciolibs_vers_ok_list="6.0c 6.0d"
+ac_ifuciolibs_vers_ok_list="6.0d"
 
 dnl try to find a valid version
 if test -z "$ac_ifuciolibs"

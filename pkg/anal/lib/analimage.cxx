@@ -445,6 +445,8 @@ void ImageSignature::ParseCutsFile(char* CutsFile){
     SignatureCut * Sig = ParseCutsLine(line);
     if (Sig)
       fSigCuts.push_back(Sig);
+    else 
+      print_warning("failed to parse %s",line);
   }  
 }
 
@@ -486,7 +488,8 @@ SignatureCut* ImageSignature::ParseCutsLine(char* Line){
 
   if (fclass != 0 && fclass !=  PRE_DARK_FRAME && fclass != PRE_CAL_FRAME
       && fclass !=PRE_CON_FRAME && fclass != PRE_SKY_FRAME 
-      && fclass != PRE_OBJ_FRAME && fclass !=PRE_DOM_FRAME ) {
+      && fclass != PRE_OBJ_FRAME && fclass !=PRE_DOM_FRAME 
+      && fclass != BIAS_FRAME) {
     print_warning("ImageSignature::ParseCutsLine : %s is not a valid FCLASS",token[0]);
     return 0;
   }
