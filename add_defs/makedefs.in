@@ -12,7 +12,7 @@ C_ioLIBS_PATH = @ac_ifuciolibs@
 C_mathLIBS_PATH = @ac_ifucmathlibs@
 
 # I/O and general
-GENLIB = $(C_ioLIBS_PATH)/C_libs/obj/genlib.a 
+GENLIB = $(C_ioLIBS_PATH)/C_libs/obj/libgen.a 
 WCSLIB = $(C_ioLIBS_PATH)/C_libs/wcslib/libwcs.a
 IOLIB = $(C_ioLIBS_PATH)/C_libs/io/obj/libio.a $(GENLIB) $(WCSLIB)
 
