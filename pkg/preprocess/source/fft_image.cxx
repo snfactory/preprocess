@@ -12,7 +12,7 @@
 /* =========================================================== */
 
 /* ----- image includes ------------------------------ */
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "catorfile.hxx"
 #include "section.hxx"
 #include "analyser.hxx"

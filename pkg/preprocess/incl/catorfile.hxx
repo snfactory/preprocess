@@ -20,6 +20,8 @@ catalog or a pklain file. The output is a first/next method.
 A catalog is a .cat file, a file is the contrary !
 */
 
+#include "IFU_io.h"
+
 /* ===== CATORFILE ============================== */
 
 class CatOrFile {
@@ -29,6 +31,7 @@ public :
   ~CatOrFile() {}
   
   int NextFile(char* FileName);
+  char* Name() {return fName;}
 
 protected :
   char fName[lg_name+1];

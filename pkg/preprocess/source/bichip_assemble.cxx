@@ -1,7 +1,7 @@
 
 //#include "IFU_io.h"
 #include "bichip.hxx"
-#include "image.hxx"
+#include "imagesnifs.hxx"
 
 int main(int argc, char **argv) {
 

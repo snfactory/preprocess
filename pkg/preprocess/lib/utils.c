@@ -251,6 +251,21 @@ char* ut_create_check_name(char* name){
   return name;
 }
 
+/*-------------------- ut_varname_from_imname ----------------------*/
+int ut_is_bichip(char* filename){
+  /* returns the name of the variance image from the name of 
+   the image */
 
+  char testName[lg_name+1];
+  if (strstr(filename,"%d"))
+    return 1;
+  if (strrchr(filename,'['))
+    return 0;
+  sprintf(testName,"%s[chip00]",filename);
+  if (exist(testName))
+    return 1;
+  else 
+    return 0;
+}
 
 

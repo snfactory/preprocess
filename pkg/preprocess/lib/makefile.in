@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Mon Oct 27 14:19:06 2003
+## $Id$
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -21,10 +21,16 @@ include $(topdir)/add_defs/makedefs.local
 OBJ = $(O)/bichip.o\
 	$(O)/catorfile.o\
 	$(O)/image.o\
+	$(O)/imagesnifs.o\
 	$(O)/section.o\
 	$(O)/sectionlist.o\
 	$(O)/utils.o \
-	$(O)/analyser.o
+	$(O)/analyser.o \
+	$(O)/ioplain.o \
+	$(O)/ioslice.o \
+	$(O)/imagestack.o\
+	$(O)/kombinator.o\
+	$(O)/imagestacksnifs.o\
 
 LIB = $(O)/libpreprocess.a 
 

@@ -15,6 +15,7 @@
 
 #include "section.hxx"
 #include "image.hxx"
+#include "imagesnifs.hxx"
 #include "analyser.hxx"
 #include "utils.h"
 
@@ -31,6 +32,10 @@ ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
   fFftLength=0;
   SetImage(Image);
   SetSection(Sec);
+}
+
+ImageAnalyser::ImageAnalyser(ImageSnifs * Image, Section *Sec) {
+  ImageAnalyser(Image->Image(),Sec);
 }
 
 ImageAnalyser::~ImageAnalyser(){
@@ -134,7 +139,7 @@ ImageSnifs * ImageAnalyser::LineFft(char* outName){
   // builds the output image
   ImageSnifs* out = new ImageSnifs();
   out->CreateFrame(outName,fSec->XLength(),fSec->YLength());
-  out->ImportHeader(fImage);
+  out->Image()->ImportHeader(fImage);
   out->DeleteDesc("DATASEC");
   out->DeleteDesc("BIASSEC");
   for (int j=fSec->YFirst();j<fSec->YLast();j++) {

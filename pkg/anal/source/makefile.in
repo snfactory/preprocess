@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Fri Oct 31 14:16:18 2003
+## $Id$
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -22,7 +22,6 @@ LOCLIB = $(O)/libanal.a
 
 EXECC = $(E)/rootify\
 	$(E)/rootify_fft\
-	$(E)/specroot
 
 # ============================================================
 

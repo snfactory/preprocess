@@ -19,53 +19,56 @@
     - wrappers to IFU methods
     - wrappers for methods without i/o
     - basic image manipulation
-   
- ImageSnifs : methods which are compliant with te SNIFS header
-   This contains
-    - explicit tasks for the reduction
-    - all checks for paranoiac mode
-    
-*/
 
-#include "IFU_io.h"
+*/   
+
 class Section;
-
+#include "IFU_io.h"
+#include "iomethod.hxx"
 
 /* ===== IMAGE SIMPLE ============================== */
 
 class ImageSimple {
   public :
-
-    ImageSimple();
-    ImageSimple(const ImageSimple &image,char* newname,short newtype = 0,int copydata=0);
-    ImageSimple(char* name, char* mode="Input");
   
-    ~ImageSimple();
+
+    ImageSimple(IoMethod_t Method=kIoPlain,int MParam=0);
+    ImageSimple(const ImageSimple &image,char* newname,short newtype = 0,int copydata=0,IoMethod_t Method=kIoPlain,int MParam=0);
+    ImageSimple(char* name, char* mode="Input",IoMethod_t Method=kIoPlain,int MParam=0);
+  
+    virtual ~ImageSimple();
 
     // Wrappers to IMAGE2D content
-    int Nx() const { return fFrame->nx;}
-    int Ny() const { return fFrame->ny;}
-    char* Name() const { return fFrame->name; }
+    int Nx() const { return Io()->Nx();}
+    int Ny() const { return Io()->Ny();}
+    char* Name() const { return Io()->Name(); }
 
     // Wrappers to IMAGE2D methods (and very simple methods)
-    void WrFrame(int line, int col, double value);
-    void WrFrame(int line, int col, long value);
-    double RdFrame(int line, int col) const;
+    void WrFrame(int col, int line, double value) {Io()->WrFrame(col,line,value);};
+    double RdFrame(int col, int line) const {return Io()->RdFrame(col,line);}
     int WrDesc(char* Descr, short Type, int NbElements, void* Values);
     int RdDesc(char* Descr, short Type, int NbElements, void* Values) const;
     int RdIfDesc(char* Descr, short Type, int NbElements, void* Values) const;
     int DeleteDesc(char* Descr);
-    int OpenFrame(char *name, char *mode="Input");
-    int CloseFrame();
-    int DeleteFrame();
+    int OpenFrame(char *name, char *mode="Input") {return Io()->OpenFrame(name,mode);}
+    int CloseFrame() {return Io()->CloseFrame();}
+    int DeleteFrame() {return Io()->DeleteFrame();}
     // for create_frame from an existing image, consider copy contructor
-    int CreateFrame(char *name,int nx, int ny, short Type=FLOAT );
+    int CreateFrame(char *name,int nx, int ny, short Type=FLOAT ) {return Io()->CreateFrame(name,nx,ny,Type);}
+    int CreateFrameFull(char *name,int *Npix ,double*Start, double*Step, short Type, char* a, char* b )
+        {return Io()->CreateFrameFull(name,Npix,Start,Step,Type,a,b);}
+
+    // internal setters and getters
+    // Io is not user settable for the moment. It is defined at the construction time
+    IoMethod* Io() const {return fIo;}
+    IoMethod_t IoType() const {return Io()->IoType();}
+    void SetNLines(int NLines);
 
     // Utility Methods
     int Inside(int Xc,int Yc) const;
-    void MinMax(Section* Sec, double * min, double * max) const;
+    void MinMax(Section* Sec, double * min, double * max);
   
-    void ImportHeader(ImageSimple * From){ CP_non_std_desc(From->fFrame,fFrame);}
+    void ImportHeader(ImageSimple * From){ CP_non_std_desc(From->Frame(),Frame());}
     void ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );
     void ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );
     void Add(ImageSimple* ToAdd, double Scale=1);
@@ -74,7 +77,7 @@ class ImageSimple {
     void SetTo(double Value);
     void CutLow(double LowBound);
     void Divide(ImageSimple* Denom);
-    double MeanValue(Section* Sec,int step=1) const;
+    double MeanValue(Section* Sec,int step=1);
 
     // variance settings
     void SetVarianceFrame(ImageSimple* Var){fVariance = Var;}
@@ -95,67 +98,15 @@ class ImageSimple {
   
   
   protected :
-    IMAGE2D *fFrame;
-    bool fLoaded;
+
+    IMAGE2D * Frame() const {return Io()->Frame();}
     ImageSimple* fVariance;
     static const int nLinesDefault; // parameter for the overscan
-
-};
-
-
-
-/* ===== IMAGE SNIFS ======================================== */
-
-class ImageSnifs : public ImageSimple {
-  public :
-   
-    // Constructors/Destructors
-
-    ImageSnifs();
-    ImageSnifs(const ImageSnifs &image,char* newname,short newtype = 0,int copydata=0);
-    ImageSnifs(char* name, char* mode="Input");
-    ~ImageSnifs();
-
-    // Tools
-    ImageSnifs* BuildSubImage(Section* Sec,char* Name);
-
-    // Algorithms
-    
-    // in-place overscan substraction
-    void SubstractOverscan();
-    // in-place odd-even substrction
-    void OddEvenCorrect();
-
-    void SubstractBias(ImageSnifs* Bias);
-    void SubstractDark(ImageSnifs* Dark);
-    void ApplyFlat(ImageSnifs* Flat);
-
-    void BuildFlat();
-    void AddPoissonNoise();
-    void HandleSaturation();
+    IoMethod *fIo;
   
-    // Processing management
-    void CreateVarianceFrame(char* name="");
-    void AddOverscanVariance();
+  private :
+    void SetIoMethod(IoMethod_t Method, int MParam);
 
-    // photometric tools
-    void FilterSectionFill(Section * Sec,int Filter);
-    void SplitMultiFilter(char* NameRecipee, ImageSnifs** Subs);
-  
-
-    // Hacks
-
-    void HackFitsKeywords();
-
-    // Utilities
-
-    bool ParanoMode() const { return fParano; }
-    void SetParanoMode(bool Parano) { fParano=Parano; }
-  
-
-    protected :
-    bool fParano;
-    
 };
 
 

@@ -23,7 +23,7 @@ class ImageSimple;
 class Section;
 #include "gsl/gsl_fft_real.h"
 #include "gsl/gsl_fft_halfcomplex.h"
-
+#include "imagesnifs.hxx"
 /* ===== IMAGE ANALYSER ============================== */
 
 class ImageAnalyser {
@@ -31,11 +31,13 @@ public :
   
   ImageAnalyser();
   ImageAnalyser(ImageSimple * Image, Section *Sec);
+  ImageAnalyser(ImageSnifs * Image, Section *Sec);
   ~ImageAnalyser();
   
   
   /* ----- Setters ---------------------------------------- */
   void SetImage(ImageSimple * Image) {fImage = Image;}
+  void SetImage(ImageSnifs * Image) {fImage = Image->Image();}
   void SetSection(Section * Section); 
 
   /* ----- Analysis ---------------------------------------- */

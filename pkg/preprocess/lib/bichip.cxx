@@ -12,7 +12,7 @@
 /* =========================================================== */
 
 #include "bichip.hxx"
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "section.hxx"
 #include "utils.h"
 
@@ -27,27 +27,27 @@ fChip[1]=fChip[0]=0;
 }
 
 /* ----- BiChipSnifs -------------------------------------------------- */
-BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode) {
+BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode,IoMethod_t Method, int MParam) {
   // Default constructor :
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
   CheckNameRecipee(ChipNameRecipee);
   char chipname[lg_name+1];
   for (int chip=0;chip<2;chip++) {
     sprintf(chipname, ChipNameRecipee, chip);
-    fChip[chip] = new ImageSnifs(chipname,mode);
+    fChip[chip] = new ImageSnifs(chipname,mode,Method,MParam);
   }
 }
 
 
 /* ----- BiChipSnifs -------------------------------------------------- */
-BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short newtype,int copydata) {
+BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short newtype,int copydata,IoMethod_t Method, int MParam) {
   // The copy constructor maps the ImageSnifs copy constructor
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
   CheckNameRecipee(NewNameRecipee);
   for (int chip=0;chip<2;chip++) {
     char chipName[lg_name+1];
     sprintf(chipName,NewNameRecipee,chip);
-    fChip[chip]=new ImageSnifs((*Father.fChip[chip]),chipName,newtype,copydata);
+    fChip[chip]=new ImageSnifs((*Father.fChip[chip]),chipName,newtype,copydata,Method,MParam);
   }
 }
 
@@ -77,6 +77,14 @@ void BiChipSnifs::CheckNameRecipee(char* ChipNameRecipee) {
     return;
   }
   sprintf(ChipNameRecipee,"%s[chip0%%d]",ChipNameRecipee);
+}
+
+/* ----- CheckNameRecipee ----------------------------------------------- */
+void BiChipSnifs::SetNLines(int NLines) {
+  for (int iChip=0;iChip<2;iChip++) {
+    Chip(iChip)->SetNLines(NLines);
+  }
+  
 }
 
 
@@ -148,9 +156,9 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName) {
 
   // Raw constructor as we will allocate the rest on the spot
   ImageSnifs* compound = new ImageSnifs();
-  ImageSnifs* variance;
+  ImageSimple* variance;
   if (varname[0]) {
-    variance =  new ImageSnifs();
+    variance =  new ImageSimple();
     compound->SetVarianceFrame(variance);
   }
 
@@ -274,11 +282,17 @@ void BiChipSnifs::PreprocessBias() {
 }
 
 /* ----- PreprocessDark ------------------------------------------------ */
-ImageSnifs* BiChipSnifs::PreprocessDark(char* OutName,BiChipSnifs *bias) {
+ImageSnifs* BiChipSnifs::PreprocessAssemble(char* OutName,BiChipSnifs *bias) {
   PreprocessBias();
   if (bias) SubstractBias(bias);
   HackGainRatio();
   ImageSnifs *out = Assemble(OutName);
+  return out;
+}
+
+/* ----- PreprocessDark ------------------------------------------------ */
+ImageSnifs* BiChipSnifs::PreprocessDark(char* OutName,BiChipSnifs *bias) {
+  ImageSnifs *out = PreprocessAssemble(OutName,bias);
   out->AddPoissonNoise();
   return out;
 }
@@ -286,7 +300,8 @@ ImageSnifs* BiChipSnifs::PreprocessDark(char* OutName,BiChipSnifs *bias) {
 /* ----- PreprocessFlat ------------------------------------------------ */
 ImageSnifs* BiChipSnifs::PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark) {
   ImageSnifs* out = PreprocessDark(OutName,bias);
-  if (dark) out->SubstractDark( dark );
+  if (dark) 
+    out->SubstractDark( dark );
   out->BuildFlat();
   return out;
 }
@@ -294,8 +309,10 @@ ImageSnifs* BiChipSnifs::PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSni
 /* ----- Preprocess ------------------------------------------------ */
 ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) {
   ImageSnifs* out = PreprocessDark(OutName,bias);
-  if (dark) out->SubstractDark( dark );
-  if (flat) out->ApplyFlat(flat);
+  if (dark) 
+    out->SubstractDark( dark );
+  if (flat) 
+    out->ApplyFlat(flat);
   return out;
 }
 

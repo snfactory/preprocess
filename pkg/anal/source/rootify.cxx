@@ -33,13 +33,13 @@ int main(int argc, char **argv) {
   double sigma;
   RootAnalyser ana;
 
-  set_arglist("-in none -out none -secs Data[4:1027,1:4102]Ovsc[1027:1056,1:4128] -sigma 0");
+  set_arglist("-in none -out none -secs Data[4:1027,1:4102]Ovsc[1028:1056,1:4128] -sigma 0");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);
   SectionList secs(argval[2]);
-  get_argval(3,"%f", &sigma);
+  get_argval(3,"%lf", &sigma);
 
   /* loop on catalog */
   while(inCat.NextFile(inName) && outCat.NextFile(outName)) {
@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
       /* Fill the desired histos */ 
 
       // FillHistoLine(in,sec); // cumbersome... use only with small secs
+      
       ana.HorizontalProfile(sigma);
       ana.VerticalProfile(sigma);
       ana.OddEvenVerticalProfile(sigma);
@@ -71,6 +72,3 @@ int main(int argc, char **argv) {
   exit_session(0);
   return(0);
 }
-
-
-

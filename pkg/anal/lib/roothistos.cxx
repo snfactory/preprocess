@@ -121,9 +121,8 @@ void RootAnalyser::OddEvenVerticalProfile(float sigma){
   double *odd,*oddptr;
   double *even,*evenptr;
 
-  odd = new double[fSec->XLength()/2];
+  odd = new double[(fSec->XLength()+1)/2];
   even = new double[fSec->XLength()/2];
-
 
   for (j=fSec->YFirst();j<fSec->YLast();j++) {
     for (i=fSec->XFirst();i<fSec->XLast();i+=2) { /* 'odd' */ 

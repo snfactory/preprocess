@@ -1,6 +1,6 @@
 
 #include "bichip.hxx"
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "section.hxx"
 
 int main(int argc, char **argv) {
@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
   int out_naxis1, out_naxis2;
   in->RdDesc("NAXIS1",INT,1,&out_naxis1);
   in->RdDesc("NAXIS2",INT,1,&out_naxis2);
-  out->ImportSectionFrame(in,&sec,1,1+out_naxis2-naxis2);
-  out->Variance()->ImportSectionFrame(in,&sec,1+out_naxis1-naxis1,1);
+  out->Image()->ImportSectionFrame(in->Image(),&sec,1,1+out_naxis2-naxis2);
+  out->Variance()->ImportSectionFrame(in->Image(),&sec,1+out_naxis1-naxis1,1);
   // the Readout noise
   out->Variance()->Add(5);
 

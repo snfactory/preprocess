@@ -1,6 +1,6 @@
 
 #include "bichip.hxx"
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "catorfile.hxx"
 
 int main(int argc, char **argv) {
@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
   BiChipSnifs * bias=0;
   ImageSnifs *dark=0, *flat=0;
   
+  // Load once auxilliary files
   if (is_set(argval[2]))
     bias = new BiChipSnifs(argval[2]);
   if (is_set(argval[3]))
@@ -31,10 +32,12 @@ int main(int argc, char **argv) {
     sprintf(tmp_name,"mem://%s",inName);
 
     BiChipSnifs * tmp_out= new BiChipSnifs(*in,tmp_name,FLOAT,1);
-    ImageSnifs *out = tmp_out->Preprocess(outName,bias,dark,flat);
-
     delete in;
+    
+    ImageSnifs *out = tmp_out->PreprocessAssemble(outName,bias);
     delete tmp_out;
+      out->Assembled2Preprocessed(dark,flat);
+
     delete out;
   }
 

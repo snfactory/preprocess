@@ -1,4 +1,4 @@
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "analyser.hxx"
 #include "catorfile.hxx"
 #include "section.hxx"
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     ImageAnalyser ana(&out,sec);
     double min,max;
 
-    out.MinMax(sec,&min,&max);
+    out.Image()->MinMax(sec,&min,&max);
     
     printf("%s %f %f %d %f %d %f \n",in.Name(), 
            ana.MeanLevel(), sqrt(ana.StatsVariance()),ana.NPixOut(sigcut), ana.OutPixMean(sigcut),ana.NPixOver(limit), max);

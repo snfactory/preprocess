@@ -1,4 +1,4 @@
-#include "image.hxx"
+#include "imagesnifs.hxx"
 
 int main(int argc, char **argv) {
 

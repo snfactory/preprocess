@@ -1,6 +1,6 @@
 
 #include "bichip.hxx"
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "section.hxx"
 
 int main(int argc, char **argv) {

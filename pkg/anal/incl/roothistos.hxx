@@ -15,6 +15,7 @@
 #define ROOTHISTOS_H
 
 class ImageSnifs;
+class ImageSimple;
 class Section;
 class TH1;
 #include "analyser.hxx"
@@ -26,6 +27,7 @@ class RootAnalyser : public ImageAnalyser {
   
   RootAnalyser() {}
   RootAnalyser(ImageSimple * Image, Section *Sec);
+  RootAnalyser(ImageSnifs * Image, Section *Sec);
   ~RootAnalyser(){}
  
   /* ----- Tools ------------------------------------------ */

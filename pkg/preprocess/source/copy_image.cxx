@@ -8,8 +8,8 @@ int main(int argc, char **argv) {
   set_arglist("-in none -out none");
   init_session(argv,argc,&arglabel,&argval);
 
-  ImageSnifs *in = new ImageSnifs(argval[0]);
-  ImageSnifs *out = new ImageSnifs(*in,argval[1]);
+  ImageSimple *in = new ImageSimple(argval[0]);
+  ImageSimple *out = new ImageSimple(*in,argval[1],0,1);
   
   delete in;
   delete out;

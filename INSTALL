@@ -8,13 +8,23 @@ user, run
 > automake -a --foreign
 > configure 
 > make
-or alternatively run first_time.csh (set the +x permission if needed)
+or alternatively run 
+> autogen.sh (set the +x permission if needed)
+> configure
+> make
+or even, edit your first_time.csh to setup the configure options you need.
+then
+> first_time.csh
 
 During developpment, then just 'make' would ideally be needed - but this 
 perfect world is not yet achieved...
 Also the 'make install' might produce strange results, as the .am scheme is
 not yet used at the level of source files : they are just used for producing 
 the distribution.
+
+The configure script may require some configuration options depending on your
+installation. to know which options are available, use
+confiure --help
 
 Original INSTALL follows :
 ---------------------------------------------------------------------------

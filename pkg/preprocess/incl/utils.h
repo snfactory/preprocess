@@ -27,8 +27,10 @@ double ut_fraction_sigcut(double fraction);
 void ut_varname_from_imname(char* imname,char* varname);
 
 char* ut_open_check_name(char* name);
+
 char* ut_create_check_name(char* name);
   
+int ut_is_bichip(char* filename);
 
 #ifdef __cplusplus
 }

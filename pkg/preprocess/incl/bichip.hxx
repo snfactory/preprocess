@@ -20,6 +20,7 @@
 
 class ImageSnifs;
 class Section;
+#include "image.hxx"
 
 /* ===== Bi Chip Snifs ============================== */
 
@@ -27,14 +28,14 @@ class BiChipSnifs {
   public :
 
     BiChipSnifs();
-    BiChipSnifs(char* ChipNameRecipee,char* mode="Input");
-    BiChipSnifs(const BiChipSnifs &image,char* NewNameRecipee,short newtype = 0,int copydata=0);
+    BiChipSnifs(char* ChipNameRecipee,char* mode="Input", IoMethod_t Method=kIoPlain,int MParam=0);
+    BiChipSnifs(const BiChipSnifs &image,char* NewNameRecipee,short newtype = 0,int copydata=0,IoMethod_t Method=kIoPlain,int MParam=0);
     ~BiChipSnifs();
 
     // Utilities
     void CheckNameRecipee(char* ChipNameRecipee);  
-  ImageSnifs* Chip(int chip)  {return fChip[chip];}
-  
+    ImageSnifs* Chip(int chip)  {return fChip[chip];}
+    void SetNLines(int NLines);
 
     // Methods
 
@@ -48,6 +49,7 @@ class BiChipSnifs {
     void CreateVarianceFrame(char* VarianceNameRecipee="");
     void AddOverscanVariance();
     void PreprocessBias();
+    ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);
     ImageSnifs* PreprocessDark(char* OutName,BiChipSnifs *bias);
     ImageSnifs* PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark);
     ImageSnifs* Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs *flat);
