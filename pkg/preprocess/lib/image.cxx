@@ -667,16 +667,19 @@ void ImageSimple::AddPoissonNoise() {
 }
 
 /* ----- HandleSaturation -------------------------------------------------- */
-void ImageSimple::HandleSaturation(double Level) {
+int ImageSimple::HandleSaturation(double Level) {
   // there is an additional trick, in order to remove ptential bleeding 
+  int nsat=0;
   for (int j=0;j<Ny();j++)
     for (int i=0;i<Nx();i++) {
       if (RdFrame(i,j)>=Level) {
+        nsat++;
         Variance()->WrFrame(i,j,ut_big_value);
         if (j>0) Variance()->WrFrame(i,j-1,ut_big_value);
         if (j+1<Ny()) Variance()->WrFrame(i,j+1,ut_big_value);
       }
     }
+  return nsat;
 }
 
 

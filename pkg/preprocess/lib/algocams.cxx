@@ -18,6 +18,7 @@
 #include "algocams.hxx"
 #include "imagesnifs.hxx"
 #include "section.hxx"
+#include "utils.h"
 
 /* ##### AlgoDetcom ################################################# */
 
@@ -72,61 +73,27 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     // print_warning("AlgoDetcom::HackFitsKeywords : no FCLASS found");
     //    I->SetFClass(DONT_KNOW);
   }
-}
 
-/* ===== ifdef ================================================== */
-#ifdef FOR_FUTURE_WHY_NOT
-/* ----- OddEvenCorrect -------------------------------------------------- */
-void AlgoDetcom::OddEvenCorrect(ImageSnifs* I) {
-  // odd-even substraction
-  //
-
-  double param[2];
-  
-  if (I->ParanoMode()) {
-    // check overscan was not already substracted
-    // returns 0 if not done !
-    if ( I->RdIfDesc("OEPARAM",DOUBLE, 2, param) > 0 ){
-      print_error("Odd-Even already substracted for %s\n",Name());
-      print_error("Nothing Done%s\n",Name());
-      return;
-    }
+  int channel;
+  if (I->RdIfDesc("CHANNEL",INT,1,&channel) <=0) {
+    // assume DETCOM = BLUE
+    I->SetChannel(kBlueChannel);
   }
 
-  // Get the overscan bounds from file
-  Section* Sec=SafeoverscanStrip(I);
-
-  // the magic 2.0 parameter is because of CTE on CCD EEV#1 (blue)
-  // this could also duplicate the magic effect of the reduced overscan section
-  I->Image()->OddEvenCorrect(Sec,param,2.0);
-  delete Sec;
-
-  I->WrDesc("OEPARAM",DOUBLE, 2, param);
-}
-
-
-/* ----- AddOverscanVariance ------------------------------ */
-void AlgoDetcom::AddOverscanVariance(ImageSnifs* I) {
-
-  int ovscNoise;
-  if (I->ParanoMode()) {
-    if (I->Variance()->RdIfDesc("OVSCNOIS",INT, 1, &ovscNoise) > 0 
-     && ovscNoise ) {
-       print_error(" ImageSnifs::AddOverscanVariance already done in %s",Name());
-      return;
-      }
+  // Then add the julian date, as it is cool to have
+  if (I->RdIfDesc("JD",INT,1,&channel) <=0) {
+    // set it !
+    char keyVal[lg_name+1];
+    int year,month,day, hour, minute;
+    double second,jd;
+    I->RdDesc("DATE-OBS",CHAR,lg_name+1,keyVal);
+    sscanf(keyVal,"%d-%d-%d",&year,&month,&day);
+    I->RdDesc("TIME-OBS",CHAR,lg_name+1,keyVal);
+    sscanf(keyVal,"%d:%d:%lf",&hour,&minute,&second);
+    jd = juldat(year,month,day,hour + minute/60.0 + second/3600.0);
+    I->WrDesc("JD",DOUBLE,1,&jd);
   }
-
-  // Fills with analysis of RMS strip
-  Section * Sec = SafeOverscanStrip(I);
-  double rms = I->Image()->OverscanRms(Sec,0);
-  WrDesc("RDNOISE",DOUBLE,1,&rms);
-  I->Variance()->Add(rms*rms);
-  delete Sec;
-
 }
-
-#endif
 
 /* ----- SafeOverscanStrip -------------------------------------------------- */
 Section* AlgoDetcom::SafeOverscanStrip(ImageSnifs* I) {
@@ -178,61 +145,8 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
     // print_warning("AlgoOtcom::HackFitsKeywords : no FCLASS found");
     //    I->SetFClass(DONT_KNOW);
   }
-}
-
-/* ===== ifdef ================================================== */
-#ifdef FOR_FUTURE_WHY_NOT
-/* ----- OddEvenCorrect -------------------------------------------------- */
-void AlgoOtcom::OddEvenCorrect(ImageSnifs* I) {
-  // odd-even substraction
-  //
-
-  double param[2];
-  
-  if (I->ParanoMode()) {
-    // check overscan was not already substracted
-    // returns 0 if not done !
-    if ( I->RdIfDesc("OEPARAM",DOUBLE, 2, param) > 0 ){
-      print_error("Odd-Even already substracted for %s\n",Name());
-      print_error("Nothing Done%s\n",Name());
-      return;
-    }
-  }
-
-  // Get the overscan bounds from file
-  Section* Sec=SafeoverscanStrip(I);
-
-  // the magic 2.0 parameter is because of CTE on CCD EEV#1 (blue)
-  // this could also duplicate the magic effect of the reduced overscan section
-  I->Image()->OddEvenCorrect(Sec,param,2.0);
-  delete Sec;
-
-  I->WrDesc("OEPARAM",DOUBLE, 2, param);
-}
-
-
-/* ----- AddOverscanVariance ------------------------------ */
-void AlgoOtcom::AddOverscanVariance(ImageSnifs* I) {
-
-  int ovscNoise;
-  if (I->ParanoMode()) {
-    if (I->Variance()->RdIfDesc("OVSCNOIS",INT, 1, &ovscNoise) > 0 
-     && ovscNoise ) {
-       print_error(" ImageSnifs::AddOverscanVariance already done in %s",Name());
-      return;
-      }
-  }
-
-  // Fills with analysis of RMS strip
-  Section * Sec = SafeOverscanStrip(I);
-  double rms = I->Image()->OverscanRms(Sec,0);
-  WrDesc("RDNOISE",DOUBLE,1,&rms);
-  I->Variance()->Add(rms*rms);
-  delete Sec;
 
 }
-
-#endif
 
 /* ----- SafeOverscanStrip -------------------------------------------------- */
 Section* AlgoOtcom::SafeOverscanStrip(ImageSnifs* I) {

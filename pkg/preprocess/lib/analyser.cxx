@@ -66,34 +66,38 @@ ImageAnalyser::~ImageAnalyser(){
 /* ----- SetSection ----------------------------------------------------*/
 void ImageAnalyser::SetSection(Section* Sec){
   // Set only the section if it belongs to the image.
-  if (fVal)
-    delete[] fVal;
-
-  if (fImage && Sec->XFirst()>=0 && Sec->YFirst()>=0 && Sec->XLast()<=fImage->Nx() && Sec->YLast()<=fImage->Ny()) {
-    fSec = Sec;
-    fNVal = fSec->XLength()*fSec->YLength();
-    fVal = new double[fNVal];
-    for (int iy=fSec->YFirst();iy<fSec->YLast();iy++)
-      for (int ix=fSec->XFirst();ix<fSec->XLast();ix++) {
-        fVal[ix-fSec->XFirst()+(iy-fSec->YFirst())*fSec->XLength()] 
-            = fImage->RdFrame(ix,iy);
-      }
-  }
-  else {
-    fSec=Sec;
-    fVal=0;
-    fNVal=0;
-  }
+  // (now handled by FillVal)
+  fSec=Sec;
+  ResetVal();
 }
 
 /* ----- SetImage ----------------------------------------------------*/
 void ImageAnalyser::SetImage(ImageSimple * Image){
   // Set only the image if it fits the section.
+
+  fImage=Image;
+  ResetVal();
+}
+
+/* ----- SetImage ----------------------------------------------------*/
+void ImageAnalyser::ResetVal(){
+  // Set only the image if it fits the section.
   if (fVal)
     delete[] fVal;
+  fVal=0;
+  fNVal=0;
+  fMeanDone=0;
+  fVarDone=0;
+  fIsSorted=0;
+}
 
-  if (fSec && fSec->XFirst()>=0 && fSec->YFirst()>=0 && fSec->XLast()<=Image->Nx() && fSec->YLast()<=Image->Ny()) {
-    fImage = Image;
+
+/* ----- SetImage ----------------------------------------------------*/
+void ImageAnalyser::FillVal(){
+  // Set only the image if it fits the section.
+  ResetVal();
+
+  if (fSec && fSec->XFirst()>=0 && fSec->YFirst()>=0 && fSec->XLast()<=fImage->Nx() && fSec->YLast()<=fImage->Ny()) {
     fNVal = fSec->XLength()*fSec->YLength();
     fVal = new double[fNVal];
     for (int iy=fSec->YFirst();iy<fSec->YLast();iy++)
@@ -101,23 +105,31 @@ void ImageAnalyser::SetImage(ImageSimple * Image){
         fVal[ix-fSec->XFirst()+(iy-fSec->YFirst())*fSec->XLength()] 
             = fImage->RdFrame(ix,iy);
       }
+  } else {
+    print_warning("Analyser::FillVal Section does not match image");
   }
-  else {
-    fImage=Image;
-    fVal=0;
-    fNVal=0;
-  }
+  
 }
 
 /* ===== Analysis ======================================= */
 /* ----- MeanLevel -------------------------------------- */
 double ImageAnalyser::MeanLevel(){
-  return ut_mean(fVal,fNVal);
+  if (!Val())
+    FillVal();
+  if (fMeanDone)
+    return fMean;
+  fMeanDone=1;
+  return fMean = ut_mean(fVal,fNVal);
 }
 
 /* ----- MeanLevel -------------------------------------- */
 double ImageAnalyser::StatsVariance(){
-  return gsl_stats_variance(fVal,1,fNVal);
+  if (fVarDone)
+    return fVar;
+  
+  fVarDone=1;
+  double mean = MeanLevel();    
+  return fVar = gsl_stats_variance_m(fVal,1,fNVal,mean);
 }
 
 /* ----- NPixOut -------------------------------------- */
@@ -135,6 +147,8 @@ int ImageAnalyser::NPixOut(double SigmaCut){
 /* ----- NPixOver -------------------------------------- */
 int ImageAnalyser::NPixOver(double Limit){
   int npix=0;
+  if (!Val())
+    FillVal();
   for (int i=0;i<fNVal;i++) {
     if (fVal[i] > Limit)
       npix++;
@@ -159,7 +173,44 @@ double ImageAnalyser::OutPixMean(double SigmaCut){
   else return 0;
 }
 
-/* ----- OutPixMean -------------------------------------- */
+/* ----- Quantile -------------------------------------- */
+double ImageAnalyser::Quantile(double Q){
+  // returns the value which realizes a fraction Q of the data under it
+  // Q = 0.5 corresponds to the median
+
+  // Note that the sorting is rather expensive !
+
+  if (!Val())
+    FillVal();
+  if (!fIsSorted) {
+    ut_sort_ascending(fVal,fNVal);
+    fIsSorted=1;
+  }
+  
+  return gsl_stats_quantile_from_sorted_data(fVal,1,fNVal,Q);
+ 
+}
+
+/* ----- SigmaClippedInfo -------------------------------------- */
+void ImageAnalyser::SigmaClippedInfo(double SigmaCut,double * Mean, double * Rms, int * Nout){
+
+  if (!Val())
+    FillVal();
+  if (!fIsSorted) {
+    ut_sort_ascending(fVal,fNVal);
+    fIsSorted=1;
+  }
+
+  double * valRef = fVal;
+  int nValRef = fNVal;
+  ut_trunc_sigma_unknown_fast_sorted(&valRef,&nValRef,SigmaCut);
+  
+  *Mean = ut_mean(valRef,nValRef);
+  *Rms = gsl_stats_sd_m(valRef,1,nValRef,*Mean);
+  *Nout = fNVal - nValRef;
+}
+
+/* ----- LineFft -------------------------------------- */
 ImageSnifs * ImageAnalyser::LineFft(char* outName){
   
   // prepare the gsl fft

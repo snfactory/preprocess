@@ -84,9 +84,6 @@ $(E)/% : $(O)/%.o $(LOCLIB) $(IOLIB) makefile
 	$(CXXLINK)
 	$(STRIP) $@
 
-#%.cxx : 
-#	@echo WARNING : missing $@
-
 # placate make.depend .cxx dependancies
 %.cxx :
 	@echo ==============================

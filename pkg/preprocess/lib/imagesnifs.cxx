@@ -20,6 +20,9 @@
 #include "section.hxx"
 #include "algocams.hxx"
 
+static const char kChannelName[4][lg_name+1]={"Blue channel","Red Channel","Photometry","Guiding"} ;
+
+
 /* ##### IMAGE SNIFS ################################################## */
 
 /* ===== constructor/Destructor ======================================= */
@@ -105,6 +108,53 @@ AlgoCams* ImageSnifs::Algo(){
     fAlgo = new AlgoOtcom;
   return fAlgo;
 }
+
+/* ----- Channel  ------------------------------ */
+void ImageSnifs::SetChannel(int channel){
+  char name[lg_name+1];
+  name[0]= '\0';
+  
+  for (int i=0;i<kNChannel;i++) {
+    if (channel & (1<<i)) {
+      if ( name[0] )
+        sprintf(name,"%s + %s",name,kChannelName[i]);
+      else
+        strcpy(name,kChannelName[i]);
+    }
+  }
+  WrDesc("CHANNEL",CHAR,lg_name+1,name);
+}
+
+int ImageSnifs::GetChannel(){
+  char name[lg_name+1];
+  int channel = kUnknown;
+
+  if (RdIfDesc("CHANNEL",CHAR,lg_name+1,name) <= 0)
+    return kUnknown;
+  
+  for (int i=0;i<kNChannel;i++)
+    if (strstr(name,kChannelName[i]))
+      channel += (1<<i);
+
+  return channel;
+}
+
+/* ----- DataSec  ------------------------------ */
+Section* ImageSnifs::DataSec(){
+  char data[lg_name+1];
+  RdDesc("DATASEC",CHAR,lg_name+1,data);
+  Section* sec=new Section(data);
+  return sec;
+}
+
+/* ----- BiasSec  ------------------------------ */
+Section* ImageSnifs::BiasSec(){
+  char data[lg_name+1];
+  RdDesc("BIASSEC",CHAR,lg_name+1,data);
+  Section* sec=new Section(data);
+  return sec;
+}
+
 
 /* ----- HasOverscan  ------------------------------ */
 int ImageSnifs::HasOverscan(){
@@ -416,7 +466,7 @@ void ImageSnifs::BuildFlat() {
   // Get the data bounds from file
   char data[lg_name+1];
   RdDesc("DATASEC",CHAR,lg_name+1,data);
-  Section* Sec=new Section(data);
+  Section* Sec= DataSec();
   // do the real job
   double norm = Image()->MeanValue(Sec,100);
   Image()->Scale(1/norm);
@@ -471,9 +521,11 @@ void ImageSnifs::AddPoissonNoise() {
 /* -----  HandleSaturation ----------------------------------------------- */
 void ImageSnifs::HandleSaturation() {
   // puts variance to infinity for saturated pixels
-  int saturate;
+  int saturate, nsat;
   RdDesc("SATURATE",INT,1,&saturate);
-  Image()->HandleSaturation(saturate-0.5);
+  nsat = Image()->HandleSaturation(saturate-0.5);
+  // not so good idea ...
+  //  WrDesc("NSATU",INT,1,&nsat);
 }
 
 /* ===== Hacks ======================================= */

@@ -12,11 +12,9 @@
 /* =========================================================== */
 
 /* ----- ROOT includes ------------------------------ */
-#include <TFile.h>
 
 /* ----- image includes ------------------------------ */
 #include "imagesnifs.hxx"
-#include "bichip.hxx"
 #include "catorfile.hxx"
 
 /* ----- local includes ------------------------------ */
@@ -28,32 +26,31 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   char inName[lg_name+1],*outName;
-  AnalImageSignature * anal;
+  ImageSignature sig;
 
-  set_arglist("-in none -out none");
+  set_arglist("-in none -blurb");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
-  outName = argval[1];
-  TFile *roout = new TFile(outName,"UPDATE");
 
-  anal = new AnalImageSignature (roout);
+  if (is_true(argval[1]))
+    sig.PrintBlurb();
+    sig.PrintHeader();
     
   /* loop on catalog */
   while(inCat.NextFile(inName)) {
-    print_msg("Opening now %s\n",inName);
     ImageSnifs *in = new ImageSnifs(inName);
     
-    //BiChipSnifs * out= new BiChipSnifs(*in,"mem://tmp.fits",FLOAT,1);
-
-    //    anal->SetImage(in);
-    anal->Signature()->Fill(in);
-    anal->StoreImageSignature();
+    sig.Reset();
+    sig.Fill(in);
+    sig.PrintContent();
     
     delete in;
   }
-  delete anal;
-  
+
+  if (is_true(argval[1]))
+    sig.PrintTrailer();
+             
 
   exit_session(0);
   return(0);

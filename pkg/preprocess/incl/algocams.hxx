@@ -44,9 +44,6 @@ class AlgoCams {
 
     virtual void HackFitsKeywords(ImageSnifs * Image)=0;
   //  virtual void HackGainRatio(ImageSnifs * Image)=0;
-  //    virtual void OddEvenCorrect(ImageSnifs* Image)=0;
-  //  virtual void AddOverscanVariance(ImageSnifs* image)=0;
-  //  virtual void SubstractOverscan(ImageSnifs* image)=0;
   virtual Section * SafeOverscanStrip(ImageSnifs* image)=0;
   
 };

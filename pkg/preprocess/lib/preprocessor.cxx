@@ -125,8 +125,12 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   // build the bichip
   if (nAmp != 2 && GetAllImage())
     bichip = new BiChipSnifs(nAmp);
-  else
-     bichip = new BiChipSnifs(2);
+  else {
+    bichip = new BiChipSnifs(2);
+    int newNamp=2;
+    image->WrDesc("CCDNAMP",INT,1,&newNamp);
+  }
+  
   ImageSnifs* im[bichip->NChips()];
 
   // build now the images and the headers
@@ -178,6 +182,8 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     }
     
   }
+
+
 
 #ifdef OLD
   // Fill the images with the data content

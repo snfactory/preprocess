@@ -25,6 +25,7 @@ EXECC = $(E)/rootify\
 	$(E)/rootify_fft\
 	$(E)/rootify_data\
 	$(E)/rootify_tree\
+	$(E)/quick_anal\
 
 # ============================================================
 

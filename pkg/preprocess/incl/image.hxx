@@ -96,7 +96,7 @@ class ImageSimple {
     //void OddEvenCorrect(Section* Sec,double*param, double sigcut=0);
     //
     void AddPoissonNoise();
-    void HandleSaturation(double Level);
+    int HandleSaturation(double Level);
   
   
   protected :

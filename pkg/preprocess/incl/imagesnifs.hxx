@@ -26,6 +26,13 @@
 #include "image.hxx"
 class AlgoCams;
 
+/* ===== CHANNEL ======================================== */
+/* the right comparison shall not be channel = kBlue
+  but rather channel & kBlue*/
+
+enum Channel_t {kUnknown=0, kBlueChannel = 1, kRedChannel = 2, kPhotometric = 4, kGuiding = 8};
+const int kNChannel = 4;
+
 /* ===== IMAGE SNIFS ======================================== */
 
 class ImageSnifs :public ImageSimple {
@@ -97,6 +104,8 @@ class ImageSnifs :public ImageSimple {
   //  void Assembled2Flat(ImageSnifs *dark);
   //  void Assembled2Preprocessed(ImageSnifs *dark,ImageSnifs *flat);
     int CanBeStackedWith(ImageSnifs* image);
+    int HasOverscan();
+  
   
 
     // photometric tools
@@ -108,15 +117,25 @@ class ImageSnifs :public ImageSimple {
 
     void HackFitsKeywords();
 
-    // Utilities
+    // Utilities and setters/getters
 
+    // Parano mode
     bool ParanoMode() const { return fParano; }
     void SetParanoMode(bool Parano) { fParano=Parano; }
+    // FClass
     int GetFClass();
     void SetFClass(int);
+    // algorithms
     void SetAlgo(char*); // algo is coded in fits keywords
     AlgoCams* Algo();
-    int HasOverscan();
+    // Channel  
+    int GetChannel();
+    void SetChannel(int Channel);
+    // Sections
+    Section * DataSec();
+    Section * BiasSec();
+  
+    
 
   protected :
     // bacause it is too specialized

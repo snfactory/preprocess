@@ -17,6 +17,7 @@
 The analyser contains various tools to analyse an image.
 Both the image and the section are not actual members,
 but just references.
+Note that the Image shall not be modified while analyzed.
 */
 
 class ImageSimple;
@@ -38,7 +39,12 @@ public :
   /* ----- Setters ---------------------------------------- */
   void SetImage(ImageSimple * Image);
   void SetImage(ImageSnifs * Image) {SetImage(Image->Image());}
+  void ResetVal();
   void SetSection(Section * Section); 
+  void FillVal();
+
+  /* ----- Getters ---------------------------------------- */
+  double *Val() {return fVal;}
 
   /* ----- Analysis ---------------------------------------- */
   double MeanLevel();
@@ -46,8 +52,9 @@ public :
   int NPixOut(double SigmaCut);
   int NPixOver(double Value);
   double OutPixMean(double SigmaCut);
+  double Quantile(double Q);
+  void SigmaClippedInfo(double SigmaCut,double * Mean, double * Rms, int * Nout);
   ImageSnifs* LineFft(char* outName);
-  // double Chi2With(ImageSimple *Image);
 
   
 protected :
@@ -55,6 +62,12 @@ protected :
   Section * fSec;
   double * fVal;
   int fNVal;
+
+  int fMeanDone;
+  double fMean;
+  int fVarDone;
+  double fVar;
+  int fIsSorted;
    
   gsl_fft_real_wavetable * fReal;
   gsl_fft_real_workspace * fWork;

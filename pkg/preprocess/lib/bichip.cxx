@@ -15,6 +15,7 @@
 #include "imagesnifs.hxx"
 #include "section.hxx"
 #include "utils.h"
+#include "algocams.hxx"
 
 /* ##### BiChipSnifs ################################################# */
 
@@ -233,7 +234,8 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
 
   // Data from chips
   char keyName[lg_name+1];
-  double gain;
+  double gain,rdnoise[NChips()];
+  //  int nSatu=0, chipSatu;
   // ImportSection takes care of variance !
   for (int chip=0;chip<NChips();chip++) {
     fChip[chip]->RdDesc("GAIN",DOUBLE,1,&gain);
@@ -243,27 +245,30 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
       compound->ImportSection(fChip[chip],Sec,(1+chip)*Sec->XLength(),1,-1,1,gain);
     sprintf(keyName,"CCD%dGAIN",chip);
     compound->WrDesc(keyName,DOUBLE,1,&gain);
+    //   if (fChip[chip]->RdIfDesc("NSATU",INT,1,&chipSatu) > 0)
+    //  nSatu += chipSatu;
+
+    // propagetes the RdNoises
+    fChip[chip]->RdDesc("RDNOISE",DOUBLE,1,rdnoise+chip);
   }
   
-  //fChip[0]->RdDesc("GAIN",DOUBLE,1,gain);
-  //compound->ImportSection(fChip[0],Sec,1,1,1,1,gain[0]);
-  // Data from chip 1
-  //fChip[1]->RdDesc("GAIN",DOUBLE,1,gain+1);
-  //compound->ImportSection(fChip[1],Sec,compound->Nx(),1,-1,1,gain[1]);
-
   // ... remains to update DATASEC and remove BIASSEC
   // We also set the ELECALIB flag
   int  eleCalib=1;
   sprintf(key,"[%d:%d,%d:%d]",1,Sec->XLength()*NChips(),1,Sec->YLength());
   compound->WrDesc("DATASEC",CHAR,lg_name+1,key);
   compound->DeleteDesc("BIASSEC");
-  //  double gainRatio=gain[0]/gain[1];
-  //  compound->WrDesc("GAINRAT",DOUBLE,1,&gainRatio);
   compound->WrDesc("ELECALIB",INT,1,&eleCalib);
   if (variance) {
     variance->WrDesc("DATASEC",CHAR,lg_name+1,key);
     variance->DeleteDesc("BIASSEC");
   }
+  // the RDNOISi
+  compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
+
+  // and update the number of saturating pixels
+  // compound->WrDesc("NSATU",INT,1,&nSatu);
+  // well ... bad idea
 
   return compound;
 }
@@ -402,16 +407,39 @@ void  BiChipSnifs:: HackFitsKeywords()  {
     fChip[chip]->HackFitsKeywords();
   }
   
+  // Easier place for the channel hack
+  if (fChip[0]->Algo()->GetId() == kOtcom) {
+    int channel;
+    int nAmp;
+    fChip[0]->RdDesc("CCDNAMP",INT,1,&nAmp);
+    // assume OTCOM 2amps = RED
+    // OTCOM 4 amps 2 chips = Photomatric
+    // OTCOM 4 amps 4 chan
+    if (nAmp==2)
+      channel = kRedChannel;
+    if (nAmp==4 && NChips()==2)
+      channel = kPhotometric;
+    if (nAmp==4 && NChips()==4)
+      channel = kPhotometric + kGuiding;
+    for (int chip=0;chip<NChips();chip++) {
+      if (fChip[chip]->GetChannel() == kUnknown) {
+        fChip[chip]->SetChannel(channel);
+      }
+    }
+  }   
+
   float gain;
   if (fChip[0]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
     gain = 0.7;
     fChip[0]->WrDesc("GAIN",FLOAT,1,&gain);
+    print_warning("BiChipSnifs::HackFitsKeywords Hacking the GAIN");
   }
 
   if (fChip[1]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
     // but this gain may vary...
     gain = 0.7;
     fChip[1]->WrDesc("GAIN",FLOAT,1,&gain);
+    print_warning("BiChipSnifs::HackFitsKeywords Hacking the GAIN");
   }
 }
 

@@ -38,6 +38,13 @@ static int ascending(const void *a, const void*b) {
 }
 
 /* ----- ut_median ---------------------------------------- */
+void ut_sort_ascending(double* values, int n)
+     /* median of unsorted values */
+{
+  qsort(values,n,sizeof(double),&ascending);
+}
+
+/* ----- ut_median ---------------------------------------- */
 double ut_median(double* values, int n)
      /* median of unsorted values */
 {
@@ -154,6 +161,51 @@ void ut_trunc_sigma_unknown(double** values, int * nitems, double sigcut){
   }
 }
 
+/* ------------------------------- ut_trunc_sigma_unknown ------------------ */
+void ut_trunc_sigma_unknown_fast_sorted(double** values, int * nitems, double sigcut){
+     /* trunc the data set, removing any value outside +/- sigcut sigma
+       if sigcut<0, does noting .
+       it works grossly, removing each time all what is outside the window, 
+       which is not accurate
+
+       Beware : sigma is computed from the distribution itself.
+       Points far away will push the sigma towards greater values.
+       
+       values : pointer to array of values - modified
+       nitems : number of values -> modified
+       sigcut : if <0, does nothing
+
+       Beware : the number of remaining items might be 0 !
+
+     */
+  int ok=0;
+
+  if (sigcut<0) 
+    return;
+  
+  /*  qsort(*values,*nitems,sizeof(double),ascending); */
+
+  while (!ok && *nitems>1) {
+
+    double mean,sigma,valinf,valsup;
+    int nitems_old = *nitems;
+
+    mean = ut_mean((*values),*nitems);
+    sigma = gsl_stats_sd_m(*values,1,*nitems,mean);
+    valinf = mean-sigma*sigcut;
+    valsup = mean + sigma*sigcut;
+    while ((*values)[0] < valinf && *nitems>1) {
+      (*nitems)--;
+      (*values)++;
+    }
+    while ((*values)[*nitems-1] > valsup && *nitems>1) {
+      (*nitems)--;
+    }
+    if (nitems_old == (*nitems))
+      ok=1;
+  }
+}
+
 /*-------------------- ut_fraction_sigcut ----------------------*/
 double ut_fraction_sigcut(double fraction) {
   /* given a distribution with fraction outliers, at infinite 
@@ -187,8 +239,13 @@ double ut_mode(double* val,int n){
   datas. This only works reliabely if there is only 1 maximum, 
   and in the limit where the data is sufficiently sampled. 
   No error computation is performed ...*/
-  /* The search is dyadic and iterative, each step looking for the part where the median is the narrower. The time is O(NlnN) (+ the time to run indexx)*/
-  /* This is a fast and inaccurate algorithm. For a general algorithm, see the Parzen window method - the drawback is that it depends on a window size a -priori*/
+  /* The search is dyadic and iterative, each step looking for the part
+  where the median is the narrower. The time is O(NlnN) (+ the time to run
+  indexx)*/ 
+  /* This is a fast and inaccurate algorithm. For a general algorithm, see the
+  Parzenwindow method - the drawback is that it depends on a window size
+  a priori*/  
+
 
   int * index;
   double med;
@@ -350,7 +407,6 @@ void ut_build_tmp_name(char* filename, char* tmp_prefix){
 }
 
 /* ===== IFU lib disagreement ======================================== */
-
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
@@ -609,7 +665,7 @@ close_frame_fast(IMAGE2D *frame)			/* close active frame */
 {
 	char   errtext[132], filename[lg_name+1];
 	int    stat, int_datatype;
-        /*	float  cuts[4]; */
+        float  cuts[4]; 
 #ifdef IRAF
 	int one=1;
 #endif
@@ -661,6 +717,10 @@ close_frame_fast(IMAGE2D *frame)			/* close active frame */
 		stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
 	}
         */
+        /* This will untrigger image_minmax in open_frame*/
+        cuts[0]=frame->min; cuts[2]=frame->min;
+        cuts[1]=frame->max; cuts[3]=frame->max;
+        stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
 	WR_history(frame, (Anyfile *)0);
 
 	switch (frame->data_format) {
@@ -730,5 +790,21 @@ close_frame_fast(IMAGE2D *frame)			/* close active frame */
 	}
 
   	return(stat);
+}
+
+/* ----- juldat --------------------------------------------------------- */
+/*C
+C       FUNCTION JULDAT RETURNS THE JULIAN DATE AS A DOUBLE
+C       PRECISION NUMBER.
+C       ALGORITHM FROM "ALAMANAC FOR COMPUTERS" p.B2
+C*/
+double juldat( int year, int month, int day, double ut)
+     /* year, month, day, ut are the UTC ones
+      ut is the fractional hour */
+{
+        double tmp;
+        tmp = 367.0*year + 0.5 + ut/24.0;
+        tmp = tmp - ((7*(year+((month+9)/12)))/4) + ((275*month)/9) + day + 1721013;
+        return tmp;
 }
 
