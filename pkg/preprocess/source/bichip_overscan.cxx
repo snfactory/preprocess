@@ -1,6 +1,23 @@
+/* === Doxygen Comment ======================================= */
+/*! 
+ * \file          image.cxx
+ * \copyright     (c) 2004 SNIFS Collaboration
+ * \date          Wed Aug  6 17:44:35 2003
+ * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+ * \version       0.0
+ * \brief         
+ *                
+ * $Id$
+ **/
+/* =========================================================== */
 
+/*----- IFU include -----*/
 #include "IFU_io.h"
+
+/* ----- local includes  -----*/
 #include "bichip.hxx"
+#include "preprocessor.hxx"
+#include "overscan.hxx"
 
 int main(int argc, char **argv) {
 
@@ -14,10 +31,12 @@ int main(int argc, char **argv) {
   
   out->HackFitsKeywords();
   
-  out->OddEvenCorrect();
+  //out->OddEvenCorrect();
   out->CreateVarianceFrame();
-  out->SubstractOverscan();
-
+  Preprocessor P;
+  P.SetOverscanAuto(out->Chip(0));
+  P.Overscan()->Correct(out);
+  
   delete in;
   delete out;
 

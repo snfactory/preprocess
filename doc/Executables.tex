@@ -26,15 +26,22 @@ An ideal session of preprocessing could look like this
    -bias BIAS_FRAME.fits -dark PRE_DARK_FRAME.fits -flat\
    PRE_flat_FRAME.fits
 \end{verbatim}
-and for the photometric channel only
+If you are only interested in basic preprocessing without bias, dark
+of flat-field corrections, you can directly use
+\begin{verbatim}
+> preprocess -in RAW_OBJ_FRAME.cat -out almost_PRE_OBJ_FRAME.cat
+\end{verbatim}
+These steps can then be completed,
+for the photometric channel by
 \begin{verbatim}
 > split_image -in almost_PRE_OBJ_FRAME.fits -out PRE_OBJ_FRAME.fits
 \end{verbatim}   
-and for the red channel only (in order to get the image aligned with
-the optical model used in the extraction)
+and for the red channel by 
 \begin{verbatim}
 > image_flip -in almost_PRE_OBJ_FRAME.cat -out PRE_OBJ_FRAME.cat -yflip
 \end{verbatim}
+(in order to get the image aligned with
+the optical model used in the extraction)
 
 In the previous description, 
 '{\tt >}' refers to the prompt, and has not to be typed by the
@@ -77,7 +84,8 @@ blue channel.
 The {\tt -in} parameter is the input file or list of files that are to
 be processed. They are open in read-only mode, as well as the
 auxilliary files specified by the options {\tt -bias}, {\tt -dark},
-{\tt -flat}. 
+{\tt -flat}. Nothe that the {\tt -bias}, {\tt -dark} and
+{\tt -flat} parameters are optional.
 The {\tt -out} parameter is the output file name or list of file
 names. In the case where an input and an output catalog are specified,
 there is a one to one correspondance between the input and output file
@@ -99,21 +107,56 @@ case, no bias, dark, of flat-field correction is applied.
 
 \end{subsection}
 
+\begin{subsection}{The output image format}
+The output is in fits format, with one extension named {\tt [image]}
+witch contains the pixel values, and one extension names {\tt
+[variance]} which contains the variance of the pixel values of the
+[image] extension.
+
+In order to open an image, you have to specify the {\tt '[image]'}
+extension on the fits file on the command line. Do not forget to
+enclose the name with single quotes.
+
+If you cannot open extensions with your programs, you have to convert
+your image in a no-extension fits using
+\begin{verbatim}
+> copy_image -in 'myimage.fits[image]' -out myimage_simple.fits
+\end{verbatim}
+and then working with {\verb myimage_simple.fits }
+
+Alternatively, if you want an automatic image name conversion in your
+source code, you may call the 
+\begin{verbatim} char* ut_open_check_name(char* name);
+\end{verbatim}
+routine from the library (see the corresponding chapter for developpers).
+
+\end{subsection}
+
 \begin{subsection}{Current limitations of the preprocessing code}
 
-Unless otherwise stated, the current limitations of the preprocessing
-code will be solved one day...
+The list of the code limitations is part of a todo list, and part of
+features which come from the non-perfect online state of the raw
+datas
+
 \begin{itemize}
-\item The code produces a run-time error if compiled with gcc 2.9x
+\item There are reports that the code produces a run-time error if
+compiled with gcc 2.95. It is working with gcc 2.96 and gcc 3.2.
 \item OTcom images containing 4 preamplifiers glued together are not
 supported. (Photometric channel)
-\item OTcom raster images get 2 lines with bad data in the middle
-columns of the exposure.
+\item Raster images are glued together, even if it is not a contiguous
+image. 
+OTcom raster images get 2 lines with bad data in the middle
+columns of the exposure. Those lines are removed at the preprocessing
+stage.
 \item Most of detcom raster images will not contain an overscan
 region. In addition, the DATASEC keyword may not be accurate. 
 The preprocessing code was not tested in that case and will surely
 fail. Even if it does not fail, the absence of an overscan information
 can not be cured at the preprocessing stage.
+\item The preprocessing does not know how to handle a DETCOM binned image,
+or a DETCOM raster image with overscan. In addition, in case of a DETCOM
+raster, the CCDSEC fits keyword is wrong from online, and is not
+corrected.
 \item The odd-even correction is always applied, even in cases where
 it will not help improving the noise.
 \item The {\tt -stackout} option for {\tt preprocess\_dark} was not
@@ -183,7 +226,7 @@ preprocessing code, as they do not belong to the standard testing procedure.
 \begin{itemize}
 \item {\tt bichip\_build} builds an image in detcom format out of a raw
 exposure which may be either in detcom or otcom format.
-\item {\tt odd\_even\_correct} suppresses the odd-even effect.
+%\item {\tt odd\_even\_correct} suppresses the odd-even effect.
 \item {\tt bichip\_variance} builds the variance frame and fills it
 with the readout noise computed from the overscan.
 \item {\tt substract\_overscan} substract the offset computed from overscan.

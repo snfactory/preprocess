@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Sun Mar 28 08:10:47 2004
+## Modified at:   Tue May 18 16:48:10 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -44,7 +44,6 @@ OPTSRC =   substract_overscan.cxx\
 	 substract_flat.cxx\
 	 build_flat.cxx\
 	 add_poisson.cxx\
-	 odd_even_correct.cxx\
 	 bichip_assemble.cxx\
 	 bichip_sub_bias.cxx\
 	 bichip_overscan.cxx\
@@ -55,9 +54,15 @@ OPTSRC =   substract_overscan.cxx\
 	 image_flip.cxx\
 	 bichip_build.cxx\
 
+# non-maintained executables
+OLDSRC = \
+	 odd_even_correct.cxx\
+
+
 EXE = $(patsubst %.cxx, $(E)/%, $(SRC))
 OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))
 WEXE = $(patsubst %.cxx, $(E)/%, $(WSRC))
+OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) $(OPTSRC) )
 
 include make.depend
 

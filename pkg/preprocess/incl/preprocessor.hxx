@@ -17,14 +17,18 @@
 /* ----- Local includes and definitions ----- */
 class BiChipSnifs;
 class ImageSnifs;
+class OverscanSnifs;
+
 #include "algocams.hxx"
 #include "iomethod.hxx"
 
 /*   
  Preprocessor is a steering for the preprocessing.
  Ideally, all should be plugged in there, but this is still evolutive ...
+ This is of course a SNIFS preprocessor.
+(i.e. if you have non-SNIFS images, you have to rewrite...)
 
- Consider it as a collection of mains.
+ Besides a collection of mains, there is some utilities, and algorithm switches.
 
  The only implementation yet is the otcom/detcom sniffer
 */
@@ -37,10 +41,14 @@ class Preprocessor {
     // Constructors/Destructors
     Preprocessor( );
   
-    ~Preprocessor() {}
+  ~Preprocessor();
 
-    // setters
+    // setters and getters
     void SetIoMethod(IoMethod_t mode)  {fMode = mode;  }
+    OverscanSnifs* Overscan() {return fOverscan;}
+    void SetOverscanAuto(ImageSnifs* Image);
+    void SetFastMode(int IsFast) {fFast = IsFast;}
+    int FastMode() {return fFast;}
 
     // method
 
@@ -60,7 +68,10 @@ class Preprocessor {
     BiChipSnifs* fBiChip;
     ImageSnifs* fImage;
     IoMethod_t fMode;
-  
+    OverscanSnifs * fOverscan;
+    OverscanSnifs * fOverscanSnifs;
+    OverscanSnifs * fOverscanRescue;
+    int fFast; // if =1 : only basic algorithms applied
   
 };
 

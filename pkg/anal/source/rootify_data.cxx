@@ -21,6 +21,8 @@
 #include "sectionlist.hxx"
 #include "bichip.hxx"
 #include "section.hxx"
+#include "preprocessor.hxx"
+#include "overscan.hxx"
 
 /* ----- local includes ------------------------------ */
 #include "roothistos.hxx"
@@ -43,6 +45,7 @@ int main(int argc, char **argv) {
 
     
   get_argval(2,"%d", &nlines);
+  Preprocessor P;
 
   /* loop on catalog */
   while(inCat.NextFile(inName)) {
@@ -51,7 +54,8 @@ int main(int argc, char **argv) {
     BiChipSnifs * out= new BiChipSnifs(*in,"mem://tmp.fits",FLOAT,1);
     delete in;
     out-> HackFitsKeywords();
-    out-> SubstractOverscan();
+    P.SetOverscanAuto(out->Chip(0));
+    P.Overscan()->Correct(out);
     
     for (int chip=0;chip<2;chip++) {
 

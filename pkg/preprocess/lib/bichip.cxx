@@ -110,7 +110,7 @@ void BiChipSnifs::SetAlgo(char* Soft) {
 /* ===== Methods ====================================================== */
 
 /* ----- Overscan ----------------------------------------------------- */
-
+#ifdef OLD
 void BiChipSnifs::SubstractOverscan() {
   // Substracts the overscan from 2 chips
   // We want a crash if chips not already set !
@@ -118,7 +118,7 @@ void BiChipSnifs::SubstractOverscan() {
     fChip[chip]->SubstractOverscan();
   }
 }
- 
+
 /* ----- odd-Even ----------------------------------------------------- */
 void BiChipSnifs::OddEvenCorrect() {
   // substracts the odd-even from 2 chips
@@ -127,6 +127,7 @@ void BiChipSnifs::OddEvenCorrect() {
   }
   
 }
+#endif 
 
 /* ----- substract bias ------------------------------------------------ */
 void BiChipSnifs::SubstractBias( BiChipSnifs* Bias) {
@@ -284,6 +285,7 @@ void BiChipSnifs::CreateVarianceFrame(char* VarianceNameRecipee)
   }
 }
 
+#ifdef OLD
 /* ----- AddOverscanVariance ---------------------------------------- */
 void BiChipSnifs::AddOverscanVariance() {
   // substracts the odd-even from 2 chips
@@ -292,6 +294,7 @@ void BiChipSnifs::AddOverscanVariance() {
   }
   
 }
+#endif
 
 /* ----- HandleSaturation ---------------------------------------- */
 void BiChipSnifs::HandleSaturation() {

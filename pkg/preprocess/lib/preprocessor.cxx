@@ -18,13 +18,44 @@
 #include "section.hxx"
 #include "utils.h"
 #include "algocams.hxx"
+#include "overscan.hxx"
+
+/* Note about the fast mode : it suppresses OddEven correction and Variance computation */
 
 /* ##### Preprocessor ################################################# */
 
-/* ===== constructor ======================================= */
+/* ===== constructor/destructor ======================================= */
+
+/* ----- constructor ---------------------------------------- */
 Preprocessor::Preprocessor () {
   fMode = kIoPlain;
+  fOverscanSnifs = new OverscanSnifs();
+  fOverscanRescue = new OverscanFromData();
+  fOverscan = fOverscanSnifs; // default current overscan
+  fFast=0;
 }
+
+/* ----- destructor ---------------------------------------- */
+Preprocessor::~Preprocessor () {
+  if (fOverscanSnifs)
+    delete fOverscanSnifs;
+  if (fOverscanRescue)
+    delete fOverscanRescue;
+}
+
+/* ===== Setters ======================================= */
+
+/* ----- SetOverscanAuto -------------------------------------------------- */
+void Preprocessor::SetOverscanAuto(ImageSnifs* Image){
+  /* auto - toggling of the overscan between regular / rescue */
+  fOverscan = fOverscanSnifs;
+
+  if (Image->HasOverscan()) {
+    fOverscan = fOverscanRescue;
+  }
+  
+}
+
 
 /* ===== Methods ======================================= */
 
@@ -132,36 +163,65 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
   // simply returns the debiased bichip
   IoMethod_t mode = fMode;
   SetIoMethod(kIoPlain);
+
   BiChipSnifs * bichip = BuildRawBiChip(name);
+  BiChipSnifs * out;
   SetIoMethod(mode);
 
-  // build the names
-  char imName[lg_name+1];
-  if (!outName[0]) {
-    strcpy(imName,name);
-    ut_build_tmp_name(imName,"bias");
-  }
-  else
-    strcpy(imName,outName);
-
-  BiChipSnifs * out = new BiChipSnifs(*bichip,imName,FLOAT,1,fMode,kIoAll);
-  delete bichip;
+  // Detcom image -> copy to out to be able to set keywords, etc...
   // if algo not set, assume it is detcom
-  if (!out->Chip(0)->Algo())
+  if (!bichip->Chip(0)->Algo()) {
+    // build the names
+    char imName[lg_name+1];
+    if (!outName[0]) {
+      strcpy(imName,name);
+      ut_build_tmp_name(imName,"bias");
+    }
+    else
+      strcpy(imName,outName);
+
+    out = new BiChipSnifs(*bichip,imName,FLOAT,1,fMode,kIoAll);
     out->SetAlgo("DETCOM");
-  //  out->PreprocessBias();
+    delete bichip;
+  } else { 
+    // otcom image : no need for an additional copy (was done in BuildRawBiChip )
+    out = bichip;
+  }
+    
+  // OK, we have now a working copy of the image !
+
+  // keywords hacking
   out->HackFitsKeywords();
-  out->CreateVarianceFrame();
-  out->HandleSaturation();
-  out->OddEvenCorrect();
-  out->AddOverscanVariance();
-  out->SubstractOverscan();
+
+  // variance creation
+  if (!FastMode()) {
+    out->CreateVarianceFrame();
+    out->HandleSaturation();
+  }
+  
+  // overscan substraction
+  // normal exposure with an overscan
+  if (out->Chip(0)->HasOverscan()) {
+    if (FastMode())
+      fOverscanSnifs->SetOddEven(0);
+    else
+      fOverscanSnifs->SetOddEven(1);
+    fOverscanSnifs->Correct(out);
+  }
+  // rescue procedure
+  else {
+    fOverscanRescue->Correct(out);
+  }
+
   return out;
 }
 
 /* ----- PreprocessAssemble ------------------------------------------------ */
 ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, BiChipSnifs* bias){
+
   // simply returns the debiased bichip
+  // first builds teh debiassed bichip
+  // The opening mode shall be the standard one (temporary creation)
   IoMethod_t mode = fMode;
   SetIoMethod(kIoPlain);
   

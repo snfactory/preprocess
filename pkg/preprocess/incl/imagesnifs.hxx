@@ -78,7 +78,7 @@ class ImageSnifs :public ImageSimple {
     // Algorithms
     
     // in-place overscan substraction
-    void SubstractOverscan();
+    // void SubstractOverscan();
     // in-place odd-even substrction
     void OddEvenCorrect();
 
@@ -116,6 +116,7 @@ class ImageSnifs :public ImageSimple {
     void SetFClass(int);
     void SetAlgo(char*); // algo is coded in fits keywords
     AlgoCams* Algo();
+    int HasOverscan();
 
   protected :
     // bacause it is too specialized

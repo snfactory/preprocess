@@ -2,15 +2,22 @@
 This files contains some generic utilities
  */
 
-
+/* ----- System includes -----*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
-#include "utils.h"
+/* ----- IFU and GSL includes -----*/
 #include <gsl/gsl_statistics.h>
+#include <gsl/gsl_sort.h>
 #include "IFU_io.h"
+#include "IFU_math.h"
 
+/* ----- local includes ----- */
+#include "utils.h"
+
+
+/* ----- static functions ---------------------------------------- */
 static int ascending(const void *a, const void*b) {
   if (*(double*)a==*(double*)b) return 0;  
   return (*(double*)a > *(double*)b ) ? 1 : -1;
@@ -158,6 +165,45 @@ double ut_mean(double* val,int n){
   for (i=0;i<n;i++)
     sum += val[i];
   return sum/n;
+}
+
+/*-------------------- ut_mean ----------------------*/
+double ut_mode(double* val,int n){
+  /* This function returns the highest probability density a set of
+  datas. This only works reliabely if there is only 1 maximum, 
+  and in the limit where the data is sufficiently sampled. 
+  No error computation is performed ...*/
+  /* The search is dyadic and iterative, each step looking for the part where the median is the narrower. The time is O(NlnN) (+ the time to run indexx)*/
+  /* This is a fast and inaccurate algorithm. For a general algorithm, see the Parzen window method - the drawback is that it depends on a window size a -priori*/
+
+  int * index;
+  double med;
+  index = malloc(n*sizeof(int));
+  
+  gsl_sort_index(index,val,1,n);
+
+  int nmin=0;
+  int nmax=n; /*  out of the table */
+  
+  do { 
+
+    /* median computation */
+    if ((nmax-nmin) % 2 == 0)
+      med = (val[index[ (nmin + nmax )/2 ]] + val[index[ (nmin+nmax)/2 -1 ]])/2;
+    else
+      med = val[index[ (nmin + nmax)/2 ]];
+    
+    /* The density is higher for the upper part */
+    if ( fabs(med - val[index[nmin]])  > fabs (med - val[index[nmax-1]]) )
+      nmin =(nmin + nmax - 1 )/2;
+    else if ( fabs(med - val[index[nmin]])  < fabs (med - val[index[nmax-1]]) )
+      /* rounding in the good direction  in order to include the median place */
+      nmax =  ( nmin + nmax)/2 + 1;
+    else // stop in case of equality
+      nmax = nmin;
+  } while (nmax-nmin > 2);
+  
+  return med;
 }
 
 /*-------------------- ut_autocovariance ----------------------*/

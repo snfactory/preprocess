@@ -36,6 +36,7 @@ SRCC = bichip.cxx\
 	valuegetter.cxx \
 	preprocessor.cxx \
 	algocams.cxx\
+	overscan.cxx\
 
 OBJ = $(patsubst %.c, $(O)/%.o, $(SRC))  $(patsubst %.cxx, $(O)/%.o, $(SRCC))
 

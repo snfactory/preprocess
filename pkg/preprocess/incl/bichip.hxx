@@ -44,8 +44,8 @@ class BiChipSnifs {
 
     // Methods
 
-    void SubstractOverscan();
-    void OddEvenCorrect();
+    //void SubstractOverscan();
+    // void OddEvenCorrect();
     void SubstractBias(BiChipSnifs* Bias);
 
     ImageSnifs* Assemble(char* ImageName,IoMethod_t Io=kIoPlain,int nLines=kIoAll);
@@ -53,7 +53,7 @@ class BiChipSnifs {
 
     void CreateVarianceFrame(char* VarianceNameRecipee="");
     void HandleSaturation();
-    void AddOverscanVariance();
+  //void AddOverscanVariance();
     // void PreprocessBias();
     //ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);
     //ImageSnifs* PreprocessDark(char* OutName,BiChipSnifs *bias);

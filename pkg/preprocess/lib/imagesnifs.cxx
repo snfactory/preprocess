@@ -106,6 +106,19 @@ AlgoCams* ImageSnifs::Algo(){
   return fAlgo;
 }
 
+/* ----- HasOverscan  ------------------------------ */
+int ImageSnifs::HasOverscan(){
+  // return 1 if there is a valid overscan region in the fits keywords
+
+  char biasSecString[lg_name+1];
+  Image()->RdDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
+  int x1,x2,y1,y2,nmatch;
+  nmatch = sscanf(biasSecString,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+  if (nmatch<4) {
+    return 0;
+  }
+  return 1;
+}
 
 /* ===== Methods ======================================= */
 
@@ -149,6 +162,7 @@ ImageSnifs* ImageSnifs::BuildSubImage(Section* Sec,char *Name){
 
 
 /* ----- SubstractOverscan ------------------------------ */
+#ifdef OLD
 void ImageSnifs::SubstractOverscan() {
 
   int overscanDone;
@@ -215,6 +229,7 @@ void ImageSnifs::OddEvenCorrect() {
 
   WrDesc("OEPARAM",DOUBLE, 2, param);
 }
+#endif
 
 /* -----  SubstractBias ------------------------------------------------- */
 void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
@@ -422,6 +437,11 @@ void ImageSnifs::AddPoissonNoise() {
 
   int poisNoise=0;
 
+  // by-pass check
+  if (!Variance()) {
+    return;  
+  }
+
   // ParanoChecks
   if (ParanoMode()) {
     // check if in electrons
@@ -437,10 +457,6 @@ void ImageSnifs::AddPoissonNoise() {
       print_error("ImageSnifs::AddPoissonNoise already performed for %s",Name());
       return;
     }
-  }
-  if (!Variance()) {
-    print_error("ImageSnifs::AddPoissonNoise but %s has no variance",Name());
-    return;  
   }
   // End of checks
 
@@ -497,7 +513,7 @@ void ImageSnifs::CreateVarianceFrame(char* name) {
   SetVarianceFrame(var);
 }
 
-
+#ifdef OLD
 /* ----- AddOverscanVariance ------------------------------ */
 void ImageSnifs::AddOverscanVariance() {
 
@@ -520,7 +536,6 @@ void ImageSnifs::AddOverscanVariance() {
 
 }
 
-#ifdef OLD
 /* ----- Assembled2Dark ------------------------------ */
 void ImageSnifs::Assembled2Dark() {
   AddPoissonNoise();

@@ -41,7 +41,12 @@ ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
 
 /* ----- constructor Image, Sec ----------------------------------*/
 ImageAnalyser::ImageAnalyser(ImageSnifs * Image, Section *Sec) {
-  ImageAnalyser(Image->Image(),Sec);
+  fVal=0;
+  fSec=0;
+  fFftLength=0;
+  SetImage(Image);
+  SetSection(Sec);
+  // ImageAnalyser(Image,Sec); -> does not work ...
 }
 
 /* ----- destructor --------------------------------------------*/

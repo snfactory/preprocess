@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
     BiChipSnifs* out = outStack->Kombine(argval[2],&k);
 
     delete outStack;
+    delete out;
+
   } else { // no need to store temporary information
   
     while (catIn.NextFile(inName) && catOut.NextFile(outName)) {

@@ -26,26 +26,44 @@
 /* ----- HackFitsKeywords -------------------------------------------------- */
 void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
 
-  // The following is not valid for any raster yet !
+  // First : hack for normal raster
   char key[lg_name+1];
   I->RdDesc("RASTER",CHAR,lg_name+1,key);
-  if (strcmp(key,"FULL")){
-    print_error("ImageSnifs::HackFitsKeywords : only works for FULL raster");
-    return;
+  if (!strcmp(key,"FULL")){
+    // The BiasSec is not correct
+    int x1,x2,y1,y2;
+    I->RdDesc("BIASSEC",CHAR,lg_name+1,key);
+    sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+    sprintf(key,"[%d:%d,%d:%d]",x1+2,x2,1,I->Ny());
+    I->WrDesc("BIASSEC",CHAR,lg_name+1,key);
+    
+    // the DATASEC needs help too
+    I->RdDesc("DATASEC",CHAR,lg_name+1,key);
+    sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5);
+    I->WrDesc("DATASEC",CHAR,lg_name+1,key);
+
+  } else { // rasters 
+    int nbin1,nbin2;
+    I->RdDesc("CCDBIN1",INT,1,&nbin1);
+    I->RdDesc("CCDBIN2",INT,1,&nbin2);
+    if (nbin1 != 1 || nbin2 !=1 ) {
+      print_error("ImageSnifs::HackFitsKeywords : only works for BIN 1 1 raster");
+      return;  }
+    int x1,x2,y1,y2;
+    I->RdDesc("BIASSEC",CHAR,lg_name+1,key);
+    if (sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2)==4) {
+       print_error("ImageSnifs::HackFitsKeywords : RASTER with Overscan not handled");
+      return;
+    }
+    
+    // OK, correct the DATASEC -- I don't know what to do with CCDSEC
+    I->RdDesc("DATASEC",CHAR,lg_name+1,key);
+    sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+    sprintf(key,"[%d:%d,%d:%d]",4,x2-1,1,y2-1);
+    I->WrDesc("DATASEC",CHAR,lg_name+1,key);
   }
 
-  // The BiasSec is not correct
-  int x1,x2,y1,y2;
-  I->RdDesc("BIASSEC",CHAR,lg_name+1,key);
-  sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-  sprintf(key,"[%d:%d,%d:%d]",x1+2,x2,1,I->Ny());
-  I->WrDesc("BIASSEC",CHAR,lg_name+1,key);
-  
-  // the DATASEC needs help too
-  I->RdDesc("DATASEC",CHAR,lg_name+1,key);
-  sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-  sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5);
-  I->WrDesc("DATASEC",CHAR,lg_name+1,key);
   
   int fclass;
   if (I->RdIfDesc("FCLASS",INT,1,&fclass)<=0) {

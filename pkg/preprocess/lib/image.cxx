@@ -1,7 +1,7 @@
 /* === Doxygen Comment ======================================= */
 /*! 
  * \file          image.cxx
- * \copyright     (c) 2003 CRAL-Observatoire de Lyon
+ * \copyright     (c) 2004 SNIFS Collaboration
  * \date          Wed Aug  6 17:44:35 2003
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
@@ -11,10 +11,10 @@
  **/
 /* =========================================================== */
 #include "gsl/gsl_statistics.h"
-#include "gsl/gsl_fit.h"
+//#include "gsl/gsl_fit.h"
 
-#include "IFU_io.h"
-#include "IFU_math.h"
+//#include "IFU_io.h"
+//#include "IFU_math.h"
 
 #include "utils.h"
 #include "image.hxx"
@@ -23,9 +23,6 @@
 #include "ioslice.hxx"
 
 /* ##### IMAGE SIMPLE ################################################# */
-
-const int ImageSimple::nLinesDefault = 5;
-
 
 /* ===== constructor/destructor ======================================= */
 
@@ -343,6 +340,7 @@ double ImageSimple::MeanValue(Section* Sec,int step) {
 
 /* ----- Overscan ----------------------------------------------------- */
 
+#ifdef OLD
 void ImageSimple::SubstractOverscan(Section* S) {
   // Substracts the overscan from whole image, taking the datas from 
   // the supplied window
@@ -505,8 +503,10 @@ void ImageSimple::ComputeLinesOverscan(Section* S,double *ov) {
   } // for col
 }
 
-/* ----- OverscanRms --------------------------------------------------- */
-double ImageSimple::OverscanRms(Section* S,double sigcut) {
+#endif
+
+/* ----- SectionRms --------------------------------------------------- */
+double ImageSimple::SectionRms(Section* S,double sigcut) {
   // Computes the RMS of readout (i.e. readout noise if everything
   // goes fine) from the overscan strip.
 
@@ -535,7 +535,7 @@ double ImageSimple::OverscanRms(Section* S,double sigcut) {
   return sqrt(varinc/weight);
 }
 
-
+#ifdef OLD
 /* ----- odd-Even ----------------------------------------------------- */
 void ImageSimple::OddEvenCorrect(Section* S,double* param, double sigcut ) {
   //   Odd-even substraction works as follows
@@ -600,6 +600,8 @@ void ImageSimple::OddEvenCorrect(Section* S,double* param, double sigcut ) {
     }
   }
 }
+
+#endif
 
 /* ----- AddPoissonNoise-------------------------------------------------- */
 void ImageSimple::AddPoissonNoise() {

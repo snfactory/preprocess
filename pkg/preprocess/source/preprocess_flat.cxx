@@ -1,8 +1,25 @@
+/* === Doxygen Comment ======================================= */
+/*! 
+ * \file          preprocess_flat.cxx
+ * \copyright     (c) 2004 SNIFS Collaboration
+ * \date          Wed Aug  6 17:44:35 2003
+ * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+ * \version       0.0
+ * \brief         
+ *                
+ * $Id$
+ **/
+/* =========================================================== */
+
+
+/* ----- local includes ----- */
 
 #include "preprocessor.hxx"
 #include "bichip.hxx"
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
+
+/* ----- main ---------------------------------------- */
 
 int main(int argc, char **argv) {
 
@@ -11,7 +28,7 @@ int main(int argc, char **argv) {
   set_arglist("-in none -out none -bias null -dark null");
   init_session(argv,argc,&arglabel,&argval);
 
-  char tmp_name[lg_name+1],inName[lg_name+1],outName[lg_name+1];
+  char inName[lg_name+1],outName[lg_name+1];
 
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);

@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   
   out->HackFitsKeywords();
   
-  out->OddEvenCorrect();
+  //  out->OddEvenCorrect();
   out->CreateVarianceFrame();
 
   delete in;

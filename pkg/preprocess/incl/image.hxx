@@ -1,7 +1,7 @@
 /* === Doxygen Comment ======================================= */
 /*! 
  * \file          image.hxx
- * \copyright     (c) 2003 CRAL-Observatoire de Lyon
+ * \copyright     (c) 2004 SNIFS Collaboration
  * \date          Wed Aug  6 18:32:01 2003
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
@@ -88,12 +88,12 @@ class ImageSimple {
     // Algorithms
 
     // Overscan
-    void SubstractOverscan(Section* Sec);
-    void ComputeLinesOverscan(Section* Sec,double * values);
-    double OverscanRms(Section* Sec,double sigcut=0);
+  //    void SubstractOverscan(Section* Sec);
+  //  void ComputeLinesOverscan(Section* Sec,double * values);
+    double SectionRms(Section* Sec,double sigcut=0);
 
     // odd-even
-    void OddEvenCorrect(Section* Sec,double*param, double sigcut=0);
+    //void OddEvenCorrect(Section* Sec,double*param, double sigcut=0);
     //
     void AddPoissonNoise();
     void HandleSaturation(double Level);
@@ -103,7 +103,7 @@ class ImageSimple {
 
     IMAGE2D * Frame() const {return Io()->Frame();}
     ImageSimple* fVariance;
-    static const int nLinesDefault; // parameter for the overscan
+  //    static const int nLinesDefault; // parameter for the overscan
     IoMethod *fIo;
   
   private :

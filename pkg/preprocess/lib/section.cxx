@@ -43,8 +43,10 @@ Section::Section(int X1, int X2, int Y1, int Y2) {
 
 /* ----- SetString -------------------------------------------------- */
 void Section::SetString(char * Desc) {
-  int x1,x2,y1,y2;
-  sscanf(Desc,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+  int x1,x2,y1,y2,nmatch;
+  nmatch = sscanf(Desc,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+  if (nmatch!=4)
+    print_error("Section::SetString : %s is ill-formatted. Expecting [%%d:%%d,%%d:%%d]",Desc);
   fXFirst=x1-1;
   fXLast=x2;
   fYFirst=y1-1;
