@@ -56,12 +56,12 @@ class Preprocessor {
     // method
 
     BiChipSnifs* BuildRawBiChip(char* name,char* outName="");
-    BiChipSnifs* PreprocessBias(char* name,char* outName="");
+    BiChipSnifs* PreprocessOverscan(char* name,char* outName="");
 
-    ImageSnifs * PreprocessAssemble(char* name, char* outName, BiChipSnifs* bias);
-    ImageSnifs * PreprocessDark(char* name, char* outName,BiChipSnifs* bias);
-    ImageSnifs * PreprocessFlat(char* name, char* outName,BiChipSnifs* bias, ImageSnifs* dark);
-    ImageSnifs* Preprocess(char* name, char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) ;
+    ImageSnifs * PreprocessAssemble(char* name, char* outName,ImageSnifs* bias=0);
+    ImageSnifs * PreprocessDark(char* name, char* outName,ImageSnifs* bias=0);
+    ImageSnifs * PreprocessFlat(char* name, char* outName,ImageSnifs* bias=0, ImageSnifs* dark=0);
+    ImageSnifs* Preprocess(char* name, char* OutName,ImageSnifs *bias=0,ImageSnifs *dark=0,ImageSnifs* flat=0) ;
   
     
   

@@ -1,5 +1,5 @@
 
-#include "bichip.hxx"
+//#include "bichip.hxx"
 #include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
 #include "kombinator.hxx"
@@ -16,10 +16,10 @@ int main(int argc, char **argv) {
   CatOrFile catIn(argval[0]);
   CatOrFile catOut(argval[1]);
 
-  BiChipSnifs * bias=0;  
+  ImageSnifs * bias=0;  
   // Load once auxilliary files
   if (is_set(argval[3]))
-    bias = new BiChipSnifs(argval[3]);
+    bias = new ImageSnifs(argval[3]);
 
   get_argval(5,"%d",&nlines);
   

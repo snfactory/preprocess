@@ -33,12 +33,12 @@ int main(int argc, char **argv) {
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);
   
-  BiChipSnifs * bias=0;
+  ImageSnifs * bias=0;
   ImageSnifs *dark=0;
   
   // Load once auxilliary files
   if (is_set(argval[2]))
-    bias = new BiChipSnifs(argval[2]);
+    bias = new ImageSnifs(argval[2]);
   if (is_set(argval[3]))
     dark = new ImageSnifs(argval[3]);
 

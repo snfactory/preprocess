@@ -1,5 +1,5 @@
 
-#include "bichip.hxx"
+//#include "bichip.hxx"
 #include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
 #include "kombinator.hxx"
@@ -19,8 +19,9 @@ int main(int argc, char **argv) {
   Preprocessor P;
 
   get_argval(4,"%d",&nlines);
-
+  
   if (is_set(argval[2])) {
+    /*
     BiChipStackSnifs * outStack = new BiChipStackSnifs(nlines);
   
     while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
@@ -37,12 +38,31 @@ int main(int argc, char **argv) {
 
     delete outStack;
     delete out;
+  */
+  
+    
+    ImageStackSnifs * outStack = new ImageStackSnifs(nlines);
+  
+    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
+      print_msg("Opening %s",inName);
+      P.SetIoMethod(kIoSlice);
+      ImageSnifs * tmpOut = P.PreprocessAssemble(inName,outName);
+      outStack->AddImage(tmpOut);
+    }
+    
+    double sigma;
+    get_argval(3,"%lf", &sigma);
+    KGauss k(sigma);
+    ImageSnifs* out = outStack->Kombine(argval[2],&k);
 
+    delete outStack;
+    delete out;
+  
   } else { // no need to store temporary information
   
     while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
       print_msg("Opening %s",inName);
-      BiChipSnifs * out = P.PreprocessBias(inName,outName);
+      ImageSnifs * out = P.PreprocessAssemble(inName,outName);
       delete out;  
     }
   }

@@ -193,8 +193,10 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   return bichip;
 }
 
-/* ----- PreprocessBias -------------------------------------------------- */
-BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
+/* ----- PreprocessOverscan------------------------------------------------- */
+BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
+  /* handles all the information relevant to the overscan */
+
   // simply returns the debiased bichip
 
   BiChipSnifs * bichip = BuildRawBiChip(name);
@@ -254,7 +256,7 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
 }
 
 /* ----- PreprocessAssemble ------------------------------------------------ */
-ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, BiChipSnifs* bias){
+ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSnifs* bias){
 
   // simply returns the debiased bichip
   // first builds teh debiassed bichip
@@ -262,20 +264,21 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, BiChipS
   IoMethod_t mode = fMode;
   SetIoMethod(kIoPlain);
   
-  BiChipSnifs * bichip = PreprocessBias(name);
-  if (bias) bichip->SubstractBias(bias);
+  BiChipSnifs * bichip = PreprocessOverscan(name);
   // no hack for the variating gain - no good hack found anyway!
   //bichip->HackGainRatio();
 
   SetIoMethod(mode);
   ImageSnifs *out = bichip->Assemble(outName,fMode,kIoAll);
   delete bichip;
+  if (bias) out->SubstractBias(bias);
   return out;
   
 }
 
+
 /* ----- PreprocessDark ------------------------------------------------ */
-ImageSnifs * Preprocessor::PreprocessDark(char* name, char* outName,BiChipSnifs* bias){
+ImageSnifs * Preprocessor::PreprocessDark(char* name, char* outName,ImageSnifs* bias){
   // simply returns the debiased bichip
   
   ImageSnifs *out = PreprocessAssemble(name,outName,bias);
@@ -284,7 +287,7 @@ ImageSnifs * Preprocessor::PreprocessDark(char* name, char* outName,BiChipSnifs*
 }
 
 /* ----- PreprocessFlat ------------------------------------------------ */
-ImageSnifs * Preprocessor::PreprocessFlat(char* name, char* outName,BiChipSnifs* bias, ImageSnifs* dark){
+ImageSnifs * Preprocessor::PreprocessFlat(char* name, char* outName,ImageSnifs* bias, ImageSnifs* dark){
 
   ImageSnifs* out = PreprocessDark(name,outName,bias);
   if (dark) 
@@ -294,7 +297,7 @@ ImageSnifs * Preprocessor::PreprocessFlat(char* name, char* outName,BiChipSnifs*
 }
 
 /* ----- Preprocess ------------------------------------------------ */
-ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) {
+ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) {
   ImageSnifs* out = PreprocessDark(name, outName,bias);
   if (dark) 
     out->SubstractDark( dark);
