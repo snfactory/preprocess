@@ -415,12 +415,12 @@ void OverscanBase::SubstractOddEven(double * param, double sigcut) {
   double sub,val;
   for (j=fSubSec->YFirst();j<fSubSec->YLast();j++) {
     sub = (param[0] + (j- S->YFirst() )*param[1])/2;
-    for ( i= fSubSec->XFirst() +  ( fSubSec->XFirst() - S->XFirst() )%2;
+    for ( i= fSubSec->XFirst() +  abs( fSubSec->XFirst() - S->XFirst() )%2;
          i<fSubSec->XLast() ; i+=2) {
       val = fImage->RdFrame(i,j) -sub;
       fImage->WrFrame(i,j,val);
     }
-    for ( i=  fSubSec->XFirst() +  ( fSubSec->XFirst() - S->XFirst() +1)%2;
+    for ( i=  fSubSec->XFirst() +  abs( fSubSec->XFirst() - S->XFirst() +1)%2;
           i<S->XLast() ; i+=2) {
       val = fImage->RdFrame(i,j) +sub;
       fImage->WrFrame(i,j,val);
