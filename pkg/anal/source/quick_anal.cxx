@@ -25,7 +25,7 @@
 int main(int argc, char **argv) {
 
   char **argval, **arglabel;
-  char inName[lg_name+1],*outName;
+  char inName[lg_name+1];
   ImageSignature sig;
 
   set_arglist("-in none -blurb");

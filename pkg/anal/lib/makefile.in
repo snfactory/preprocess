@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Wed Jun  9 23:52:48 2004
+## Modified at:   Mon Jun 21 17:02:58 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -36,6 +36,7 @@ OUT : dirobj $(LIB) $(SOLIB)
 # dictionnary
 dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h
 	rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
+#	[ -n $ROOTSYS ] && rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
 
 # placate make.depend .cxx dependancies
 %.cxx :

@@ -123,12 +123,12 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   }
 
   // build the bichip
+  int newNamp=nAmp;
   if (nAmp != 2 && GetAllImage())
     bichip = new BiChipSnifs(nAmp);
   else {
     bichip = new BiChipSnifs(2);
-    int newNamp=2;
-    image->WrDesc("CCDNAMP",INT,1,&newNamp);
+    newNamp=2;
   }
   
   ImageSnifs* im[bichip->NChips()];
@@ -149,6 +149,8 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     image->RdDesc(gainKey,DOUBLE,1,&gain);
     im[chip]->WrDesc("GAIN",DOUBLE,1,&gain);
     sprintf(dataSecString,"[%d:%d,%d:%d]",1,newDataXLength,1,dataSec.YLength());
+    if (newNamp != nAmp)
+      im[chip]->WrDesc("CCDNAMP",INT,1,&newNamp);
     
     im[chip]->WrDesc("DATASEC",CHAR,lg_name+1,dataSecString);
     sprintf(biasSecString,"[%d:%d,%d:%d]",newDataXLength+1,newDataXLength+newBiasXLength,1,dataSec.YLength());
@@ -156,6 +158,7 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     im[chip]->WrDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
     bichip->SetChip(chip,im[chip]);
 
+    // fill the image
     Section sec;
     if (chip%2==0) {
       sec.SetX1(dataSec.X1()+(chip*dataSec.XLength())/nAmp);

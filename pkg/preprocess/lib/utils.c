@@ -459,7 +459,7 @@ open_frame_fast(IMAGE2D *frame, char *name, char *mode)
 
 	if (!exist(filename)) { /* check if fil exists */
 		status = ERR_OPEN;
-		sprintf(errtext,"open_frame: frame %s",filename);
+		sprintf(errtext,"open_frame_fast: frame %s",filename);
 		Handle_Error(errtext,status);
 		return(status);
         }
@@ -622,7 +622,7 @@ open_frame_fast(IMAGE2D *frame, char *name, char *mode)
 	}
 
   	if (status) {
-		sprintf(errtext,"open_frame: frame %s",filename);
+		sprintf(errtext,"open_frame_fast: frame %s",filename);
 		status = get_tiger_errcode(frame->data_format,status);
 		Handle_Error(errtext,status);
 	}
@@ -701,7 +701,7 @@ close_frame_fast(IMAGE2D *frame)			/* close active frame */
 #endif
 		}
   		if (stat) {
-			sprintf(errtext,"close_frame: frame %s",filename);
+			sprintf(errtext,"close_frame_fast: frame %s",filename);
 			stat = get_tiger_errcode(frame->data_format,stat);
 			Handle_Error(errtext,stat);
 		}
@@ -779,7 +779,7 @@ close_frame_fast(IMAGE2D *frame)			/* close active frame */
 #endif
 	}
   	if (stat) {
-		sprintf(errtext,"close_frame: frame %s",filename);
+		sprintf(errtext,"close_frame_fast: frame %s",filename);
 		stat = get_tiger_errcode(frame->data_format,stat);
 		Handle_Error(errtext,stat);
 	} else {
