@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Wed Nov  5 14:12:55 2003
+## Modified at:   Thu Nov  6 12:10:25 2003
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -41,8 +41,7 @@ EXE = $(E)/substract_overscan\
 	$(E)/quick_look\
 	$(E)/fft_image\
 	$(E)/copy_image\
-
-#	$(E)/test_extension\
+	$(E)/test_extension\
 
 
 # ============================================================
