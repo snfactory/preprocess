@@ -16,12 +16,15 @@ include $(topdir)/add_defs/makedefs.local
 
 #  ============================================================
 
-LOCLIB = $(O)/libanal.a
+LOCLIB = $(O)/libanal.so
+LOCLIBPATH = -L$(O) -lanal
 
 # Targets
 
 EXECC = $(E)/rootify\
 	$(E)/rootify_fft\
+	$(E)/rootify_data\
+	$(E)/rootify_tree\
 
 # ============================================================
 
@@ -44,7 +47,7 @@ $(EXE) : $(E)/% : $(O)/%.o $(IOLIB) $(preprocess_LIB)
 
 # Executables linked with ROOT package
 $(EXECC) : $(E)/% : $(O)/%.o  $(LOCLIB) $(IOLIB) $(preprocess_LIB)
-	$(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(preprocess_LIB) $(ADD_LIBS) $(ROOTLIBS) $(MATHLIB) -lg2c
+	$(CXXLD) $(LDF) -o $@ $< $(LOCLIBPATH) $(IOLIB) $(preprocess_LIB) $(ADD_LIBS) $(ROOTLIBS) $(MATHLIB) -lg2c
 	$(STRIP) $@
 
 clear:

@@ -195,8 +195,7 @@ ImageStackSnifs* BiChipStackSnifs::PreprocessDark(CatOrFile * Out, BiChipSnifs* 
     BiChipSnifs * tmpBi = new BiChipSnifs(*fBiChips[iFile],"mem://tmp.fits",FLOAT,1,kIoPlain);
     // free some memory
     fBiChips[iFile]->SetNLines(1);
-    tmpBi->PreprocessBias();
-    ImageSnifs * out = tmpBi->PreprocessAssemble(fileName,bias);
+        ImageSnifs * out = tmpBi->PreprocessAssemble(fileName,bias);
     delete tmpBi;
     out->Assembled2Dark();
     outStack->AddImage(out);

@@ -27,8 +27,9 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_F77
 AC_SUBST(C_OPT)
+AC_SUBST(C_ADDOPT)
 case $build_os in
-        linux* ) C_OPT=-DUNDER ;;
+        linux* ) C_OPT=-DUNDER ; C_ADDOPT="-fPIC -pipe";;
         aix* ) C_OPT= ;;
         solaris* ) C_OPT=-DUNDER;;
 esac 

@@ -30,10 +30,12 @@ fChip[1]=fChip[0]=0;
 BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode,IoMethod_t Method, int MParam) {
   // Default constructor :
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
-  CheckNameRecipee(ChipNameRecipee);
+  char modName[lg_name+1];
+  strcpy(modName,ChipNameRecipee);
+  CheckNameRecipee(modName);
   char chipname[lg_name+1];
   for (int chip=0;chip<2;chip++) {
-    sprintf(chipname, ChipNameRecipee, chip);
+    sprintf(chipname, modName, chip);
     fChip[chip] = new ImageSnifs(chipname,mode,Method,MParam);
   }
 }
@@ -43,10 +45,12 @@ BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode,IoMethod_t Method, int
 BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short newtype,int copydata,IoMethod_t Method, int MParam) {
   // The copy constructor maps the ImageSnifs copy constructor
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
-  CheckNameRecipee(NewNameRecipee);
+  char modName[lg_name+1];
+  strcpy(modName,NewNameRecipee);
+  CheckNameRecipee(modName);
   for (int chip=0;chip<2;chip++) {
     char chipName[lg_name+1];
-    sprintf(chipName,NewNameRecipee,chip);
+    sprintf(chipName,modName,chip);
     fChip[chip]=new ImageSnifs((*Father.fChip[chip]),chipName,newtype,copydata,Method,MParam);
   }
 }

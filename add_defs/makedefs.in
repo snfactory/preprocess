@@ -52,10 +52,12 @@ PKG_INC = ../../incl
 USER_INC = ../incl
 LOCAL_INC =  /usr/local/include
 STAND_INC = $(INC)/gendef.h $(INC)/items.h $(INC)/alloc.h $(INC)/iofuncdecl.h $(INC)/funcdecl.h $(INC)/macro.h $(INC)/soft_version.h $(INC)/3D_items.h $(INC)/funcdef.h $(INC)/tiger_defs.h $(INC)/3D_iofunc.h $(INC)/IFU_io.h
+MISC_INC = $(topdir)/../Snifs_misc/incl/
 
 # Compilation commands ==============================
+C_ADDOPT = @C_ADDOPT@
 
-CFLAGS = -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV
+CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV -I$(MISC_INC)
 FFLAGS = $(F_OPT) -I$(PKG_INC) -I$(INC) -I$(USER_INC) -I$(LOCAL_INC)
 
 C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
@@ -67,6 +69,7 @@ CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
 
 F_COMPILE = $(F77) $(DEBUG) $(FFLAGS) -c $(@F:.o=.f) && mv $(@F) $@
 LDF = -lm
+LDSOF = -lm -shared
 
 # Lex & Yacc ==============================
 LEXOUTPUT = y.tab.o

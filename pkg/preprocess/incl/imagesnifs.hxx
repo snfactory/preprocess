@@ -61,22 +61,11 @@ class ImageSnifs :public ImageSimple {
   int DeleteFrame() {return Image()->DeleteFrame();}
   int CreateFrame(char *name,int nx, int ny, short Type=FLOAT ){return Image()->CreateFrame(name,nx,ny,Type);}
 
-  //  int Inside(int Xc,int Yc) const;
-  //  void MinMax(Section* Sec, double * min, double * max) const;
-  
   void ImportHeader(ImageSnifs * From)
       { Image()->ImportHeader(From->Image());}
-  //void ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 )
   void ImportSection(ImageSnifs * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 ) 
       { Image()->ImportSection(From->Image(),Sec,X1Start,Y1Start,XDir,YDir,ZScale);}
-  //  void Add(ImageSimple* ToAdd, double Scale=1);
-  //  void Add(double Constant);
-  //  void Scale(double Scale);
-  //  void SetTo(double Value);
-  //  void CutLow(double LowBound);
-  //  void Divide(ImageSimple* Denom);
-  //  double MeanValue(Section* Sec,int step=1) const;
-    void SetVarianceFrame(ImageSimple* Var){Image()->SetVarianceFrame(Var);}
+  void SetVarianceFrame(ImageSimple* Var){Image()->SetVarianceFrame(Var);}
     ImageSimple* Variance() const {return Image()->Variance();}  
 
 
@@ -121,6 +110,8 @@ class ImageSnifs :public ImageSimple {
 
     bool ParanoMode() const { return fParano; }
     void SetParanoMode(bool Parano) { fParano=Parano; }
+    int GetFClass();
+    void SetFClass(int);
   
 
   protected :

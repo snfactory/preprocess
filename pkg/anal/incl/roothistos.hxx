@@ -14,10 +14,14 @@
 #ifndef ROOTHISTOS_H
 #define ROOTHISTOS_H
 
+/* ----- ROOT includes ------------------------------ */
+class TH1F;
+class TH1;
+
+/* ----- image includes ------------------------------ */
 class ImageSnifs;
 class ImageSimple;
 class Section;
-class TH1;
 #include "analyser.hxx"
 
 /* ===== ROOT HISTOS ============================== */
@@ -45,7 +49,8 @@ class RootAnalyser : public ImageAnalyser {
 
   void OverscanError(float sigma=0);
 
-  void HistoData();
+  void HistoData(int nbins=4000);
+  TH1F* HistoDataBuild(char * histName ,int nbins=4000);
 
   void MatrixData();
 

@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Fri Feb 13 14:53:47 2004
+## Modified at:   Tue Feb 24 15:47:52 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -22,36 +22,42 @@ LOCLIB = $(O)/libpreprocess.a
 
 # Targets
 
-WEXE = $(E)/preprocess
+WSRC = preprocess.cxx\
 
-EXE =	$(E)/preprocess_bias\
-	$(E)/preprocess_flat\
-	$(E)/preprocess\
-	$(E)/rickify\
-	$(E)/split_image\
-	$(E)/quick_look\
-	$(E)/fft_image\
-	$(E)/copy_image\
-	$(E)/copy_image_slice\
-	$(E)/test_extension\
-	$(E)/stack_bias\
-	$(E)/stack_bichip\
-	$(E)/preprocess_dark\
+SRC =	 preprocess_bias.cxx\
+	 preprocess_flat.cxx\
+	 preprocess.cxx\
+	 rickify.cxx\
+	 split_image.cxx\
+	 quick_look.cxx\
+	 fft_image.cxx\
+	 copy_image.cxx\
+	 copy_image_slice.cxx\
+	 test_extension.cxx\
+	 stack_bias.cxx\
+	 stack_bichip.cxx\
+	 preprocess_dark.cxx\
 
-OPTEXE =  $(E)/substract_overscan\
-	$(E)/substract_dark\
-	$(E)/substract_flat\
-	$(E)/build_flat\
-	$(E)/add_poisson\
-	$(E)/odd_even_correct\
-	$(E)/bichip_assemble\
-	$(E)/bichip_sub_bias\
-	$(E)/bichip_overscan\
-	$(E)/bichip_variance\
-	$(E)/stack_bichip_gain\
-	$(E)/wr_desc\
-	$(E)/add_image\
-	$(E)/image_flip\
+OPTSRC =   substract_overscan.cxx\
+	 substract_dark.cxx\
+	 substract_flat.cxx\
+	 build_flat.cxx\
+	 add_poisson.cxx\
+	 odd_even_correct.cxx\
+	 bichip_assemble.cxx\
+	 bichip_sub_bias.cxx\
+	 bichip_overscan.cxx\
+	 bichip_variance.cxx\
+	 stack_bichip_gain.cxx\
+	 wr_desc.cxx\
+	 add_image.cxx\
+	 image_flip.cxx\
+
+EXE = $(patsubst %.cxx, $(E)/%, $(SRC))
+OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))
+WEXE = $(patsubst %.cxx, $(E)/%, $(WSRC))
+
+include make.depend
 
 # ============================================================
 
@@ -59,15 +65,15 @@ OPTEXE =  $(E)/substract_overscan\
 OUT : dirbin dirobj $(EXE) $(OPTEXE)
 
 # Objects
-$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) makefile
+$(O)/%.o : %.c $(STAND_INC)
 	$(C_COMPILE)
 
 # Objects C++
-$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) makefile
+$(O)/%.o : %.cxx $(STAND_INC)
 	$(CXXCOMPILE)
 
 # Executables (beware: the % syntax might not be standard)
-$(E)/% : $(O)/%.o $(LOCLIB) $(IOLIB)
+$(E)/% : $(O)/%.o $(LOCLIB) $(IOLIB) makefile
 	$(CXXLINK)
 	$(STRIP) $@
 
@@ -78,3 +84,6 @@ clear:
 makefile: makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+make.depend: makefile $(SRC) $(OPTSRC)
+	$(CC) -MM $(CFLAGS) -c $(SRC) $(OPTSRC) | sed 's%\(.*\)\.o[ :]*%$$(O)/\1.o make.depend :%' > make.depend

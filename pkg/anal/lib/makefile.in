@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Thu Oct 23 01:54:37 2003
+## Modified at:   Wed Mar 10 23:44:36 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -18,13 +18,21 @@ include $(topdir)/add_defs/makedefs.local
 
 # Targets
 
-OBJ = $(O)/roothistos.o
+OBJ = $(O)/roothistos.o\
+      $(O)/analimage.o\
+      $(O)/dict.o\
+
 
 LIB = $(O)/libanal.a 
+SOLIB = $(O)/libanal.so 
 
 # ============================================================
 
-OUT : dirobj $(LIB)       
+OUT : dirobj $(LIB) $(SOLIB)
+
+# dictionnary
+dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h
+	rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
 
 # Objects
 $(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) makefile
@@ -38,6 +46,11 @@ $(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) makefile
 $(LIB) : $(OBJ)
 	$(AR) rv $(LIB) $(OBJ)
 	$(RANLIB) $@
+
+# Library
+$(SOLIB) : $(OBJ)
+	$(CXXLD) $(LDSOF) -o $(SOLIB) $(OBJ)
+
 
 clear:
 	rm -f $(OBJ) $(EXE)

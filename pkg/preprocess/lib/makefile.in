@@ -61,21 +61,16 @@ include make.depend
 
 OUT : dirobj $(LIB)
 
-# make.depend added because : if a .h file changes included .h
-# the .o is aware it has to be recompiled, but not the make.depend
-# unless we invent every possible .h in order to put them in the 
-# make.depend dependancies (not possible :-(
-
 # Objects
-$(O)/%.o : %.c $(STAND_INC)
+$(O)/%.o : %.c $(STAND_INC) makefile
 	$(C_COMPILE)
 
 # Objects C++
-$(O)/%.o : %.cxx $(STAND_INC)
+$(O)/%.o : %.cxx $(STAND_INC) makefile
 	$(CXXCOMPILE)
 
 # Library
-$(LIB) : $(OBJ) makefile
+$(LIB) : $(OBJ)
 	$(AR) rv $(LIB) $(OBJ)
 	$(RANLIB) $@
 

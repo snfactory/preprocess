@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "imagesnifs.hxx"
 #include "section.hxx"
-
+#include "fclass_snifs.h"
 
 /* ##### IMAGE SNIFS ################################################## */
 
@@ -62,6 +62,20 @@ ImageSnifs::ImageSnifs(char* name, char* mode,IoMethod_t Method, int MParam)
 /* ----- ~ImageSnifs ------------------------------ */
 ImageSnifs::~ImageSnifs(){  
 }
+
+/* ===== Utilities ======================================= */
+
+/* ----- FClass  ------------------------------ */
+int ImageSnifs::GetFClass(){
+  int fclass=DONT_KNOW;
+  RdDesc("FCLASS",INT,1,&fclass);
+  return fclass;
+}
+
+void ImageSnifs::SetFClass(int Fclass){
+  WrDesc("FCLASS",INT,1,&Fclass);
+}
+
 
 /* ===== Methods ======================================= */
 
@@ -138,7 +152,8 @@ void ImageSnifs::SubstractOverscan() {
     int biasFrame=1;
     WrDesc("BIASFRAM",INT,1,&biasFrame);
   }
-
+  if (GetFClass() == RAW_BIAS)
+    SetFClass(BIAS_FRAME);
 }
 
 /* ----- odd-Even ----------------------------------------------------- */
@@ -221,7 +236,16 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
     int darkFrame=1;
     WrDesc("DARKFRAM",INT,1,&darkFrame);
   }
-
+  if (GetFClass()==RAW_DARK_FRAME)
+    SetFClass(PRE_DARK_FRAME);
+  if (GetFClass()==RAW_CAL_FRAME)
+    SetFClass(PRE_CAL_FRAME);
+  if (GetFClass()==RAW_CON_FRAME)
+    SetFClass(PRE_CON_FRAME);
+  if (GetFClass()==RAW_SKY_FRAME)
+    SetFClass(PRE_SKY_FRAME);
+  if (GetFClass()==RAW_OBJ_FRAME)
+    SetFClass(PRE_OBJ_FRAME);
 }
 
 /* -----  SubstractDark ------------------------------------------------- */
@@ -401,7 +425,7 @@ void ImageSnifs::AddPoissonNoise() {
   Variance()->WrDesc("POISNOIS",INT, 1, &poisNoise);
 }
 
-/* -----  AddPoissonNoise ----------------------------------------------- */
+/* -----  HandleSaturation ----------------------------------------------- */
 void ImageSnifs::HandleSaturation() {
   // puts variance to infinity for saturated pixels
   int saturate;
@@ -434,7 +458,12 @@ void ImageSnifs::HackFitsKeywords() {
   sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
   sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5);
   WrDesc("DATASEC",CHAR,lg_name+1,key);
-
+  
+  int fclass;
+  if (RdIfDesc("FCLASS",INT,1,&fclass)<=0) {
+    // no fclass -> put one
+    SetFClass(DONT_KNOW);
+  }
 }
 
 
