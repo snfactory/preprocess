@@ -64,6 +64,12 @@ $(LIB) : $(OBJ) $(OBJ)
 	$(AR) rv $(LIB) $(OBJ)
 	$(RANLIB) $@
 
+# placate make.depend .cxx .c .h dependancies
+%.cxx %.c %.h :
+	@echo ==============================
+	@echo WARNING : $@ has disappeared
+	@echo ==============================
+
 clear:
 	rm -f $(OBJ) $(EXE)
 
@@ -73,3 +79,5 @@ makefile: makefile.in  $(top_builddir)/config.status
 
 make.depend: makefile $(SRC) $(SRCC)
 	$(CC) -MM $(CFLAGS) -c $(SRC) $(SRCC) | sed 's%\(.*\)\.o[ :]*%$$(O)/\1.o make.depend :%' > make.depend
+
+.PHONY : OUT all

@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Mon Aug 30 16:13:05 2004
+## Modified at:   Mon Jan 17 16:53:57 2005
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -42,7 +42,7 @@ dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h makefile
 #	[ -n $ROOTSYS ] && rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
 
 # placate make.depend .cxx dependancies
-%.cxx :
+%.cxx %.h :
 	@echo ==============================
 	@echo WARNING : missing $@
 	@echo ==============================
