@@ -467,10 +467,8 @@ ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *
 /* ===== Ugly part ====================================================== */
 
 /* ----- HackFitsSecKeywords()  ------------------------------------------- */
-void  BiChipSnifs:: HackFitsKeywords(char* PrimaryName)  {
+void  BiChipSnifs::HackFitsKeywords(char* PrimaryName)  {
 
-  /* Unable to open the primary header !!!*/
-#ifdef FOR_FUTURE 
   if (PrimaryName) { 
     // overwrite the current header with the primary info
     Anyfile primary_header;
@@ -478,7 +476,6 @@ void  BiChipSnifs:: HackFitsKeywords(char* PrimaryName)  {
     for (int chip=0;chip<NChips();chip++)
       CP_non_std_desc(&primary_header,fChip[chip]->Frame());
   }
-#endif
 
   for (int chip=0;chip<NChips();chip++) 
     fChip[chip]->HackFitsKeywords();

@@ -38,7 +38,6 @@ SRC =	 preprocess_bias.cxx\
 	 stack_bichip.cxx\
 	 preprocess_dark.cxx\
          filter_image.cxx\
-	 hack_B_headers.cxx\
 
 OPTSRC =   substract_overscan.cxx\
 	 substract_dark.cxx\
@@ -54,6 +53,7 @@ OPTSRC =   substract_overscan.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
 	 bichip_build.cxx\
+	 hack_B_headers.cxx\
 
 # non-maintained executables
 OLDSRC = \

@@ -220,7 +220,7 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
     out->SetAlgo("DETCOM");
     // keywords hacking
     char primary_name[lg_name+1];
-    ut_primary_header_name(out->Chip(0)->Name(),primary_name);
+    ut_primary_header_name(bichip->Chip(0)->Name(),primary_name);
     out->HackFitsKeywords(primary_name);
     delete bichip;
   } else { 
