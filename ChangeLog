@@ -1,3 +1,9 @@
+2004-11-04  Yannick Copin  <yannick@ipnl.in2p3.fr>
+
+	* add_defs/makedefs.in: switch to IFU_C_iolibs-6.1
+
+	* configure.in: switch to IFU_C_iolibs-6.1
+
 2004-11-02  Yannick Copin  <ycopin@ipnl.in2p3.fr>
 
 	* bichip.cxx: new gains for Red channel (there's was a 5.6%

@@ -13,7 +13,8 @@ C_mathLIBS_PATH = @ac_ifucmathlibs@
 
 # I/O and general
 GENLIB = $(C_ioLIBS_PATH)/C_libs/obj/genlib.a 
-IOLIB = $(C_ioLIBS_PATH)/C_libs/io/obj/libio.a $(GENLIB)
+WCSLIB = $(C_ioLIBS_PATH)/C_libs/wcslib/libwcs.a
+IOLIB = $(C_ioLIBS_PATH)/C_libs/io/obj/libio.a $(GENLIB) $(WCSLIB)
 
 # Specific flags
 FITS_FLAG = -DFITS
@@ -22,12 +23,11 @@ IRAF_FLAG =
 
 # Maths
 #NAGLIB = $(C_mathLIBS_PATH)/C_libs/obj/sublibnag.a 
-STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
+#STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
 #INTERPLIB = $(C_mathLIBS_PATH)/C_libs/obj/interplib.a
 #LEASTSQLIB = $(C_mathLIBS_PATH)/C_libs/obj/least_sqlib.a
 #POLYLIB = $(C_mathLIBS_PATH)/C_libs/obj/polylib.a
 GSLLIB = @ac_gsl@/lib/libgsl.a
-
 
 MATHLIB = $(STATLIB) $(INTERPLIB) $(LEASTSQLIB) $(POLYLIB) $(NAGLIB) $(GSLLIB)
 
@@ -48,7 +48,8 @@ MIDAS_FLAG = -DMIDAS
 MIDASOBJ = 
 
 # Includes ==============================
-INC =  $(C_ioLIBS_PATH)/incl
+INC     = $(C_ioLIBS_PATH)/incl
+WCS_INC = $(C_ioLIBS_PATH)/C_libs/wcslib
 LINC = $(C_mathLIBS_PATH)/incl
 GSLINC = @ac_gsl@/include
 FITSINC = $(C_ioLIBS_PATH)/C_libs/io/cfitsio
@@ -57,7 +58,11 @@ MIDASINC = $(C_ioLIBS_PATH)/C_libs/io/midas_io
 PKG_INC = ../../incl
 USER_INC = ../incl
 LOCAL_INC =  /usr/local/include
-STAND_INC = $(INC)/gendef.h $(INC)/items.h $(INC)/alloc.h $(INC)/iofuncdecl.h $(INC)/funcdecl.h $(INC)/macro.h $(INC)/soft_version.h $(INC)/3D_items.h $(INC)/funcdef.h $(INC)/tiger_defs.h $(INC)/3D_iofunc.h $(INC)/IFU_io.h
+STAND_INC = $(WCS_INC)/wcshdr.h \
+	$(INC)/gendef.h $(INC)/items.h $(INC)/alloc.h \
+	$(INC)/iofuncdecl.h $(INC)/funcdecl.h \
+	$(INC)/3D_items.h $(INC)/3D_iofunc.h \
+	$(INC)/macro.h $(INC)/funcdef.h $(INC)/IFU_io.h
 MISC_INC = $(topdir)/../Snifs_misc/incl/
 
 # Compilation commands ==============================

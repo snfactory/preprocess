@@ -54,7 +54,7 @@ AC_ARG_WITH(ifuciolibs,
          [ac_ifuciolibs=$withval], 
          [ac_ifuciolibs=])
 dnl If the user does not provide one, try to see if somthing acceptable is found
-ac_ifuciolibs_vers_ok_list="6.0d"
+ac_ifuciolibs_vers_ok_list="6.1"
 
 dnl try to find a valid version
 if test -z "$ac_ifuciolibs"
@@ -104,7 +104,7 @@ then
 else
    AC_MSG_RESULT([version $ac_ifuciolibs_vers in $ac_ifuciolibs])
 fi
-LIBS="$LIBS -L$ac_ifuciolibs/C_libs/io/obj $ac_ifuciolibs/C_libs/obj/genlib.a"
+LIBS="$LIBS -L$ac_ifuciolibs/C_libs/io/obj $ac_ifuciolibs/C_libs/obj/libgen.a  $ac_ifuciolibs/C_libs/wcslib/libwcs.a"
 AC_SUBST(ac_ifuciolibs)
 AC_CHECK_LIB(io,open_frame,
         [LIBS="$LIBS -lio"
