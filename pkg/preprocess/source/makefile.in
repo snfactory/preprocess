@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Oct 21 12:18:22 2003
+## Modified at:   Mon Oct 27 17:46:33 2003
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -37,7 +37,8 @@ EXE = $(E)/substract_overscan\
 	$(E)/preprocess_flat\
 	$(E)/preprocess\
 	$(E)/rickify\
-	$(E)/split_image
+	$(E)/split_image\
+	$(E)/quick_look
 
 
 # ============================================================

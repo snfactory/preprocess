@@ -24,13 +24,15 @@
 
 */
 
+#include "IFU_io.h"
+
 /* ===== SECTION ============================== */
 
 class Section {
 public :
 
   Section();
-  Section(char* Descr);
+  Section(char* Descr,char* Name=0);
   Section(int X1, int X2, int Y1, int Y2);
   ~Section(){}
   
@@ -49,6 +51,10 @@ public :
   
   void GetString(char* ToFill)
     {sprintf(ToFill,"[%d:%d,%d:%d]",fXFirst+1,fXLast,fYFirst+1,fYLast);}
+  char* Name() 
+    {return fName;}
+  
+  
 
   /* ----- Setters ---------------------------------------- */
   void SetXFirst(int X) {fXFirst = X;}
@@ -64,7 +70,7 @@ public :
 
 protected :
   int fXFirst,fXLast,fYFirst,fYLast;
-  
+  char fName[lg_name+1];
 
 };
 

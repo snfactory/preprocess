@@ -13,9 +13,13 @@ EXTRA_DIST=add_defs
 AM_MAKEFLAGS = CC=$(CC) F77=$(F77) F_OPT="$(F_OPT) -ftypeless-boz" LD=$(CC) \
 	ADD_LIBS="-lc @FLIBS@" RANLIB=$(RANLIB) C_OPT=$(C_OPT)
 
-# needs to be sure makefiles are sync with add_defs/makedefs
-Makefile : $(srcdir)/add_defs/makedefs 
+# needs to be sure makefiles are sync with add_defs/makedefs and configure
 
-$(srcdir)/add_defs/makedefs : $(srcdir)/add_defs/makedefs.in $(top_builddir)/config.status $(BUILT_SOURCES)
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+# apparently missing from automake output
+Makefile : $(top_builddir)/config.status $(srcdir)/Makefile.in  
+	cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)
+
+# trick to get config-clean-files checked somwhere in the build process
+Makefile : $(CONFIG_CLEAN_FILES)
+
+all : all-am

@@ -202,10 +202,10 @@ AC_ARG_ENABLE(debug,
 )
 if test "$ac_debug" = "yes"
 then
-  STRIP=strip
+  STRIP=@echo
   DEBUG="-g -Wall"
 else
-  STRIP=@echo
+  STRIP=strip
 fi
 AC_MSG_RESULT($ac_debug)
 
@@ -218,6 +218,7 @@ AC_OUTPUT(add_defs/makedefs \
           pkg/preprocess/lib/makefile \
           pkg/preprocess/source/makefile \
           pkg/anal/Makefile \
+          pkg/anal/lib/makefile \
           pkg/anal/source/makefile )
 
 dnl Final configuration ==============================

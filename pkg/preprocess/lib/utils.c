@@ -160,6 +160,45 @@ double ut_mean(double* val,int n){
   return sum/n;
 }
 
+/*-------------------- ut_autocovariance ----------------------*/
+void ut_autocovariance(double* data, double* autocorr, int n) {
+/* data is of dim n, autocorr of dim n */
+  int decal,i;
+  double mean;
+  //  double var;
+  double *mdata = malloc(sizeof(double)*n);
+
+  /* compute the mean */
+  mean = ut_mean(data,n);
+
+  /* substract it (n computations) */
+  for (i=0;i<n;i++)
+    mdata[i] = data[i]-mean;
+
+  /* compute variance and what is needed for decal=0*/
+  decal=0;
+  autocorr[0]=0;
+  for (i=0;i<n;i++) {
+    autocorr[0]+=mdata[i]*mdata[i];
+  }
+  autocorr[0] /= n;
+  //var = autocorr[0];
+  //autocorr[0] = 1.0;
+
+  /* n^2 part */
+  for (decal=1; decal<n; decal ++) {
+    autocorr[decal]=0;    
+    for (i=0;i<n-decal;i++) {
+      autocorr[decal]+=mdata[i]*mdata[i+decal];
+    }
+    autocorr[decal] /= (n-decal);
+    //    autocorr[decal] /= var;
+  }
+  free(mdata);
+  
+}
+
+
 /*-------------------- ut_varname_from_imname ----------------------*/
 void ut_varname_from_imname(char* imname,char* varname){
   /* returns the name of the variance image from the name of 

@@ -5,12 +5,17 @@
 extern "C" {
 #endif
 
+const double ut_big_value = 1e31;
+  
+
 /* ----- median of the values ----- */
 double ut_median(double* values, int n);
 
 double ut_min(double* values, int n);
   
 double ut_mean(double* values, int n);
+
+void ut_autocovariance(double* data, double* autocorr, int n);
 
 void ut_trunc_sigma_known(double** values, int* n_init, double sigma, double sigcut);
 

@@ -27,6 +27,11 @@ GSLLIB = @ac_gsl@/.libs/libgsl.a
 
 MATHLIB = $(STATLIB) $(INTERPLIB) $(LEASTSQLIB) $(POLYLIB) $(NAGLIB) $(GSLLIB)
 
+# shall be set by configure ....
+ROOTINC = $(ROOTSYS)/include
+ROOTLIBS = `$(ROOTSYS)/bin/root-config --libs`
+
+
 # Format ==============================
 SEL_OBJ = *.o
 FANSI = -DANSI

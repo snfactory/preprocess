@@ -164,7 +164,7 @@ int ImageSimple::CreateFrame(char *Name,int Nx, int Ny, short Type ){
 
 
 /* ----- Inside  -------------------------------------------------- */
-int ImageSimple::Inside(int Xc,int Yc) {
+int ImageSimple::Inside(int Xc,int Yc) const {
   // 1 if xc,yc is inside the frame,
   // 0 else
   // BEWARE : x and y are C-style
@@ -173,6 +173,22 @@ int ImageSimple::Inside(int Xc,int Yc) {
   else
     return 0;
 }
+
+/* ----- Inside  -------------------------------------------------- */
+void ImageSimple::MinMax(Section* Sec, double * min, double * max) const {
+  // sets the minimum and maximum value of the frame
+
+  *min=ut_big_value;
+  *max=-ut_big_value;
+  for (int iy = Sec->YFirst(); iy<Sec->YLast();iy++)
+    for (int ix = Sec->XFirst(); ix<Sec->XLast();ix++) {
+      if (RdFrame(ix,iy)<*min)
+        *min = RdFrame(ix,iy);
+      if (RdFrame(ix,iy)>*max)
+        *max = RdFrame(ix,iy);
+    }
+}
+
 
 
 /* ----- ImportSection  -------------------------------------------------- */
@@ -280,7 +296,8 @@ void ImageSimple::SetTo(double Value){
 
 /* ----- CutLow ----------------------------------------------------- */
 void ImageSimple::CutLow(double LowBound){
-  //Scales the image by Scale
+  // Cuts the image by a lower bound
+  // The variance after the cut is questionnable !
 
   for (int j=0;j<Ny();j++)
     for (int i=0;i<Nx();i++) {

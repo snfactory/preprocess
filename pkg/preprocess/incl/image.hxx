@@ -62,7 +62,9 @@ class ImageSimple {
     int CreateFrame(char *name,int nx, int ny, short Type=FLOAT );
 
     // Utility Methods
-    int Inside(int Xc,int Yc);
+    int Inside(int Xc,int Yc) const;
+    void MinMax(Section* Sec, double * min, double * max) const;
+  
     void ImportHeader(ImageSimple * From){ CP_non_std_desc(From->fFrame,fFrame);}
     void ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );
     void ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );

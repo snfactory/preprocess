@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Oct 21 12:17:45 2003
+## Modified at:   Thu Oct 23 01:54:07 2003
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -16,27 +16,25 @@ include $(topdir)/add_defs/makedefs.local
 
 #  ============================================================
 
-# Local libraries
-
-ROOTINC = $(ROOTSYS)/include
-ROOTLIBS = `$(ROOTSYS)/bin/root-config --libs`
+LOCLIB = $(O)/libanal.a
 
 # Targets
 
-EXECC = $(E)/rootify
+EXECC = $(E)/rootify\
+	$(E)/specroot
 
 # ============================================================
 
 OUT : dirbin dirobj $(EXE) $(EXECC)
 
 # Objects
-$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) makefile
+$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) $(anal_INC) makefile
 #	$(C_COMPILE)
 #(CC) $(DEBUG) $(CFLAGS) -I$(GSLINC) -c $< && mv $(@F) $@
 	$(CC) $(DEBUG) $(CFLAGS) -I$(preprocess_INCDIR) -c $< && mv $(@F) $@
 
 # Objects C++ with ROOT includes
-$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) makefile
+$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) $(anal_INC) makefile
 	$(CXX) $(DEBUG) $(CFLAGS) -I$(ROOTINC) -I$(preprocess_INCDIR) -c $< && mv $(@F) $@
 
 # Executables (beware: the % syntax might not be standard)
@@ -45,8 +43,8 @@ $(EXE) : $(E)/% : $(O)/%.o $(IOLIB) $(preprocess_LIB)
 	$(STRIP) $@
 
 # Executables linked with ROOT package
-$(EXECC) : $(E)/% : $(O)/%.o $(IOLIB) $(preprocess_LIB)
-	$(CXXLD) $(LDF) -o $@ $< $(IOLIB) $(preprocess_LIB) $(ADD_LIBS) $(ROOTLIBS) $(MATHLIB) -lg2c
+$(EXECC) : $(E)/% : $(O)/%.o  $(LOCLIB) $(IOLIB) $(preprocess_LIB)
+	$(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(preprocess_LIB) $(ADD_LIBS) $(ROOTLIBS) $(MATHLIB) -lg2c
 	$(STRIP) $@
 
 clear:

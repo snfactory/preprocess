@@ -2,15 +2,15 @@
 ## Filename:      makefile.in
 ## Version:       
 ## Description:   
-## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
+## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Mon Oct 27 14:19:06 2003
+## Modified at:   Thu Oct 23 01:54:37 2003
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
 topdir = @top_srcdir@
 top_builddir = $(topdir)
-subdir = pkg/preprocess/lib
+subdir = pkg/anal/lib
 include $(topdir)/add_defs/makedefs
 include $(topdir)/add_defs/makedefs.local
 
@@ -18,15 +18,9 @@ include $(topdir)/add_defs/makedefs.local
 
 # Targets
 
-OBJ = $(O)/bichip.o\
-	$(O)/catorfile.o\
-	$(O)/image.o\
-	$(O)/section.o\
-	$(O)/sectionlist.o\
-	$(O)/utils.o \
-	$(O)/analyser.o
+OBJ = $(O)/roothistos.o
 
-LIB = $(O)/libpreprocess.a 
+LIB = $(O)/libanal.a 
 
 # ============================================================
 
@@ -38,7 +32,7 @@ $(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) makefile
 
 # Objects C++
 $(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) makefile
-	$(CXXCOMPILE)
+	$(CXX) $(DEBUG) $(CFLAGS) -I$(preprocess_INCDIR) -I$(ROOTINC) -c $< && mv $(@F) $@
 
 # Library
 $(LIB) : $(OBJ)

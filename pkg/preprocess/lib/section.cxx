@@ -19,13 +19,16 @@
 /* ===== constructor/destructor ======================================= */
 
 /* ----- Section -------------------------------------------------- */
-Section::Section(char* Descr) {
+Section::Section(char* Descr,char* Name) {
   SetString(Descr);
+  if (Name)
+    strcpy(fName,Name);
 }
 
 /* ----- Section -------------------------------------------------- */
 Section::Section() {
   fXFirst=fXLast=fYFirst=fYLast=0;
+  fName[0]='\0';
 }
 
 
@@ -35,6 +38,7 @@ Section::Section(int X1, int X2, int Y1, int Y2) {
   fXLast=X2;
   fYFirst=Y1-1;
   fYLast=Y2;
+  fName[0]='\0';
 }
 
 /* ----- SetString -------------------------------------------------- */

@@ -11,8 +11,12 @@
 preprocess_INC = $(topdir)/pkg/preprocess/incl/utils.h\
 		 $(topdir)/pkg/preprocess/incl/image.hxx\
 		 $(topdir)/pkg/preprocess/incl/bichip.hxx\
+		 $(topdir)/pkg/preprocess/incl/catorfile.hxx\
 		 $(topdir)/pkg/preprocess/incl/section.hxx\
+		 $(topdir)/pkg/preprocess/incl/sectionlist.hxx
 
 preprocess_INCDIR= $(topdir)/pkg/preprocess/incl
 
 preprocess_LIB = $(topdir)/pkg/preprocess/obj/libpreprocess.a
+
+anal_INC = $(topdir)/pkg/anal/incl/roothistos.hxx
