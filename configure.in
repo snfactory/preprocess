@@ -12,7 +12,7 @@ dnl and AC_OUTPUT. You should not have to edit the rest of the file.
 
 dnl ##### START EDITING #########################
 dnl A source file from your development tree
-AC_INIT(pkg/preprocess/source/template.c)
+AC_INIT(pkg/preprocess/source/preprocess.cxx)
 dnl ##### STOP EDITING ##########################
 
 AC_CANONICAL_SYSTEM 
