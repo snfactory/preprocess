@@ -18,39 +18,37 @@ configure:932: c++ -o conftest    conftest.C  1>&5
 configure:958: checking whether the C++ compiler (c++  ) is a cross-compiler
 configure:963: checking whether we are using GNU C++
 configure:991: checking whether c++ accepts -g
-configure:1040: cc -c   conftest.c 1>&5
-configure:1057: cc -c   conftest.c 1>&5
-configure:1076: checking for gcc
-configure:1189: checking whether the C compiler (gcc  ) works
-configure:1205: gcc -o conftest    conftest.c  1>&5
-configure:1231: checking whether the C compiler (gcc  ) is a cross-compiler
-configure:1236: checking whether we are using GNU C
-configure:1264: checking whether gcc accepts -g
-configure:1301: checking for g77
-configure:1334: checking whether the Fortran 77 compiler (g77  ) works
-configure:1347: g77 -o conftest   conftest.f  1>&5
-configure:1373: checking whether the Fortran 77 compiler (g77  ) is a cross-compiler
-configure:1378: checking whether we are using GNU Fortran 77
-configure:1402: checking whether g77 accepts -g
-configure:1439: checking how to run the C preprocessor
-configure:1520: checking whether gcc needs -traditional
-configure:1570: checking for gawk
-configure:1611: checking for a BSD compatible install
-configure:1666: checking for ranlib
-configure:1694: checking whether ln -s works
-configure:1715: checking whether make sets ${MAKE}
-configure:1742: checking for Fortran 77 libraries
-configure:1900: checking for a valid IFU_C_iolibs
-configure:1948: checking for open_frame in -lio
-configure:1991: checking for IFU_C_mathlibs
-configure:2022: checking for a GSL lib
-configure:2053: checking for gsl_stats_sd_m in -lgsl
-configure:2096: checking for ROOT system
-configure:2109: checking for ANSI C header files
-configure:2216: checking for malloc.h
-configure:2216: checking for unistd.h
-configure:2254: checking whether time.h and sys/time.h may both be included
-configure:2292: checking for select
-configure:2292: checking for strerror
-configure:2292: checking for strspn
-configure:2292: checking for strstr
+configure:1025: checking for gcc
+configure:1138: checking whether the C compiler (gcc  ) works
+configure:1154: gcc -o conftest    conftest.c  1>&5
+configure:1180: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:1185: checking whether we are using GNU C
+configure:1213: checking whether gcc accepts -g
+configure:1250: checking for g77
+configure:1283: checking whether the Fortran 77 compiler (g77  ) works
+configure:1296: g77 -o conftest   conftest.f  1>&5
+configure:1322: checking whether the Fortran 77 compiler (g77  ) is a cross-compiler
+configure:1327: checking whether we are using GNU Fortran 77
+configure:1351: checking whether g77 accepts -g
+configure:1388: checking how to run the C preprocessor
+configure:1469: checking whether gcc needs -traditional
+configure:1519: checking for gawk
+configure:1560: checking for a BSD compatible install
+configure:1615: checking for ranlib
+configure:1643: checking whether ln -s works
+configure:1664: checking whether make sets ${MAKE}
+configure:1691: checking for Fortran 77 libraries
+configure:1849: checking for a valid IFU_C_iolibs
+configure:1897: checking for open_frame in -lio
+configure:1940: checking for IFU_C_mathlibs
+configure:1971: checking for a GSL lib
+configure:2002: checking for gsl_stats_sd_m in -lgsl
+configure:2045: checking for ROOT system
+configure:2058: checking for ANSI C header files
+configure:2165: checking for malloc.h
+configure:2165: checking for unistd.h
+configure:2203: checking whether time.h and sys/time.h may both be included
+configure:2241: checking for select
+configure:2241: checking for strerror
+configure:2241: checking for strspn
+configure:2241: checking for strstr

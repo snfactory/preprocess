@@ -113,15 +113,15 @@ dnl If the user does not provide one, try to see if somthing acceptable is found
 if test -z "$ac_ifucmathlibs"
 then
     cwd=`pwd` 
-    if test `ls -d $cwd/../IFU_C_mathlibs* | wc | awk '{print $1}'` -gt 1
+    if test `ls $cwd/../IFU_C_mathlibs*/configure.in | wc | awk '{print $1}'` -gt 1
     then
-         AC_MSG_ERROR([Too much IFU_C_mathlibslibs in path ... specify one with --with-ifucmathlibs])
+         AC_MSG_ERROR([Too much IFU_C_mathlibs in path ... specify one with --with-ifucmathlibs])
     else 
-        if test `ls -d $cwd/../IFU_C_mathlibs* | wc | awk '{print $1}'` -lt 1
+        if test `ls $cwd/../IFU_C_mathlibs*/configure.in | wc | awk '{print $1}'` -lt 1
         then
             AC_MSG_ERROR([No IFU_C_mathlibs in path ... specify one with --with-ifucmathlibs])
         else
-            ac_ifucmathlibs=`ls -d $cwd/../IFU_C_mathlibs*`
+            ac_ifucmathlibs=`ls $cwd/../IFU_C_mathlibs*/configure.in | sed s%/configure.in%%`
         fi
     fi
     echo IFU_C_mathlibs found :  $ac_ifucmathlibs    

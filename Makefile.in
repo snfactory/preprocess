@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -86,8 +86,7 @@ SUBDIRS = pkg
 
 EXTRA_DIST = add_defs
 
-AM_MAKEFLAGS = CC=$(CC) F77=$(F77) F_OPT="$(F_OPT) -ftypeless-boz" LD=$(CC) \
-	ADD_LIBS="-lc @FLIBS@" RANLIB=$(RANLIB) C_OPT=$(C_OPT)
+AM_MAKEFLAGS = CC=$(CC) F77=$(F77) F_OPT="$(F_OPT) -ftypeless-boz" LD=$(CC) 	ADD_LIBS="-lc @FLIBS@" RANLIB=$(RANLIB) C_OPT=$(C_OPT)
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -153,7 +152,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" != "." || dot_seen=yes; \
+	  test "$$subdir" = "." && dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
