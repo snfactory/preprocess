@@ -13,6 +13,7 @@
 
 /* ----- global includes ----- */
 #include "fclass_snifs.h"
+#include "snifs_defs.h"
 
 /* ----- local includes ----- */
 #include "utils.h"
@@ -20,7 +21,7 @@
 #include "section.hxx"
 #include "algocams.hxx"
 
-static const char kChannelName[4][lg_name+1]={"Blue channel","Red Channel","Photometry","Guiding"} ;
+//static const char kChannelName[4][lg_name+1]={"Blue channel","Red channel","Photometry","Guiding"} ;
 
 
 /* ##### IMAGE SNIFS ################################################## */
@@ -133,7 +134,7 @@ int ImageSnifs::GetChannel(){
     return kUnknown;
   
   for (int i=0;i<kNChannel;i++)
-    if (strstr(name,kChannelName[i]))
+    if (strchr(name,kChannelName[i][0]))
       channel += (1<<i);
 
   return channel;
@@ -343,6 +344,8 @@ void ImageSnifs::UpdateFClass() {
     SetFClass(PRE_SKY_FRAME);
   if (GetFClass()==RAW_OBJ_FRAME)
     SetFClass(PRE_OBJ_FRAME);
+  if (GetFClass()==RAW_DOM_FRAME)
+    SetFClass(PRE_DOM_FRAME);
 }
 
 /* -----  SubstractDark ------------------------------------------------- */

@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Jun 22 17:16:39 2004
+## Modified at:   Mon Aug 30 16:13:05 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -21,6 +21,7 @@ include $(topdir)/add_defs/makedefs.local
 SRCC = roothistos.cxx\
 	analimage.cxx\
 	rootutils.cxx\
+	signaturecut.cxx\
 	dict.cxx\
 
 OBJ = $(patsubst %.c, $(O)/%.o, $(SRC))  $(patsubst %.cxx, $(O)/%.o, $(SRCC))
@@ -35,8 +36,9 @@ include make.depend
 OUT : dirobj dirlib $(LIB) $(SOLIB)
 
 # dictionnary
-dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h
-	rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
+dict.cxx : ../incl/analimage.hxx ../incl/LinkDef.h makefile
+	rootcint -v -f dict.cxx -c -I$(INC) -I$(preprocess_INCDIR) ../incl/analimage.hxx  ../incl/LinkDef.h && mv dict.h ../incl/
+#	rootcint -f dict.cxx -c ../incl/analimage.hxx ../../preprocess/incl/utils.h ../incl/LinkDef.h && mv dict.h ../incl/
 #	[ -n $ROOTSYS ] && rootcint -f dict.cxx -c ../incl/analimage.hxx ../incl/LinkDef.h && mv dict.h ../incl/
 
 # placate make.depend .cxx dependancies

@@ -808,3 +808,22 @@ double juldat( int year, int month, int day, double ut)
         return tmp;
 }
 
+/* =====  string utilities ===== */
+
+int ut_parse_line(char* line, char** tokens) {
+  /* the token strings will contain the line elements separated by spaces */
+  /* the original line will be modified (some '/0' char added)*/
+  char* pt_line = line;
+  int itoken=0;
+
+  while (pt_line && pt_line[0]!='\0') {
+    tokens[itoken++] = pt_line;
+    pt_line = strchr(pt_line,' ');
+    if (pt_line)
+      while((pt_line)[0]==' ') {
+        pt_line[0]='\0';
+        pt_line++;
+      }
+  }
+  return itoken;
+}

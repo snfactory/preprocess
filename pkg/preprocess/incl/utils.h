@@ -6,9 +6,11 @@ extern "C" {
 #endif
 
 const double ut_big_value = 1e31;
-#include "IFU_io.h"  
+const int lg_message = 256;
 
-/* ----- median of the values ----- */
+#include "IFU_io.h" 
+
+/* ----- statistical utilities ----- */
 void ut_sort_ascending(double* values, int n);
 
 double ut_median(double* values, int n);
@@ -45,7 +47,10 @@ int close_frame_fast(IMAGE2D *frame);
 int open_frame_fast(IMAGE2D *frame, char *name, char *mode);
 
 double juldat( int year, int month, int day, double ut);
-  
+
+/* -----  string utilities ----- */
+
+int ut_parse_line(char* line, char** tokens);
   
 
 #ifdef __cplusplus

@@ -31,7 +31,7 @@ class AlgoCams;
   but rather channel & kBlue*/
 
 enum Channel_t {kUnknown=0, kBlueChannel = 1, kRedChannel = 2, kPhotometric = 4, kGuiding = 8};
-const int kNChannel = 4;
+//const int kNChannel = 4;
 
 /* ===== IMAGE SNIFS ======================================== */
 

@@ -28,14 +28,21 @@ int main(int argc, char **argv) {
   char inName[lg_name+1];
   ImageSignature sig;
 
-  set_arglist("-in none -blurb");
+  set_arglist("-in none -blurb -cuts null");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
 
-  if (is_true(argval[1]))
+  if (is_true(argval[1])) {
     sig.PrintBlurb();
     sig.PrintHeader();
+  }
+  
+  if (is_set(argval[2])) {
+    sig.ParseCutsFile(argval[2]);
+  }
+  
+    
     
   /* loop on catalog */
   while(inCat.NextFile(inName)) {
@@ -44,6 +51,7 @@ int main(int argc, char **argv) {
     sig.Reset();
     sig.Fill(in);
     sig.PrintContent();
+    sig.ApplyCuts();
     
     delete in;
   }
