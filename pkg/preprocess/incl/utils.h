@@ -42,6 +42,11 @@ int ut_is_bichip_detcom(char* filename);
 
 void ut_build_tmp_name(char* filename, char* tmp_prefix);
 
+void ut_primary_header_name(char* full_name, char* primary_name);
+  
+
+/* ----- library patches ---------- */
+
 int close_frame_fast(IMAGE2D *frame);
 
 int open_frame_fast(IMAGE2D *frame, char *name, char *mode);

@@ -27,6 +27,14 @@
 /* ----- HackFitsKeywords -------------------------------------------------- */
 void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
 
+  // get all keywords from primary header in the image
+  //char primary_name[lg_name+1];
+  //ut_primary_header_name(I->Name(),primary_name);
+  //Anyfile * header;
+  //open_primary_hd(header,primary_name,"I");
+  //CP_non_std_desc(header,I->Frame());
+  //close_primary_hd(header);
+
   // First : hack for normal raster
   char key[lg_name+1];
   I->RdDesc("RASTER",CHAR,lg_name+1,key);

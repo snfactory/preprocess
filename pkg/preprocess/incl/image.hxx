@@ -98,10 +98,11 @@ class ImageSimple {
     void AddPoissonNoise();
     int HandleSaturation(double Level);
   
-  
-  protected :
 
+  // because we need to hack the keywords
     IMAGE2D * Frame() const {return Io()->Frame();}
+  protected :
+  
     ImageSimple* fVariance;
   //    static const int nLinesDefault; // parameter for the overscan
     IoMethod *fIo;

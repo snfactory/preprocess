@@ -76,6 +76,7 @@ class BiChipSnifs {
   protected :
     ImageSnifs** fChip;
     int fNChips;
+  //    Anyfile* fPrimaryHeader;
   
 };
 

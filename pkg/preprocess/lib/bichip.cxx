@@ -36,6 +36,7 @@ BiChipSnifs::BiChipSnifs(int Nchips) {
   for (int i=0;i<NChips();i++){
     fChip[i]=0;
   }
+  //fPrimaryHeader=0;
 }
 
 
@@ -60,6 +61,15 @@ BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode,IoMethod_t Method, int
     sprintf(chipname, modName, chip);
     fChip[chip] = new ImageSnifs(chipname,mode,Method,MParam);
   }
+  //
+  // primary header business
+  //
+  // defaulting to 1st extension
+  //sprintf(chipname, modName, 0);
+  //char primary_name[lg_name+1];
+  //ut_primary_header_name(chipname,primary_name);
+  //fPrimaryHeader = (Anyfile*) malloc(sizeof(Anyfile));
+  //open_primary_hd(fPrimaryHeader,primary_name,mode);
 }
 
 /* ----- BiChipSnifs -------------------------------------------------- */
@@ -71,19 +81,35 @@ BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short ne
   CheckNameRecipee(modName);
   fNChips = Father.NChips();
   fChip = new ImageSnifs* [fNChips];  
+  char chipName[lg_name+1];
   for (int chip=0;chip<NChips();chip++) {
-    char chipName[lg_name+1];
     sprintf(chipName,modName,chip);
     fChip[chip]=new ImageSnifs((*Father.fChip[chip]),chipName,newtype,copydata,Method,MParam);
   }
+  // and primary header :
+  //sprintf(chipName, modName, 0);
+  //char primary_name[lg_name+1];
+  //ut_primary_header_name(chipName,primary_name);
+
+  // primary headers are created by default
+  //fPrimaryHeader = (Anyfile*) malloc(sizeof(Anyfile));
+  //open_primary_hd(fPrimaryHeader,primary_name,"IO");
+  //CP_non_std_desc(Father.fPrimaryHeader,fPrimaryHeader);
 }
 
 /* ----- ~BiChipSnifs -------------------------------------------------- */
 BiChipSnifs::~BiChipSnifs() {
+  // primary header
+  //if (fPrimaryHeader)
+  //  close_primary_hd(fPrimaryHeader);
+  //free(fPrimaryHeader);
+  //fPrimaryHeader=0;
+
   for (int chip=0 ; chip<NChips() ; chip++) {
     if ( fChip[chip] )
       delete fChip[chip];
   }
+
 }
 
 /* ===== Utilities ====================================================== */
@@ -442,9 +468,12 @@ ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *
 
 /* ----- HackFitsSecKeywords()  ------------------------------------------- */
 void  BiChipSnifs:: HackFitsKeywords()  {
-  for (int chip=0;chip<NChips();chip++) {
-    fChip[chip]->HackFitsKeywords();
-  }
+
+
+  //for (int chip=0;chip<NChips();chip++) {
+  //  CP_non_std_desc(fPrimaryHeader,fChip[chip]->Frame());
+  //  fChip[chip]->HackFitsKeywords();
+  // }
   
   // Easier place for the channel hack
   int channel=kBlueChannel;
