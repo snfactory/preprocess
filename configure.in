@@ -149,27 +149,27 @@ dnl If the user does not provide one, try to see if somthing acceptable is found
 if test -z "$ac_gsl"
 then
     cwd=`pwd` 
-    if test `ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl* | wc | awk '{print $1}'` -gt 1
+    if test `ls  $cwd/../IFU_C_mathlibs*/lib/libgsl.a | wc | awk '{print $1}'` -gt 1
     then
          AC_MSG_ERROR([Too much GSL libs in path ... specify one with --with-gsl])
     else 
-        if test `ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl* | wc | awk '{print $1}'` -lt 1
+        if test `ls  $cwd/../IFU_C_mathlibs*/lib/libgsl.a | wc | awk '{print $1}'` -lt 1
         then
             AC_MSG_ERROR([No GSL libs in path ... specify one with --with-gsl])
         else
-            ac_gsl=`ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl*`
+            ac_gsl=`ls  $cwd/../IFU_C_mathlibs*/lib/libgsl.a | sed s%/lib/libgsl.a%% `
         fi
     fi
     AC_MSG_RESULT([$ac_gsl])
 fi
 AC_SUBST(ac_gsl)
 
-LIBS="$LIBS -L$ac_gsl/.libs"
+LIBS="$LIBS -L$ac_gsl/lib"
 AC_CHECK_LIB(gsl,gsl_stats_sd_m,
         [LIBS="$LIBS -lgsl"
-         C_OPT="$C_OPT -I$ac_gsl"],
+         C_OPT="$C_OPT -I$ac_gsl/include"],
         [AC_MSG_ERROR(Unable to locate gsl_stats_sd_m in $ac_gsl)],
-        [-L$ac_gsl/cblas/.libs -lgslcblas -lm])
+        [-L$ac_gsl/lib -lgslcblas -lm])
 
 dnl Checking for ROOT system -----------------------------
 AC_MSG_CHECKING(for ROOT system)
