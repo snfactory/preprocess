@@ -272,7 +272,11 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
   fGainMed=q5[0]/q5[1];
   fGainQuant=q999[0]/q999[1];
 
-  strcpy(fName,Preprocessed->Name());
+  char * fileOnly = strrchr(Preprocessed->Name(),'/');
+  if (!fileOnly)
+    fileOnly = Preprocessed->Name();
+  else fileOnly++;
+  strcpy(fName,fileOnly);
   
   // cleanup
   delete subSec[0];
