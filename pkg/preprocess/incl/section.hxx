@@ -32,8 +32,8 @@ class Section {
 public :
 
   Section();
-  Section(char* Descr,char* Name=0);
-  Section(int X1, int X2, int Y1, int Y2);
+  Section(char* Descr,char* Name="");
+  Section(int X1, int X2, int Y1, int Y2, char* Name="");
   ~Section(){}
   
   /* ----- Getters ---------------------------------------- */
@@ -67,6 +67,7 @@ public :
   void SetY1(int Y) {fYFirst = Y-1;}
   void SetY2(int Y) {fYLast = Y;}
   void SetString(char* Desc);
+  void SetName(char* Name);
 
 protected :
   int fXFirst,fXLast,fYFirst,fYLast;

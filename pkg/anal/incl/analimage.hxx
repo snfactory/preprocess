@@ -89,7 +89,8 @@ class ImageSignature : public TObject {
 
   double fRobustMean;
   double fRobustRMS;
-  int fNOutliers;
+  int fNUnder;
+  int fNOver;
   int fSatu;
   
   double fQuant99;

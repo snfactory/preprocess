@@ -21,8 +21,7 @@
 /* ----- Section -------------------------------------------------- */
 Section::Section(char* Descr,char* Name) {
   SetString(Descr);
-  if (Name)
-    strcpy(fName,Name);
+  SetName(Name);
 }
 
 /* ----- Section -------------------------------------------------- */
@@ -33,12 +32,12 @@ Section::Section() {
 
 
 /* ----- Section -------------------------------------------------- */
-Section::Section(int X1, int X2, int Y1, int Y2) {
+Section::Section(int X1, int X2, int Y1, int Y2, char* Name) {
   fXFirst=X1-1;
   fXLast=X2;
   fYFirst=Y1-1;
   fYLast=Y2;
-  fName[0]='\0';
+  SetName(Name);
 }
 
 /* ----- SetString -------------------------------------------------- */
@@ -52,4 +51,9 @@ void Section::SetString(char * Desc) {
   fYFirst=y1-1;
   fYLast=y2;
 
+}
+
+/* ----- SetString -------------------------------------------------- */
+void Section::SetName(char * Name) {
+  strcpy(fName,Name);
 }

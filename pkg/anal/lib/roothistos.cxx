@@ -15,6 +15,12 @@
 #include "TProfile.h"
 #include "TMatrix.h"
 
+/* --------------- Constructor ------------------- */
+RootAnalyser::RootAnalyser(ImageSimple* I, Section* S) {
+  SetImage(I);
+  SetSection(S);
+}
+
 /* --------------- HistoSetMinMax ------------------- */
 void RootAnalyser::HistoSetMinMax(TH1 * hist) {
   double min = hist->GetMinimum();

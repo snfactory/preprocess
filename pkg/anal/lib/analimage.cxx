@@ -15,6 +15,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
+#include "TH1F.h"
 
 /* ----- image includes ------------------------------ */
 #include "imagesnifs.hxx"
@@ -23,6 +24,8 @@
 
 /* ----- local includes ------------------------------ */
 #include "analimage.hxx"
+#include "roothistos.hxx"
+#include "rootutils.hxx"
 
 /* ===== PrintInfoType ============================== */
 
@@ -90,13 +93,13 @@ ClassImp(ImageSignature)
 ;
 
 /* ----- constants -----------------------------------------*/
-const int ImageSignature::fkNitems=17;
+const int ImageSignature::fkNitems=18;
 
 /* ----- constructor -----------------------------------------*/
 ImageSignature::ImageSignature(){
   Reset();
   fIsAlive = new int[fkNitems];
-  SetPrintItems("10000011111110110");
+  SetPrintItems("100000111111110100");
   fPrintInfo = new (PrintInfo*)[fkNitems];
   int i=0;
   fPrintInfo[i++] = new PrintInfoType<char[80]>(" Name of the exposure","Name","%30.30s",30,&fName);
@@ -107,7 +110,8 @@ ImageSignature::ImageSignature(){
   fPrintInfo[i++] = new PrintInfoType<double>(" Julian date","JD","%14.6f",6,&fJulDate);
   fPrintInfo[i++] = new PrintInfoType<double>(" 5.0 Sigma clipped mean","Mean","%6.1f",6,&fRobustMean);
   fPrintInfo[i++] = new PrintInfoType<double>(" 5.0 Sigma clipped RMS","RMS","%6.1f",6,&fRobustRMS);
-  fPrintInfo[i++] = new PrintInfoType<int>(" N pixels out of 5.0 Sigma","NOut","%6d",6,&fNOutliers);
+  fPrintInfo[i++] = new PrintInfoType<int>(" N pixels under 5.0 Sigma","NUnder","%6d",6,&fNUnder);
+  fPrintInfo[i++] = new PrintInfoType<int>(" N pixels over 5.0 Sigma","NOver","%6d",6,&fNOver);
   fPrintInfo[i++] = new PrintInfoType<int>(" Number of saturated pixels","Satu","%6d",6,&fSatu);
   fPrintInfo[i++] = new PrintInfoType<double>(" 0.99 quantile (level for continuum exposure)","Q99","%7.1f",7,&fQuant99);
   fPrintInfo[i++] = new PrintInfoType<double>(" 0.999 quantile (level for arc exposure)","Q999","%7.1f",7,&fQuant999);
@@ -188,17 +192,20 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
   Preprocessed->RdDesc("SATURATE",INT,1,&saturate);
   // useful definitions for the rest of the method
   Section * dataSec = Preprocessed->DataSec();
+  dataSec->SetName("Data");
   Section * subSec[2] ;
-  ImageAnalyser anaSub[2];
+  RootAnalyser anaSub[2];
   fSatu =0;
   // analyse only 2 first amps ! 
   for (int iamp =0;iamp<2;iamp++){
     double gain;
-    char gainKey[lg_name+1];
+    char gainKey[lg_name+1], secName[lg_name+1];
     sprintf(gainKey,"CCD%dGAIN",iamp);
     Preprocessed->RdDesc(gainKey,DOUBLE,1,&gain);
+
+    sprintf(secName,"SubSec%d",iamp);
     int offset = dataSec->XLength()/nAmp;
-    subSec[iamp] = new Section(dataSec->X1()+offset*iamp,dataSec->X1()-1+offset*(iamp+1),dataSec->Y1(),dataSec->Y2());
+    subSec[iamp] = new Section(dataSec->X1()+offset*iamp,dataSec->X1()-1+offset*(iamp+1),dataSec->Y1(),dataSec->Y2(),secName);
     anaSub[iamp].SetImage(Preprocessed);
     anaSub[iamp].SetSection(subSec[iamp]);
     // hack : some quantity was already removed from the saturation (overscan)
@@ -208,15 +215,26 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
   // do not know how to do and if it is relevant ...
   //  fOverscanLevel=8;
 
-  ImageAnalyser ana(Preprocessed,dataSec);
+  RootAnalyser ana(Preprocessed,dataSec);
 
-  ana.SigmaClippedInfo(5.0,&fRobustMean, &fRobustRMS, &fNOutliers);
+  TH1F* hData = ana.HistoDataBuild(dataSec->Name(),10000);
+  RootUtils::SigmaClip(hData,5.0);
+  fRobustMean = hData->GetMean();
+  fRobustRMS = hData->GetRMS();
+  fNUnder = (int) hData->Integral(0,hData->GetXaxis()->GetFirst()-1);
+  fNOver = (int) hData->Integral(hData->GetXaxis()->GetLast()+1,hData->GetNbinsX()+1);
+  
+  // very slow
+  //ana.SigmaClippedInfo(5.0,&fRobustMean, &fRobustRMS, &fNOutliers);
   
   // the quantiles
-  fQuant99 = ana.Quantile(0.99);
-  fQuant999= ana.Quantile(0.999);
-  fQuant9999= ana.Quantile(0.9999);
-
+  double pbSum = 0.99;
+  hData->GetQuantiles(1,&fQuant99,&pbSum);
+  pbSum=0.999;
+  hData->GetQuantiles(1,&fQuant999,&pbSum);
+  pbSum=0.9999;
+  hData->GetQuantiles(1,&fQuant9999,&pbSum);
+  
   fFocus=0;
 
   // the noise
@@ -226,28 +244,43 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
 
   // gain
   // We reduce here the analysis section (quantile is an expensive routine)
-  if (subSec[0]->XLength()>500) 
-    subSec[0]->SetX1(subSec[0]->X2() - 500);
-  if (subSec[1]->XLength()>500) 
-    subSec[1]->SetX2(subSec[1]->X1() + 500);
+  // Well ... not necessary any more
+  //
+  // if (subSec[0]->XLength()>500) 
+  //  subSec[0]->SetX1(subSec[0]->X2() - 500);
+  //if (subSec[1]->XLength()>500) 
+  //  subSec[1]->SetX2(subSec[1]->X1() + 500);
+  //for (int i=0;i<2;i++) {
+  //  if (subSec[i]->YLength()>1000){
+  //    int yMiddle = subSec[i]->YLength()/2+subSec[i]->Y1();
+  //    subSec[i]->SetY1(yMiddle-499);
+  //    subSec[i]->SetY2(yMiddle+500);
+  //  }
+  //  anaSub[i].SetSection(subSec[i]);
+  //}
+  TH1F* hSub[2];
+  double q5[2],q999[2];
   for (int i=0;i<2;i++) {
-    if (subSec[i]->YLength()>1000){
-      int yMiddle = subSec[i]->YLength()/2+subSec[i]->Y1();
-      subSec[i]->SetY1(yMiddle-499);
-      subSec[i]->SetY2(yMiddle+500);
-    }
-    anaSub[i].SetSection(subSec[i]);
+    hSub[i] = ana.HistoDataBuild(subSec[i]->Name(),10000);
+    pbSum = 0.5;
+    hSub[i]->GetQuantiles(1,q5+i,&pbSum);
+    pbSum = 0.999;
+    hSub[i]->GetQuantiles(1,q999+i,&pbSum);
   }
   
-  fGainMed=anaSub[0].Quantile(0.5)/anaSub[1].Quantile(0.5);
-  fGainQuant=anaSub[0].Quantile(0.995)/anaSub[1].Quantile(0.995);
+  
+  fGainMed=q5[0]/q5[1];
+  fGainQuant=q999[0]/q999[1];
 
   strcpy(fName,Preprocessed->Name());
   
   // cleanup
   delete subSec[0];
   delete subSec[1];
-
+  delete dataSec;
+  delete hSub[0];
+  delete hSub[1];
+  delete hData;
 }
 
 /* ----- PrintHeader  -----------------------------------------*/
