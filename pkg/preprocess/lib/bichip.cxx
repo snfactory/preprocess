@@ -440,7 +440,7 @@ void  BiChipSnifs:: HackFitsKeywords()  {
   }
   
   // Easier place for the channel hack
-  int channel;
+  int channel=kBlueChannel;
   int nAmp;
 
   if (fChip[0]->Algo()->GetId() == kOtcom) {
