@@ -5,9 +5,6 @@
 extern "C" {
 #endif
 
-#define MIN(x,y) (x<y ? x : y)
-#define MAX(x,y) (x>y ? x : y)
-
 /* ----- median of the values ----- */
 double ut_median(double* values, int n);
 

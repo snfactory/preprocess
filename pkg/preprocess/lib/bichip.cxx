@@ -27,7 +27,7 @@ fChip[1]=fChip[0]=0;
 }
 
 /* ----- BiChipSnifs -------------------------------------------------- */
-BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode="Input") {
+BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode) {
   // Default constructor :
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
   CheckNameRecipee(ChipNameRecipee);
@@ -40,7 +40,7 @@ BiChipSnifs::BiChipSnifs(char* ChipNameRecipee,char* mode="Input") {
 
 
 /* ----- BiChipSnifs -------------------------------------------------- */
-BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short newtype = 0,int copydata=0) {
+BiChipSnifs::BiChipSnifs(const BiChipSnifs &Father,char* NewNameRecipee,short newtype,int copydata) {
   // The copy constructor maps the ImageSnifs copy constructor
   // The recipee shall contain a %d, which will be either replaced by a 0 or 1
   CheckNameRecipee(NewNameRecipee);
@@ -226,7 +226,7 @@ double BiChipSnifs::GuessGainRatio(Section* S) {
 }
 
 /* ----- CreateVarianceFrame ------------------------------------------------ */
-void BiChipSnifs::CreateVarianceFrame(char* VarianceNameRecipee="") 
+void BiChipSnifs::CreateVarianceFrame(char* VarianceNameRecipee) 
 {
   // create the variance frame
   // if the recipee contains a %d -> names of teh variance

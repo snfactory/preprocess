@@ -16,7 +16,7 @@
 #include "utils.h"
 
 #include "image.hxx"
-// necessitates the SPECTRUM symbol !!!
+// for median
 #include "IFU_math.h"
 #include "section.hxx"
 
@@ -35,7 +35,7 @@ ImageSimple::ImageSimple() {
 }
 
 /* ----- ImageSimple -------------------------------------------------- */
-ImageSimple::ImageSimple(char* name, char* mode="Input") {
+ImageSimple::ImageSimple(char* name, char* mode) {
   fFrame = new IMAGE2D;
   OpenFrame(name,mode);
   fVariance=0;
@@ -43,7 +43,7 @@ ImageSimple::ImageSimple(char* name, char* mode="Input") {
 
 
 /* ----- ImageSimple -------------------------------------------------- */
-ImageSimple::ImageSimple(const ImageSimple &image,char* newname,short newtype=0,int copydata=0) {
+ImageSimple::ImageSimple(const ImageSimple &image,char* newname,short newtype,int copydata) {
   // Copy constructor
   fFrame = new IMAGE2D;
   fVariance =0;
@@ -129,7 +129,7 @@ int ImageSimple::DeleteDesc(char* Descr) {
 }
 
 /* ----- OpenFrame ---------------------------------------------------- */
-int ImageSimple::OpenFrame(char *name, char *mode="Input"){
+int ImageSimple::OpenFrame(char *name, char *mode){
   // Wrapper to open_frame
   fLoaded=true;
   return open_frame(fFrame,name,mode);
@@ -144,7 +144,7 @@ int ImageSimple::CloseFrame(){
 
 
 /* ----- CreateFrame -------------------------------------------------- */
-int ImageSimple::CreateFrame(char *Name,int Nx, int Ny, short Type=FLOAT ){
+int ImageSimple::CreateFrame(char *Name,int Nx, int Ny, short Type ){
   // this CreateFrame is less powerfull than teh original, but
   // this is because I don't understand all parameters !
   int npix[2];
@@ -176,7 +176,7 @@ int ImageSimple::Inside(int Xc,int Yc) {
 
 
 /* ----- ImportSection  -------------------------------------------------- */
-void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1) {
+void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir,int YDir,double ZScale) {
   // puts the section Sec at starting pos X1Start,
   // and clips the image without warnings if it goes outside bounds
   // X/Y Dir are set to -1 to flip the image
@@ -202,7 +202,7 @@ void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Sta
       }
 }
 
-void ImageSimple::ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1) {
+void ImageSimple::ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir,int YDir,double ZScale) {
   // pilots the ImportSectionFrame for both the image and the variance 
   // if it exists
   ImportSectionFrame(From,Sec,X1Start,Y1Start,XDir,YDir,ZScale);
@@ -215,7 +215,7 @@ void ImageSimple::ImportSection(ImageSimple * From, Section* Sec, int X1Start, i
 }
 
 /* ----- Add ----------------------------------------------------- */
-void ImageSimple::Add(ImageSimple* ToAdd, double Scale=1){
+void ImageSimple::Add(ImageSimple* ToAdd, double Scale){
   //Adds ToAdd, scaled by Scale 
 
   for (int j=0;j<Ny();j++)
@@ -323,7 +323,7 @@ void ImageSimple::Divide(ImageSimple* Denom){
 }
 
 /* ----- MeanValue ----------------------------------------------------- */
-double ImageSimple::MeanValue(Section* Sec,int step=1) const{
+double ImageSimple::MeanValue(Section* Sec,int step) const{
   //Computes the mean value of the section data
   // the step factor is here to speed-up the computation
   
@@ -512,7 +512,7 @@ void ImageSimple::ComputeLinesOverscan(Section* S,double *ov) {
 }
 
 /* ----- OverscanRms --------------------------------------------------- */
-double ImageSimple::OverscanRms(Section* S,double sigcut=0) {
+double ImageSimple::OverscanRms(Section* S,double sigcut) {
   // Computes the RMS of readout (i.e. readout noise if everything
   // goes fine) from the overscan strip.
 
@@ -543,7 +543,7 @@ double ImageSimple::OverscanRms(Section* S,double sigcut=0) {
 
 
 /* ----- odd-Even ----------------------------------------------------- */
-void ImageSimple::OddEvenCorrect(Section* S,double* param, double sigcut=0 ) {
+void ImageSimple::OddEvenCorrect(Section* S,double* param, double sigcut ) {
   //   Odd-even substraction works as follows
   //   1) compute odd-even for each line in the overscan strip
   // 2) interpolate a linear fit
@@ -637,7 +637,7 @@ ImageSnifs::ImageSnifs () {
 }
 
 /* ----- ImageSnifs copy ------------------------------ */
-ImageSnifs::ImageSnifs(const ImageSnifs &image,char* newname,short newtype = 0,int copydata=0) 
+ImageSnifs::ImageSnifs(const ImageSnifs &image,char* newname,short newtype,int copydata) 
   : ImageSimple(image, ut_create_check_name(newname), newtype, copydata) {
   SetParanoMode(true);
 
@@ -653,7 +653,7 @@ ImageSnifs::ImageSnifs(const ImageSnifs &image,char* newname,short newtype = 0,i
 }
 
 /* ----- ImageSnifs open ------------------------------ */
-ImageSnifs::ImageSnifs(char* name, char* mode="Input")
+ImageSnifs::ImageSnifs(char* name, char* mode)
   : ImageSimple( ut_open_check_name(name), mode) {
 
   SetParanoMode(true);

@@ -10,21 +10,17 @@ dnl Process this file with autoconf to produce a configure script.
 dnl Variables to be edited to meet your needs: AC_INIT, AM_INIT_AUTOMAKE
 dnl and AC_OUTPUT. You should not have to edit the rest of the file.
 
-dnl ##### START EDITING #########################
 dnl A source file from your development tree
 AC_INIT(pkg/preprocess/source/preprocess.cxx)
-dnl ##### STOP EDITING ##########################
 
 AC_CANONICAL_SYSTEM 
 
-dnl ##### START EDITING #########################
 dnl Project name and version
 CVSVERS=`echo '$Name$' | sed 's/.*://;s/..$//'`
 if test -z $CVSVERS; then
         CVSVERS=developer
 fi
 AM_INIT_AUTOMAKE(Ccd, $CVSVERS) 
-dnl ##### STOP EDITING ##########################
 
 dnl Checks for programs ==============================
 AC_PROG_CXX
@@ -186,12 +182,43 @@ AC_HEADER_TIME
 dnl Checks for library functions ==============================
 AC_CHECK_FUNCS(select strerror strspn strstr)
 
+dnl miscellanous checks 
+
+dnl ctags
+AC_CHECK_PROG(TAGS,ctags,ctags,no)
+if test x$TAGS = xno; then
+        AC_MSG_WARN([cannot create TAGS tables])
+fi
+
+
+dnl DEBUG mode ------------------------------
+AC_SUBST(DEBUG)
+AC_SUBST(STRIP)
+AC_MSG_CHECKING(for DEBUG mode)
+AC_ARG_ENABLE(debug,
+        [  --enable-debug          DEBUG mode compilation - default is YES],
+        [ac_debug=$withval],
+        [ac_debug=yes]
+)
+if test "$ac_debug" = "yes"
+then
+  STRIP=strip
+  DEBUG="-g -Wall"
+else
+  STRIP=@echo
+fi
+AC_MSG_RESULT($ac_debug)
+
 dnl Output ==============================
 
-dnl ##### START EDITING #########################
-dnl *All* the [M|m]akefile's of your development tree:
-AC_OUTPUT(add_defs/makedefs pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile )
-dnl ##### STOP EDITING ##########################
+AC_OUTPUT(add_defs/makedefs \
+          Makefile \
+          pkg/Makefile \
+          pkg/preprocess/Makefile \
+          pkg/preprocess/lib/makefile \
+          pkg/preprocess/source/makefile \
+          pkg/anal/Makefile \
+          pkg/anal/source/makefile )
 
 dnl Final configuration ==============================
 

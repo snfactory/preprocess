@@ -4,11 +4,13 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Thu Aug  7 16:02:06 2003
+## Modified at:   Tue Oct 21 12:18:39 2003
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
 topdir = @top_srcdir@
+top_builddir = $(topdir)
+subdir = pkg/preprocess/lib
 include $(topdir)/add_defs/makedefs
 include $(topdir)/add_defs/makedefs.local
 
@@ -29,11 +31,11 @@ LIB = $(O)/libpreprocess.a
 OUT : dirobj $(LIB)       
 
 # Objects
-$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC)
+$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC) makefile
 	$(C_COMPILE)
 
 # Objects C++
-$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC)
+$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC) makefile
 	$(C_COMPILE)
 
 # Library
@@ -41,3 +43,9 @@ $(LIB) : $(OBJ)
 	$(AR) rv $(LIB) $(OBJ)
 	$(RANLIB) $@
 
+clear:
+	rm -f $(OBJ) $(EXE)
+
+makefile: makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status

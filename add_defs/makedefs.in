@@ -54,6 +54,12 @@ CFLAGS = -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC
 FFLAGS = $(F_OPT) -I$(PKG_INC) -I$(INC) -I$(USER_INC) -I$(LOCAL_INC)
 
 C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+
+CXXCOMPILE = $(CXX) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+CXXLD = $(CXX)
+CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
+		$(ADD_LIBS) $(DISLIB)
+
 F_COMPILE = $(F77) $(DEBUG) $(FFLAGS) -c $(@F:.o=.f) && mv $(@F) $@
 LDF = -lm
 

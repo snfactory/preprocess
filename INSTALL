@@ -1,13 +1,15 @@
 This INSTALL is a copy of what is coming from /usr/share/automake/INSTALL
 (the one you get running automake -a)
 Intelligent files are Makefile.am and configure.in
-if you want to rebuild everything from those file, try
+If you want to rebuild everything from those file, or you are a first time 
+user, run
 > aclocal
 > autoconf
 > automake -a --foreign
-The ditribution however provides the necessary files, so just run
-> configure
-> make.
+> configure 
+> make
+or alternatively run first_time.csh
+
 During developpment, then just 'make' would ideally be needed - but this 
 perfect world is not yet achieved...
 Also the 'make install' might produce strange results, as the .am scheme is
