@@ -2,6 +2,7 @@
 #include "bichip.hxx"
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
+#include "preprocessor.hxx"
 
 int main(int argc, char **argv) {
 
@@ -26,21 +27,12 @@ int main(int argc, char **argv) {
   if (is_set(argval[4]))
     flat = new ImageSnifs(argval[4]);
 
+  Preprocessor P;
+
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     
     printf("Processing %s\n",inName);
-    BiChipSnifs * in=new BiChipSnifs(inName);
-    if (is_true(argval[5]))
-      in ->SetParanoMode(false);
-    sprintf(tmp_name,"mem://%s",inName);
-
-    BiChipSnifs * tmp_out= new BiChipSnifs(*in,tmp_name,FLOAT,1);
-    delete in;
-    
-    ImageSnifs *out = tmp_out->PreprocessAssemble(outName,bias);
-    delete tmp_out;
-      out->Assembled2Preprocessed(dark,flat);
-
+    ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat);
     delete out;
   }
 

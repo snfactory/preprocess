@@ -3,6 +3,7 @@
 #include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
 #include "kombinator.hxx"
+#include "preprocessor.hxx"
 
 int main(int argc, char **argv) {
 
@@ -20,21 +21,38 @@ int main(int argc, char **argv) {
   if (is_set(argval[3]))
     bias = new BiChipSnifs(argval[3]);
 
-  get_argval(4,"%d",&nlines);
-
-  BiChipStackSnifs * in=new BiChipStackSnifs(&catIn,"I",nlines);
-  ImageStackSnifs * tmp= in->PreprocessDark(&catOut,bias,nlines);
-  delete in;
+  get_argval(5,"%d",&nlines);
+  
+  Preprocessor P;
+  char inName[lg_name+1],outName[lg_name+1];
 
   if (is_set(argval[2])) {
+    ImageStackSnifs * tmp = new ImageStackSnifs(nlines);
+
+    P.SetIoMethod(kIoSlice);
+    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
+      print_msg("Opening %s",inName);
+      ImageSnifs * outFile = P.PreprocessDark(inName,outName,bias);
+      tmp->AddImage(outFile);
+    }
+
     double sigma;
     get_argval(4,"%lf", &sigma);
     Kombinator * k = new KGaussPoisson(sigma);
     ImageSnifs *out = tmp->Kombine(argval[2],k);
     delete k;
     delete out;
+    delete tmp;
+
+  } else { // no need to store temporary information
+
+    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
+      print_msg("Opening %s",inName);
+      ImageSnifs * out = P.PreprocessDark(inName,outName,bias);
+      delete out;  
+    }
   }
-  delete tmp;
+  
   if (bias) 
     delete bias;
 

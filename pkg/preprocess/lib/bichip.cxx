@@ -98,6 +98,14 @@ void BiChipSnifs::SetParanoMode(bool Mode) {
   
 }
 
+/* ----- SetParanoMode ----------------------------------------------- */
+void BiChipSnifs::SetAlgo(char* Soft) {
+  for (int iChip=0;iChip<2;iChip++) {
+    Chip(iChip)->SetAlgo(Soft);
+  }
+  
+}
+
 
 /* ===== Methods ====================================================== */
 
@@ -130,7 +138,7 @@ void BiChipSnifs::SubstractBias( BiChipSnifs* Bias) {
 }
  
 /* ----- Assemble ----------------------------------------------------- */
-ImageSnifs* BiChipSnifs::Assemble(char* ImageName) {
+ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   // Assembles the 2 chips in 1 image
   // if the image has no extension indication, creates a 
   // [image] and a [variance] frame if the bichip is compatible
@@ -138,15 +146,14 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName) {
 
   // parano checks
   if (fChip[0]->ParanoMode() || fChip[1]->ParanoMode()) {
-    // images shall be bias-substracted because of gain correction
-    int biasDone0, biasDone1;
-    fChip[0]->RdDesc("BIASDONE",INT, 1, &biasDone0);
-    fChip[1]->RdDesc("BIASDONE",INT, 1, &biasDone1);
-    if (!biasDone0 || !biasDone1 ){
-      print_error("BiChipSnifs::Assemble : Bias was not yet substracted\n");
+    // images shall be bias-substracted for gain correction
+    int elecalib0, elecalib1;
+    if ( (fChip[0]->RdIfDesc("ELECALIB",INT, 1, &elecalib0)>0 && elecalib0 )
+         || (fChip[1]->RdIfDesc("ELECALIB",INT, 1, &elecalib1)>0 && elecalib1 ) ) {
+      print_error("BiChipSnifs::Assemble : Electron calib already done\n");
       return 0;
     }
-    // many more parano checks needed : images shall be identical up to chip name !
+    // many more parano checks possible : images shall be identical up to chip name !
   }
   
   // synthesis of true image name
@@ -165,7 +172,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName) {
 
 
   // Raw constructor as we will allocate the rest on the spot
-  ImageSnifs* compound = new ImageSnifs();
+  ImageSnifs* compound = new ImageSnifs(Io,Nlines);
   ImageSimple* variance;
   if (varname[0]) {
     variance =  new ImageSimple();
@@ -297,6 +304,7 @@ void BiChipSnifs::HandleSaturation() {
 
  
 /* ----- PreprocessBias ------------------------------------------------ */
+#ifdef OLD
 void BiChipSnifs::PreprocessBias() {
   CreateVarianceFrame();
   HandleSaturation();
@@ -340,7 +348,7 @@ ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *
     out->ApplyFlat(flat);
   return out;
 }
-
+#endif
   
 
 /* ===== Ugly part ====================================================== */
@@ -368,6 +376,18 @@ void  BiChipSnifs:: HackFitsKeywords()  {
 
 void  BiChipSnifs:: HackGainRatio()  {
   
+  if (fChip[0]->ParanoMode() || fChip[1]->ParanoMode()) {
+    // images shall be bias-substracted for gain correction
+    int biasDone0, biasDone1;
+    fChip[0]->RdDesc("BIASDONE",INT, 1, &biasDone0);
+    fChip[1]->RdDesc("BIASDONE",INT, 1, &biasDone1);
+    if (!biasDone0 || !biasDone1 ){
+      print_error("BiChipSnifs::HackGainRatio : Bias was not yet substracted\n");
+      return;
+    }
+  }
+
+
   float gain;
   fChip[0]->RdDesc("GAIN",FLOAT,1,&gain);
   char key[lg_name+1];

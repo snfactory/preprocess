@@ -47,7 +47,7 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode){
   int nDone=0;
   ImageSnifs * imRef;
   do {
-    if (ut_is_bichip(fileName)) {
+    if (ut_is_bichip_detcom(fileName)) {
       print_error("ImageStackSnifs::ImageStackSnifs can not read bichips %s",fileName);
         return; 
       }
@@ -124,7 +124,7 @@ BiChipStackSnifs::BiChipStackSnifs(CatOrFile* Cat, char * Mode,int NLines){
   int nDone=0;
   ImageSnifs * imRef[2];
   do {
-    if (!ut_is_bichip(fileName)) {
+    if (!ut_is_bichip_detcom(fileName)) {
       print_error("BiChipStackSnifs::BiChipStackSnifs can not read plain image %s",fileName);
         return; 
       }
@@ -157,6 +157,7 @@ BiChipStackSnifs::~BiChipStackSnifs(){
 
 /* ===== method ======================================= */
 
+#ifdef OLD
 /* ----- PreprocessBias ---------------------------------------- */
 BiChipStackSnifs* BiChipStackSnifs::PreprocessBias(CatOrFile * Out, int NLines) {
 
@@ -204,6 +205,7 @@ ImageStackSnifs* BiChipStackSnifs::PreprocessDark(CatOrFile * Out, BiChipSnifs* 
   return outStack;
   
 }
+#endif
 
 
 
@@ -258,7 +260,7 @@ void BiChipStackSnifs::KombineFit(BiChipSnifs ** Out, char** OutName, Kombinator
   return;
 }
 
-
+#ifdef OLD
 /* ----- MakeBiasFrame ---------------------------------------- */
 BiChipSnifs* BiChipStackSnifs::MakeBiasFrame(CatOrFile * tmpOut, char* BiasName, double SigCut) {
   
@@ -269,3 +271,4 @@ BiChipSnifs* BiChipStackSnifs::MakeBiasFrame(CatOrFile * tmpOut, char* BiasName,
   return out;
   
 }
+#endif

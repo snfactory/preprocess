@@ -11,16 +11,21 @@
  **/
 /* =========================================================== */
 
+/* ----- global includes ----- */
+#include "fclass_snifs.h"
+
+/* ----- local includes ----- */
 #include "utils.h"
 #include "imagesnifs.hxx"
 #include "section.hxx"
-#include "fclass_snifs.h"
+#include "algocams.hxx"
 
 /* ##### IMAGE SNIFS ################################################## */
 
 /* ===== constructor/Destructor ======================================= */
 ImageSnifs::ImageSnifs (IoMethod_t Method, int MParam) : ImageSimple(Method, MParam){
   SetParanoMode(true);
+  fAlgo=0;
 }
 
 /* ----- ImageSnifs copy ------------------------------ */
@@ -40,6 +45,7 @@ ImageSnifs::ImageSnifs(const ImageSnifs &image,char* newname,short newtype,int c
       SetVarianceFrame(var);
     }
   }
+  fAlgo=0;
 }
 
 /* ----- ImageSnifs open ------------------------------ */
@@ -56,11 +62,14 @@ ImageSnifs::ImageSnifs(char* name, char* mode,IoMethod_t Method, int MParam)
     ImageSimple* var = new ImageSimple(varname,mode,Method,MParam);
     SetVarianceFrame(var);
   }
+  fAlgo=0;
 }
 
 
 /* ----- ~ImageSnifs ------------------------------ */
 ImageSnifs::~ImageSnifs(){  
+  if (fAlgo)
+    delete fAlgo;
 }
 
 /* ===== Utilities ======================================= */
@@ -74,6 +83,27 @@ int ImageSnifs::GetFClass(){
 
 void ImageSnifs::SetFClass(int Fclass){
   WrDesc("FCLASS",INT,1,&Fclass);
+}
+
+/* ----- Algo  ------------------------------ */
+void ImageSnifs::SetAlgo(char* soft){
+  WrDesc("IMAGESW",CHAR,lg_name+1,soft);
+  if (fAlgo!=0)
+    delete fAlgo;
+  fAlgo=0;
+}
+
+AlgoCams* ImageSnifs::Algo(){
+  char soft[lg_name+1];
+  if (fAlgo)
+    return fAlgo;
+  if (RdIfDesc("IMAGESW",CHAR,lg_name+1,soft) <=0 )
+    return 0;
+  if (!strcmp(soft,"DETCOM"))
+    fAlgo = new AlgoDetcom;
+  if (!strcmp(soft,"OTCOM"))
+    fAlgo = new AlgoOtcom;
+  return fAlgo;
 }
 
 
@@ -136,9 +166,7 @@ void ImageSnifs::SubstractOverscan() {
   }
   
   // Get the overscan bounds from file
-  char bias[lg_name+1];
-  RdDesc("BIASSEC",CHAR,lg_name+1,bias);
-  Section * Sec = new Section(bias);
+  Section * Sec = Algo()->SafeOverscanStrip(this);
   Image()->SubstractOverscan(Sec);  
   delete Sec;
 
@@ -158,6 +186,7 @@ void ImageSnifs::SubstractOverscan() {
 
 /* ----- odd-Even ----------------------------------------------------- */
 void ImageSnifs::OddEvenCorrect() {
+
   // odd-even substraction
   //
 
@@ -177,10 +206,8 @@ void ImageSnifs::OddEvenCorrect() {
     }
   }
 
-  // Get the overscan bounds from file
-  char bias[lg_name+1];
-  RdDesc("BIASSEC",CHAR,lg_name+1,bias);
-  Section* Sec=new Section(bias);
+  // Get the overscan bounds
+  Section* Sec=Algo()->SafeOverscanStrip(this);
 
   // the magic 2.0 parameter is because of CTE on CCD EEV#1 (blue)
   Image()->OddEvenCorrect(Sec,param,2.0);
@@ -437,35 +464,8 @@ void ImageSnifs::HandleSaturation() {
 
 /* ----- HackFitsKeywords ---------------------------------------------- */
 void ImageSnifs::HackFitsKeywords() {
-
-  // The following is not valid for any raster yet !
-  char key[lg_name+1];
-  RdDesc("RASTER",CHAR,lg_name+1,key);
-  if (strcmp(key,"FULL")){
-    print_error("ImageSnifs::HackFitsKeywords : only works for FULL raster");
-    return;
-  }
-
-  // The BiasSec is not correct
-  int x1,x2,y1,y2;
-  RdDesc("BIASSEC",CHAR,lg_name+1,key);
-  sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-  sprintf(key,"[%d:%d,%d:%d]",x1+2,x2,1,Ny());
-  WrDesc("BIASSEC",CHAR,lg_name+1,key);
-  
-  // the DATASEC needs help too
-  RdDesc("DATASEC",CHAR,lg_name+1,key);
-  sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-  sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5);
-  WrDesc("DATASEC",CHAR,lg_name+1,key);
-  
-  int fclass;
-  if (RdIfDesc("FCLASS",INT,1,&fclass)<=0) {
-    // no fclass -> put one
-    SetFClass(DONT_KNOW);
-  }
+  Algo()->HackFitsKeywords(this);
 }
-
 
 /* ===== Processing Managment ======================================= */
 
@@ -511,11 +511,7 @@ void ImageSnifs::AddOverscanVariance() {
   }
 
   // Fills with analysis of RMS strip
-  char bias[lg_name+1];
-  RdDesc("BIASSEC",CHAR,lg_name+1,bias);
-  Section * Sec = new Section(bias);
-  // we allow 1 outlier...
-  //double rms = Image()->OverscanRms(Sec,ut_fraction_sigcut(1.0/(Sec->XLength()-0.5)));
+  Section * Sec = Algo()->SafeOverscanStrip(this);
   // no outlier
   double rms = Image()->OverscanRms(Sec,0);
   WrDesc("RDNOISE",DOUBLE,1,&rms);
@@ -524,6 +520,7 @@ void ImageSnifs::AddOverscanVariance() {
 
 }
 
+#ifdef OLD
 /* ----- Assembled2Dark ------------------------------ */
 void ImageSnifs::Assembled2Dark() {
   AddPoissonNoise();
@@ -545,6 +542,8 @@ void ImageSnifs::Assembled2Preprocessed(ImageSnifs * Dark,ImageSnifs* Flat) {
   if (Flat)
     ApplyFlat(Flat);
 }
+#endif
+
 
 /* ----- CompareIntDesc ------------------------------ */
 int ImageSnifs::IdenticalPreprocDesc(ImageSnifs * ToCheck, char* Desc, int* val1, int* val2) {

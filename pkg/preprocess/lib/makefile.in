@@ -18,22 +18,6 @@ include $(topdir)/add_defs/makedefs.local
 
 # Targets
 
-#OBJ = $(O)/bichip.o\
-#	$(O)/catorfile.o\
-#	$(O)/image.o\
-#	$(O)/imagesnifs.o\
-#	$(O)/section.o\
-#	$(O)/sectionlist.o\
-#	$(O)/utils.o \
-#	$(O)/analyser.o \
-#	$(O)/ioplain.o \
-#	$(O)/ioslice.o \
-#	$(O)/imagestack.o\
-#	$(O)/kombinator.o\
-#	$(O)/kombinatorfit.o\
-#	$(O)/imagestacksnifs.o\
-#	$(O)/valuegetter.o\
-
 SRC = 	utils.c \
 
 SRCC = bichip.cxx\
@@ -50,6 +34,8 @@ SRCC = bichip.cxx\
 	kombinatorfit.cxx \
 	imagestacksnifs.cxx \
 	valuegetter.cxx \
+	preprocessor.cxx \
+	algocams.cxx\
 
 OBJ = $(patsubst %.c, $(O)/%.o, $(SRC))  $(patsubst %.cxx, $(O)/%.o, $(SRCC))
 

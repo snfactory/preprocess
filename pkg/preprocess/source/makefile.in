@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Feb 24 15:47:52 2004
+## Modified at:   Sun Mar 28 08:10:47 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -22,7 +22,8 @@ LOCLIB = $(O)/libpreprocess.a
 
 # Targets
 
-WSRC = preprocess.cxx\
+WSRC = bichip_build.cxx\
+       preprocess_bias.cxx\
 
 SRC =	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
@@ -52,6 +53,7 @@ OPTSRC =   substract_overscan.cxx\
 	 wr_desc.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
+	 bichip_build.cxx\
 
 EXE = $(patsubst %.cxx, $(E)/%, $(SRC))
 OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))

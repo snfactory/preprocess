@@ -1,4 +1,5 @@
 
+#include "preprocessor.hxx"
 #include "bichip.hxx"
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
@@ -24,18 +25,11 @@ int main(int argc, char **argv) {
   if (is_set(argval[3]))
     dark = new ImageSnifs(argval[3]);
 
-  while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
+  Preprocessor P;
   
-    BiChipSnifs * in=new BiChipSnifs(inName);
-    sprintf(tmp_name,"mem://%s",inName);
+  while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
 
-    BiChipSnifs * tmp_out= new BiChipSnifs(*in,tmp_name,FLOAT,1);
-    delete in;
-    
-    ImageSnifs *out = tmp_out->PreprocessAssemble(outName,bias);
-    delete tmp_out;
-      out->Assembled2Flat(dark);
-
+    ImageSnifs* out = P.PreprocessFlat(inName,outName,bias,dark);
     delete out;
   }
 

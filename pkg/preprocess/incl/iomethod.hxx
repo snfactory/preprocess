@@ -27,6 +27,7 @@ class ImageSimple;
 
 /* ===== IO METHOD T ============================== */
 enum IoMethod_t {kIoPlain, kIoSlice};
+const int kIoAll = -1;
 
 /* ===== IO METHOD ============================== */
 

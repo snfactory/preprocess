@@ -147,6 +147,8 @@ int IoSlice::CreateFrameFull(char *name,int *Npix,double* Start, double* Step, s
 int IoSlice::MemAlloc(){
   if (!fLoaded)
     print_error("IoSlice::MemAlloc image is not yet loaded");
+  if (fMaxLines==kIoAll)
+    fMaxLines = Ny();
   if (fMaxLines) {
     int ny = Frame()->ny;
     if (Frame()->ny > fMaxLines)

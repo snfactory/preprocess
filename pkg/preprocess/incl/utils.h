@@ -30,7 +30,10 @@ char* ut_open_check_name(char* name);
 
 char* ut_create_check_name(char* name);
   
-int ut_is_bichip(char* filename);
+int ut_is_bichip_detcom(char* filename);
+
+void ut_build_tmp_name(char* filename, char* tmp_prefix);
+  
 
 #ifdef __cplusplus
 }

@@ -252,7 +252,7 @@ char* ut_create_check_name(char* name){
 }
 
 /*-------------------- ut_varname_from_imname ----------------------*/
-int ut_is_bichip(char* filename){
+int ut_is_bichip_detcom(char* filename){
   /* returns the name of the variance image from the name of 
    the image */
 
@@ -267,5 +267,22 @@ int ut_is_bichip(char* filename){
   else 
     return 0;
 }
+
+
+/*-------------------- ut_varname_from_imname ----------------------*/
+void ut_build_tmp_name(char* filename, char* tmp_prefix){
+  /* returns the name of the variance image from the name of 
+   the image */
+  char imname[lg_name+1], *pt_name;
+
+  if (!(pt_name = strrchr(filename,'/')))
+    pt_name = filename;
+  else 
+    pt_name = pt_name+1;
+  sprintf(imname,"mem://%s_%s",tmp_prefix,pt_name);
+  strcpy(filename,imname);
+}
+
+
 
 

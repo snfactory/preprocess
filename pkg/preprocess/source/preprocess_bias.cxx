@@ -3,6 +3,7 @@
 #include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
 #include "kombinator.hxx"
+#include "preprocessor.hxx"
 
 int main(int argc, char **argv) {
 
@@ -14,32 +15,32 @@ int main(int argc, char **argv) {
   CatOrFile catIn(argval[0]);
   CatOrFile catOut(argval[1]);
   int nlines;
+  char inName[lg_name+1],outName[lg_name+1];
+  Preprocessor P;
+
   get_argval(4,"%d",&nlines);
 
   if (is_set(argval[2])) {
-    BiChipStackSnifs * in=new BiChipStackSnifs(&catIn,"I",nlines);// nlines = 1
-    // has to be benchmarked ...
-    // in that case BiChipStackSnifs::PreprocessBias may have to expand
-    // the image with a SetNLines before the copy.
-    BiChipStackSnifs * tmp= in->PreprocessBias(&catOut,nlines);
-    delete in;
-
+    BiChipStackSnifs * outStack = new BiChipStackSnifs(nlines);
+  
+    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
+      print_msg("Opening %s",inName);
+      P.SetIoMethod(kIoSlice);
+      BiChipSnifs * tmpOut = P.PreprocessBias(inName,outName);
+      outStack->AddBiChip(tmpOut);
+    }
+    
     double sigma;
     get_argval(3,"%lf", &sigma);
     KGauss k(sigma);
-    BiChipSnifs* out = tmp->Kombine(argval[2],&k);
-    delete tmp;
-    delete out;
+    BiChipSnifs* out = outStack->Kombine(argval[2],&k);
 
+    delete outStack;
   } else { // no need to store temporary information
-    char inName[lg_name+1],outName[lg_name+1];
+  
     while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
       print_msg("Opening %s",inName);
-      BiChipSnifs * in=new BiChipSnifs(inName);
-      BiChipSnifs * out= new BiChipSnifs(*in,outName,FLOAT,1);
-      delete in;
-      out->PreprocessBias();
-
+      BiChipSnifs * out = P.PreprocessBias(inName,outName);
       delete out;  
     }
   }

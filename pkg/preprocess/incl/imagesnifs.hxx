@@ -22,7 +22,9 @@
  allow for multiple image opening styles.   
 */
 
+/* ----- local includes and definitions ----- */
 #include "image.hxx"
+class AlgoCams;
 
 /* ===== IMAGE SNIFS ======================================== */
 
@@ -91,9 +93,9 @@ class ImageSnifs :public ImageSimple {
     // Processing management
     void CreateVarianceFrame(char* name="");
     void AddOverscanVariance();
-    void Assembled2Dark();
-    void Assembled2Flat(ImageSnifs *dark);
-    void Assembled2Preprocessed(ImageSnifs *dark,ImageSnifs *flat);
+  //    void Assembled2Dark();
+  //  void Assembled2Flat(ImageSnifs *dark);
+  //  void Assembled2Preprocessed(ImageSnifs *dark,ImageSnifs *flat);
     int CanBeStackedWith(ImageSnifs* image);
   
 
@@ -112,7 +114,8 @@ class ImageSnifs :public ImageSimple {
     void SetParanoMode(bool Parano) { fParano=Parano; }
     int GetFClass();
     void SetFClass(int);
-  
+    void SetAlgo(char*); // algo is coded in fits keywords
+    AlgoCams* Algo();
 
   protected :
     // bacause it is too specialized
@@ -121,7 +124,7 @@ class ImageSnifs :public ImageSimple {
 
     bool fParano;
   //ImageSimple* fImage;
-  
+    AlgoCams * fAlgo;
     
 };
 

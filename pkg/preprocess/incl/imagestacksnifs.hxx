@@ -58,11 +58,11 @@ class BiChipStackSnifs  {
 
     void AddBiChip(BiChipSnifs* BiChip) {BiChip->SetNLines(fNLinesMem);fBiChips.push_back(BiChip);}
   
-    BiChipStackSnifs* PreprocessBias(CatOrFile * Out,int NLines=1); 
-    ImageStackSnifs* PreprocessDark(CatOrFile * Out, BiChipSnifs * Bias, int NLines=1);
+  //    BiChipStackSnifs* PreprocessBias(CatOrFile * Out,int NLines=1); 
+  //  ImageStackSnifs* PreprocessDark(CatOrFile * Out, BiChipSnifs * Bias, int NLines=1);
     BiChipSnifs* Kombine(char* OutName,Kombinator* K);
     void KombineFit(BiChipSnifs** out, char** OutName,KombinatorFit* K,ValueGetter *V);
-    BiChipSnifs* MakeBiasFrame(CatOrFile * tmpOut, char* BiasName,double SigCut);
+  //BiChipSnifs* MakeBiasFrame(CatOrFile * tmpOut, char* BiasName,double SigCut);
 
   protected :
     vector<BiChipSnifs *> fBiChips;

@@ -18,8 +18,10 @@
   We suppose here the SNIFS environment
 */
 
+/* ----- local includes -----*/
 class ImageSnifs;
 class Section;
+class AlgoCams;
 #include "image.hxx"
 
 /* ===== Bi Chip Snifs ============================== */
@@ -35,8 +37,10 @@ class BiChipSnifs {
     // Utilities
     void CheckNameRecipee(char* ChipNameRecipee);  
     ImageSnifs* Chip(int chip)  {return fChip[chip];}
+    void SetChip(int chip, ImageSnifs* Image)  {fChip[chip]=Image;}
     void SetNLines(int NLines);
     void SetParanoMode(bool Mode);
+    void SetAlgo(char* AlgoName);
 
     // Methods
 
@@ -44,17 +48,17 @@ class BiChipSnifs {
     void OddEvenCorrect();
     void SubstractBias(BiChipSnifs* Bias);
 
-    ImageSnifs* Assemble(char* ImageName);
+    ImageSnifs* Assemble(char* ImageName,IoMethod_t Io=kIoPlain,int nLines=kIoAll);
     double GuessGainRatio(Section* S);
 
     void CreateVarianceFrame(char* VarianceNameRecipee="");
     void HandleSaturation();
     void AddOverscanVariance();
-    void PreprocessBias();
-    ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);
-    ImageSnifs* PreprocessDark(char* OutName,BiChipSnifs *bias);
-    ImageSnifs* PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark);
-    ImageSnifs* Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs *flat);
+    // void PreprocessBias();
+    //ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);
+    //ImageSnifs* PreprocessDark(char* OutName,BiChipSnifs *bias);
+    //ImageSnifs* PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark);
+    //ImageSnifs* Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs *flat);
 
     // Hacks
 
