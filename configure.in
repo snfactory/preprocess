@@ -27,8 +27,9 @@ AM_INIT_AUTOMAKE(Ccd, $CVSVERS)
 dnl ##### STOP EDITING ##########################
 
 dnl Checks for programs ==============================
-AC_PROG_F77
+AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_F77
 AC_SUBST(C_OPT)
 case $build_os in
         linux* ) C_OPT=-DUNDER ;;
@@ -46,6 +47,135 @@ AC_F77_LIBRARY_LDFLAGS
                           
 dnl Checks for libraries ==============================
 
+dnl IFU_C_iolibs, > 6.0b ------------------------------
+dnl : the problem is : only the dev version is working
+dnl AC_HELP_STRING valid only for recent autoconfs
+
+AC_MSG_CHECKING([for a valid IFU_C_iolibs])
+AC_ARG_WITH(ifuciolibs, 
+         [  --with-ifuciolibs=DIR       directory of IFU_C_iolibs ],
+         [ac_ifuciolibs=$withval], 
+         [ac_ifuciolibs=])
+dnl If the user does not provide one, try to see if somthing acceptable is found
+ac_ifuciolibs_vers_ok="6.0b++"
+echo Wait !
+
+if test -z "$ac_ifuciolibs"
+then
+    cwd=`pwd` 
+    for ac_ifuciolibs_config in `ls $cwd/../IFU_C_iolibs*/configure.in $cwd/../E3D_io_LCL*/configure.in`
+    do
+        ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs_config  | sed 's%.*, *\(.*\) *)%\1%' `
+        if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"
+        then
+           if test -n "$ac_ifuciolibs"
+           then
+               AC_MSG_ERROR([Too much valid ../IFU_C_iolibs ... Specify one with --with-ifuciolibs])
+           else
+           [ac_ifuciolibs=`echo $ac_ifuciolibs_config | sed 's%/[^/]*$%%'`]
+           fi
+        fi
+    done
+    if test -z "$ac_ifuciolibs"
+    then
+        if test -z "$ac_ifuciolibs_vers"
+        then
+            AC_MSG_ERROR([No IFU_C_iolibs found. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+        else
+            AC_MSG_ERROR([Found only IFU_C_iolibs version $ac_ifuciolibs_vers, $ac_ifuciolibs_vers_ok is needed. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+        fi
+    else
+        echo IFU_C_iolibs found :  $ac_ifuciolibs version is $ac_ifuciolibs_vers
+    fi
+fi
+ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs/configure.in  | sed 's%.*, *\(.*\) *)%\1%' `
+if test "$ac_ifuciolibs_vers" != "$ac_ifuciolibs_vers_ok"
+then
+    AC_MSG_ERROR([IFU_C_iolibs version $ac_ifuciolibs_vers found - you should use  $ac_ifuciolibs_vers_ok. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+fi
+LIBS="$LIBS -L$ac_ifuciolibs/C_libs/io/obj $ac_ifuciolibs/C_libs/obj/genlib.a"
+AC_SUBST(ac_ifuciolibs)
+AC_CHECK_LIB(io,open_frame,
+        [LIBS="$LIBS -lio"
+         C_OPT="$C_OPT -I$ac_ifuciolibs/incl"],
+        [AC_MSG_ERROR(Unable to locate open_frame in $ac_ifuciolibs)],"-lm")
+
+dnl checking now for the mathlibs -------------------------------------
+dnl needed marginally for obscure technical reasons
+AC_MSG_CHECKING([for IFU_C_mathlibs])
+AC_ARG_WITH(ifucmathlibs, 
+         [  --with-ifucmathlibs=DIR       directory of IFU_mathlibs ],
+         [ac_ifucmathlibs=$withval], 
+         [ac_ifucmathlibs=])
+echo Wait !
+
+dnl If the user does not provide one, try to see if somthing acceptable is found
+if test -z "$ac_ifucmathlibs"
+then
+    cwd=`pwd` 
+    if test `ls -d $cwd/../IFU_C_mathlibs* | wc | awk '{print $1}'` -gt 1
+    then
+         AC_MSG_ERROR([Too much IFU_C_mathlibslibs in path ... specify one with --with-ifucmathlibs])
+    else 
+        if test `ls -d $cwd/../IFU_C_mathlibs* | wc | awk '{print $1}'` -lt 1
+        then
+            AC_MSG_ERROR([No IFU_C_mathlibs in path ... specify one with --with-ifucmathlibs])
+        else
+            ac_ifucmathlibs=`ls -d $cwd/../IFU_C_mathlibs*`
+        fi
+    fi
+    echo IFU_C_mathlibs found :  $ac_ifucmathlibs    
+fi
+AC_SUBST(ac_ifucmathlibs)
+
+dnl checking now for the GSL -----------------------------------------------
+
+AC_MSG_CHECKING([for a GSL lib])
+AC_ARG_WITH(gsl, 
+         [  --with-gsl=DIR       directory of GSL ],
+         [ac_gsl=$withval], 
+         [ac_gsl=])
+echo Wait !
+
+dnl If the user does not provide one, try to see if somthing acceptable is found
+if test -z "$ac_gsl"
+then
+    cwd=`pwd` 
+    if test `ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl* | wc | awk '{print $1}'` -gt 1
+    then
+         AC_MSG_ERROR([Too much GSL libs in path ... specify one with --with-gsl])
+    else 
+        if test `ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl* | wc | awk '{print $1}'` -lt 1
+        then
+            AC_MSG_ERROR([No GSL libs in path ... specify one with --with-gsl])
+        else
+            ac_gsl=`ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl*`
+        fi
+    fi
+    echo GSL lib found $ac_gsl    
+fi
+AC_SUBST(ac_gsl)
+
+LIBS="$LIBS -L$ac_gsl/.libs"
+AC_CHECK_LIB(gsl,gsl_stats_sd_m,
+        [LIBS="$LIBS -lgsl"
+         C_OPT="$C_OPT -I$ac_gsl"],
+        [AC_MSG_ERROR(Unable to locate gsl_stats_sd_m in $ac_gsl)],
+        [-L$ac_gsl/cblas/.libs -lgslcblas -lm])
+
+dnl Checking for ROOT system -----------------------------
+AC_MSG_CHECKING(for ROOT system)
+if test -n "$ROOTSYS"
+then
+    PKG_ROOT=anal
+    AC_MSG_RESULT($ROOTSYS)
+else
+    PKG_ROOT=
+    AC_MSG_RESULT([No \$ROOTSYS])
+fi
+AC_SUBST(PKG_ROOT)
+echo setting PKG_ROOT to $PKG_ROOT
+
 dnl Checks for header files ==============================
 AC_HEADER_STDC
 AC_CHECK_HEADERS(malloc.h unistd.h)
@@ -60,7 +190,7 @@ dnl Output ==============================
 
 dnl ##### START EDITING #########################
 dnl *All* the [M|m]akefile's of your development tree:
-AC_OUTPUT(pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile )
+AC_OUTPUT(add_defs/makedefs pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile )
 dnl ##### STOP EDITING ##########################
 
 dnl Final configuration ==============================

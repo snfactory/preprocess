@@ -28,7 +28,7 @@ done
 ac_given_srcdir=.
 ac_given_INSTALL="/usr/bin/install -c"
 
-trap 'rm -fr pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile  conftest*; exit 1' 1 2 15
+trap 'rm -fr add_defs/makedefs pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile  conftest*; exit 1' 1 2 15
 
 # Protect against being on the right side of a sed subst in config.status.
 sed 's/%@/@@/; s/@%/@@/; s/%g$/@g/; /@g$/s/[\\&%]/\\&/g;
@@ -38,11 +38,11 @@ sed 's/%@/@@/; s/@%/@@/; s/%g$/@g/; /@g$/s/[\\&%]/\\&/g;
 s%@SHELL@%/bin/sh%g
 s%@CFLAGS@%-g -O2%g
 s%@CPPFLAGS@%%g
-s%@CXXFLAGS@%%g
+s%@CXXFLAGS@%-g -O2%g
 s%@FFLAGS@%-g -O2%g
 s%@DEFS@% -DPACKAGE=\"Ccd\" -DVERSION=\"developer\" -DSTDC_HEADERS=1 -DHAVE_MALLOC_H=1 -DHAVE_UNISTD_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_SELECT=1 -DHAVE_STRERROR=1 -DHAVE_STRSPN=1 -DHAVE_STRSTR=1 %g
 s%@LDFLAGS@%%g
-s%@LIBS@%%g
+s%@LIBS@% -L/home/novae/gangler/E3D/Ccd/../IFU_C_iolibs-6.0b/C_libs/io/obj /home/novae/gangler/E3D/Ccd/../IFU_C_iolibs-6.0b/C_libs/obj/genlib.a -lio -L/home/novae/gangler/E3D/Ccd/../IFU_C_mathlibs-6.0/C_libs/gsl-1.3/.libs -lgsl%g
 s%@exec_prefix@%${prefix}%g
 s%@prefix@%/usr/local%g
 s%@program_transform_name@%s,x,x,%g
@@ -84,14 +84,19 @@ s%@AUTOMAKE@%automake%g
 s%@AUTOHEADER@%autoheader%g
 s%@MAKEINFO@%makeinfo%g
 s%@SET_MAKE@%%g
-s%@F77@%g77%g
+s%@CXX@%c++%g
 s%@CC@%gcc%g
-s%@C_OPT@%-DUNDER%g
+s%@F77@%g77%g
+s%@C_OPT@%-DUNDER -I/home/novae/gangler/E3D/Ccd/../IFU_C_iolibs-6.0b/incl -I/home/novae/gangler/E3D/Ccd/../IFU_C_mathlibs-6.0/C_libs/gsl-1.3%g
 s%@CPP@%gcc -E%g
 s%@AWK@%gawk%g
 s%@RANLIB@%ranlib%g
 s%@LN_S@%ln -s%g
 s%@FLIBS@% -lg2c -lm -L/usr/lib/gcc-lib/i386-redhat-linux/2.96 -L/usr/lib/gcc-lib/i386-redhat-linux/2.96/../../.. -lm%g
+s%@ac_ifuciolibs@%/home/novae/gangler/E3D/Ccd/../IFU_C_iolibs-6.0b%g
+s%@ac_ifucmathlibs@%/home/novae/gangler/E3D/Ccd/../IFU_C_mathlibs-6.0%g
+s%@ac_gsl@%/home/novae/gangler/E3D/Ccd/../IFU_C_mathlibs-6.0/C_libs/gsl-1.3%g
+s%@PKG_ROOT@%anal%g
 
 CEOF
 
@@ -127,7 +132,7 @@ if test -z "$ac_sed_cmds"; then
   ac_sed_cmds=cat
 fi
 
-CONFIG_FILES=${CONFIG_FILES-"pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile "}
+CONFIG_FILES=${CONFIG_FILES-"add_defs/makedefs pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile "}
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
   # Support "outfile[:infile[:infile...]]", defaulting infile="outfile.in".
   case "$ac_file" in

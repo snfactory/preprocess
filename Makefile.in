@@ -68,14 +68,19 @@ target_alias = @target_alias@
 target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
+CXX = @CXX@
 C_OPT = @C_OPT@
 F77 = @F77@
 FLIBS = @FLIBS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
+PKG_ROOT = @PKG_ROOT@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
+ac_gsl = @ac_gsl@
+ac_ifuciolibs = @ac_ifuciolibs@
+ac_ifucmathlibs = @ac_ifucmathlibs@
 
 SUBDIRS = pkg
 
@@ -334,6 +339,13 @@ uninstall-am uninstall all-redirect all-am all installdirs-am \
 installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
+
+# needs to be sure makefiles are sync with add_defs/makedefs
+Makefile : $(srcdir)/add_defs/makedefs 
+
+$(srcdir)/add_defs/makedefs : $(srcdir)/add_defs/makedefs.in $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -65,16 +65,22 @@ target_alias = @target_alias@
 target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
+CXX = @CXX@
 C_OPT = @C_OPT@
 F77 = @F77@
 FLIBS = @FLIBS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
+PKG_ROOT = @PKG_ROOT@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
+ac_gsl = @ac_gsl@
+ac_ifuciolibs = @ac_ifuciolibs@
+ac_ifucmathlibs = @ac_ifucmathlibs@
 
-SUBDIRS = preprocess anal
+SUBDIRS = preprocess @PKG_ROOT@
+DIST_SUBDIRS = preprocess anal
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -203,7 +209,7 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-	for subdir in $(SUBDIRS); do \
+	for subdir in $(DIST_SUBDIRS); do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \

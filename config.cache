@@ -21,20 +21,28 @@ ac_cv_header_malloc_h=${ac_cv_header_malloc_h=yes}
 ac_cv_header_stdc=${ac_cv_header_stdc=yes}
 ac_cv_header_time=${ac_cv_header_time=yes}
 ac_cv_header_unistd_h=${ac_cv_header_unistd_h=yes}
+ac_cv_lib_gsl_gsl_stats_sd_m=${ac_cv_lib_gsl_gsl_stats_sd_m=yes}
+ac_cv_lib_gsl_main=${ac_cv_lib_gsl_main=no}
+ac_cv_lib_io_open_frame=${ac_cv_lib_io_open_frame=yes}
 ac_cv_path_install=${ac_cv_path_install=$'/usr/bin/install -c'}
 ac_cv_prog_AWK=${ac_cv_prog_AWK=gawk}
 ac_cv_prog_CC=${ac_cv_prog_CC=gcc}
 ac_cv_prog_CPP=${ac_cv_prog_CPP=$'gcc -E'}
+ac_cv_prog_CXX=${ac_cv_prog_CXX=c++}
 ac_cv_prog_F77=${ac_cv_prog_F77=g77}
 ac_cv_prog_LN_S=${ac_cv_prog_LN_S=$'ln -s'}
 ac_cv_prog_RANLIB=${ac_cv_prog_RANLIB=ranlib}
 ac_cv_prog_cc_cross=${ac_cv_prog_cc_cross=no}
 ac_cv_prog_cc_g=${ac_cv_prog_cc_g=yes}
 ac_cv_prog_cc_works=${ac_cv_prog_cc_works=yes}
+ac_cv_prog_cxx_cross=${ac_cv_prog_cxx_cross=no}
+ac_cv_prog_cxx_g=${ac_cv_prog_cxx_g=yes}
+ac_cv_prog_cxx_works=${ac_cv_prog_cxx_works=yes}
 ac_cv_prog_f77_cross=${ac_cv_prog_f77_cross=no}
 ac_cv_prog_f77_g=${ac_cv_prog_f77_g=yes}
 ac_cv_prog_f77_works=${ac_cv_prog_f77_works=yes}
 ac_cv_prog_g77=${ac_cv_prog_g77=yes}
 ac_cv_prog_gcc=${ac_cv_prog_gcc=yes}
 ac_cv_prog_gcc_traditional=${ac_cv_prog_gcc_traditional=no}
+ac_cv_prog_gxx=${ac_cv_prog_gxx=yes}
 ac_cv_prog_make_make_set=${ac_cv_prog_make_make_set=yes}
