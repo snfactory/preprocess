@@ -89,6 +89,7 @@ class ImageSnifs :public ImageSimple {
     // in-place odd-even substrction
     void OddEvenCorrect();
 
+    void UpdateFClass();
     void SubstractBias(ImageSnifs* Bias);
     void SubstractDark(ImageSnifs* Dark);
     void ApplyFlat(ImageSnifs* Flat);

@@ -131,6 +131,14 @@ void BiChipSnifs::SetAlgo(char* Soft) {
 
 /* ===== Methods ====================================================== */
 
+void BiChipSnifs::UpdateFClass() {
+  for (int chip=0;chip<NChips();chip++) {
+    fChip[chip]->UpdateFClass();
+  }
+  
+}
+
+
 /* ----- Overscan ----------------------------------------------------- */
 #ifdef OLD
 void BiChipSnifs::SubstractOverscan() {

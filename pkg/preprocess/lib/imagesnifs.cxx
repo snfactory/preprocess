@@ -328,6 +328,11 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
     int darkFrame=1;
     WrDesc("DARKFRAM",INT,1,&darkFrame);
   }
+}
+
+
+/* -----  SubstractBias ------------------------------------------------- */
+void ImageSnifs::UpdateFClass() {
   if (GetFClass()==RAW_DARK_FRAME)
     SetFClass(PRE_DARK_FRAME);
   if (GetFClass()==RAW_CAL_FRAME)

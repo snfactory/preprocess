@@ -267,6 +267,7 @@ BiChipSnifs * Preprocessor::PreprocessBias(char* name, char* outName){
     fOverscanRescue->Correct(out);
   }
 
+  out->UpdateFClass();
   return out;
 }
 

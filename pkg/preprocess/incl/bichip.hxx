@@ -50,6 +50,7 @@ class BiChipSnifs {
 
     // Methods
 
+    void UpdateFClass();
     //void SubstractOverscan();
     // void OddEvenCorrect();
     void SubstractBias(BiChipSnifs* Bias);
