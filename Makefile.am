@@ -24,6 +24,9 @@ Makefile : $(top_builddir)/config.status $(srcdir)/Makefile.in
 
 
 # trick to get config-clean-files checked somwhere in the build process
-Makefile : $(CONFIG_CLEAN_FILES)
+#Makefile : $(CONFIG_CLEAN_FILES)
+# if set, the makefile target from pkg/preprocess/source will not be 
+# executed properly
+# it implies writing a correct makefile rebuild scheme for all subdirs
 
 all : all-am
