@@ -329,6 +329,30 @@ void RootAnalyser::HighFrequency()
   
 }
 
+/*-------------- hf ------------------------------------------- */
+void RootAnalyser::VertHighFrequencyProf(double min, double max, int nbin)
+{
+
+  char histName[lg_name+1];
+  sprintf(histName,"HfVDiff%s",fSec->Name());
+  TProfile* prof = new TProfile(histName,"Vertical Diff vs. value",nbin,min,max);
+
+  for (int j=fSec->YFirst(); j<fSec->YLast();j++){
+    for (int i=fSec->XFirst(); i<fSec->XLast();i++){
+      if (i<fSec->XLast()-1) {
+        double diffv = fImage->RdFrame(i,j) - fImage->RdFrame(i+1,j);
+        double sumv = (fImage->RdFrame(i,j) + fImage->RdFrame(i+1,j))/2;
+        prof->Fill(sumv,diffv);
+      }
+    }
+  }
+  
+  prof->Write();
+  delete prof;
+  
+}
+
+
 /*-------------- fft-it ------------------*/
 void RootAnalyser::Fft()
 {

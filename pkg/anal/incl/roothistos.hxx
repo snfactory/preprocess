@@ -56,6 +56,8 @@ class RootAnalyser : public ImageAnalyser {
 
   void HighFrequency();
 
+  void VertHighFrequencyProf(double nmin=0,double nmax=0, int nbin=1000);
+
   void Fft();
 
   void ADCBits(int nBits=16);

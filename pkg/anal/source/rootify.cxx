@@ -57,12 +57,13 @@ int main(int argc, char **argv) {
       
       ana.HorizontalProfile(sigma);
       ana.VerticalProfile(sigma);
-      ana.OddEvenVerticalProfile(sigma);
-      ana.OverscanError(sigma);
+      //ana.OddEvenVerticalProfile(sigma);
+      //ana.OverscanError(sigma);
       ana.HistoData();
       ana.MatrixData ();
       ana.HighFrequency();
-      ana.ADCBits(16);
+      //ana.ADCBits(16);
+      ana.VertHighFrequencyProf();
     }
     out->Purge();
     out->Close();

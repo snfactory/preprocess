@@ -168,6 +168,7 @@ void BiChipSnifs::SubstractDark( BiChipSnifs* Dark) {
 
 /* ----- Assemble ----------------------------------------------------- */
 ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
+
   // Assembles the NChips() chips in 1 image
   // if the image has no extension indication, creates a 
   // [image] and a [variance] frame if the bichip is compatible
@@ -238,17 +239,33 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   if (variance)
     variance->ImportHeader(fChip[0]->Variance() );
 
-  // Data from chips
+  //
+  // Puts the image data from chips
+  //
   char keyName[lg_name+1];
   double gain,rdnoise[NChips()];
-  //  int nSatu=0, chipSatu;
-  // ImportSection takes care of variance !
   for (int chip=0;chip<NChips();chip++) {
+
+  // Note that R channel is flipped (180deg rotation) ... it is economic to do it here
+    int xDir=1;
+    int yDir=1;
+    int xStart=1;
+    int yStart=1;
+    if (fChip[0]->GetChannel() == kRedChannel){
+      xDir=-1;
+      yDir=-1;
+      xStart = Sec->XLength()*NChips();
+      yStart = Sec->YLength();
+    }
+    
     fChip[chip]->RdDesc("GAIN",DOUBLE,1,&gain);
+
+
+    // ImportSection takes care of variance !
     if (!chip%2)
-      compound->ImportSection(fChip[chip],Sec,1+chip*Sec->XLength(),1,1,1,gain);
+      compound->ImportSection(fChip[chip],Sec,xStart+(chip*Sec->XLength())*xDir,yStart,xDir,yDir,gain);
     else
-      compound->ImportSection(fChip[chip],Sec,(1+chip)*Sec->XLength(),1,-1,1,gain);
+      compound->ImportSection(fChip[chip],Sec,xStart-xDir + (1+chip)*Sec->XLength()*xDir,yStart,-xDir,yDir,gain);
     sprintf(keyName,"CCD%dGAIN",chip);
     compound->WrDesc(keyName,DOUBLE,1,&gain);
     //   if (fChip[chip]->RdIfDesc("NSATU",INT,1,&chipSatu) > 0)
