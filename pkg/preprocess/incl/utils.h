@@ -48,10 +48,6 @@ int open_frame_fast(IMAGE2D *frame, char *name, char *mode);
 
 double juldat( int year, int month, int day, double ut);
 
-int open_headerfile(Anyfile *frame, char *name, char *mode);
-  
-int close_headerfile(Anyfile *file)
-
 /* -----  string utilities ----- */
 
 int ut_parse_line(char* line, char** tokens);
