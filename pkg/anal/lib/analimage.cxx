@@ -135,7 +135,7 @@ ImageSignature::ImageSignature(){
   SetPrintItems("100000111111110100");
   fPrintInfo = new (PrintInfo*)[fkNitems];
   int i=0;
-  fPrintInfo[i++] = new PrintInfoType<char>(" Name of the exposure","Name","%30.25s",25, fName);
+  fPrintInfo[i++] = new PrintInfoType<char>(" Name of the exposure","Name","%25.25s",25, fName);
   fPrintInfo[i++] = new PrintInfoType<int>(" FClass ","FClass","%3d",3,&fFClass);
   fPrintInfo[i++] = new PrintInfoType<int>(" External tag","External","%3d",3,&fExternal);
   fPrintInfo[i++] = new PrintInfoType<int>(" 1=B 2=R 4=P","Channel","%2d",2,&fChannel);
