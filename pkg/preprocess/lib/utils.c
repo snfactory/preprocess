@@ -178,12 +178,15 @@ double ut_mode(double* val,int n){
 
   int * index;
   double med;
-  index = malloc(n*sizeof(int));
-  
-  gsl_sort_index(index,val,1,n);
-
   int nmin=0;
   int nmax=n; /*  out of the table */
+
+  index = malloc(n*sizeof(int));
+  
+  /* test */
+
+  gsl_sort_index(index,val,1,n);
+
   
   do { 
 
