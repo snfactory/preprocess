@@ -180,7 +180,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
 
   // Raw constructor as we will allocate the rest on the spot
   ImageSnifs* compound = new ImageSnifs(Io,Nlines);
-  ImageSimple* variance;
+  ImageSimple* variance=0;
   if (varname[0]) {
     variance =  new ImageSimple();
     compound->SetVarianceFrame(variance);
