@@ -1,0 +1,147 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% User manual of the preprocessing software
+% Mainfile
+%
+% v1.0 27/02/2003 PF Creation
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[twoside,a4paper,11pt]{article}
+
+% --------------------------------------------------------------------
+% Loading packages
+% --------------------------------------------------------------------
+
+% For a clean PDF file with pdflatex
+\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
+\usepackage[T1]{fontenc}
+\usepackage{ae}
+\usepackage[T1]{url}
+\urlstyle{sf}
+\usepackage{graphicx}
+\newcommand{\pdfgraphics}{\ifpdf\DeclareGraphicsExtensions{.pdf,.jpg}\else\fi}
+
+% --------------------------------------------------------------------
+% Decreases the margins and enlarge the useable page area
+% --------------------------------------------------------------------
+\raggedbottom
+\topmargin=-.9cm
+\topskip=-3.5cm
+\textheight=24.5cm
+\textwidth=16.8cm
+\oddsidemargin=0cm
+\evensidemargin=-1cm
+\parindent=0mm
+\topsep=0.5ex
+\itemsep=0.5ex
+
+% --------------------------------------------------------------------
+% Load macros from macros.tex file
+% --------------------------------------------------------------------
+\input{Macros}
+
+% --------------------------------------------------------------------
+% Starting serious stuff...
+% --------------------------------------------------------------------
+\begin{document}
+
+\newcounter{tp}
+
+\pagenumbering{roman}
+
+\pagestyle{empty}
+
+% ******************************************************************************
+% TITLE PAGE
+%
+%\newcounter{tp}
+\pagenumbering{roman}
+\pagestyle{empty}
+
+\input{TitlePage}
+
+% ******************************************************************************
+% BLANK PAGE --- HEADINGS
+% This is european, but really stupid...
+
+\clearpage  
+\pagestyle{myheadings}
+\markboth
+{\underline{Ccd preprocessing package -- IFU-0-1++}}   %  <<<<<<< page headings odd
+{\underline{User guide}} %  <<<<<<< page headings even
+\vspace*{8 cm}
+%\begin{center}
+%This page was left blank, but this is a mistake !
+%\end{center}
+\newpage
+
+% ******************************************************************************
+% CHANGES
+%
+%\input{Changes}
+
+% ******************************************************************************
+% INDEX
+%
+\input{Index}
+
+% ******************************************************************************
+% BODY OF THE DOCUMENT
+%
+\parskip=2mm
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+
+% ******************************************************************************
+% INTRODUCTION
+%
+%\begin{section}{Introduction}
+%   \input Introduction
+%\end{section}
+%\newpage
+
+% ******************************************************************************
+% STRUCTURE OF THE PACKAGE
+%
+\begin{section}{User supplied executables}
+   \input{Executables}
+\end{section}
+
+% ******************************************************************************
+% STRUCTURE OF THE PACKAGE
+%
+%\begin{section}{Structure of the package}
+%   \input{Structure}
+%\end{section}
+
+% ******************************************************************************
+% USE DOXYGEN IN YOUR PROJECT
+%
+%\begin{section}{Source documentation using DOXYGEN}
+%   \input{UseDoxygen}
+%\end{section}
+
+% ******************************************************************************
+% FAQ
+%
+%\begin{section}{FAQ}
+%   \input{FAQ}
+%\end{section}
+
+% ******************************************************************************
+% END OF OF TEXT 
+%
+
+%\newpage                   
+%\vspace*{8 cm}             
+%\begin{center}
+%\Large
+%{\bf \_\_\_oOo\_\_\_}\\
+%\end{center}
+
+
+
+\end{document}

@@ -232,7 +232,8 @@ AC_OUTPUT(add_defs/makedefs \
           pkg/preprocess/source/makefile \
           pkg/anal/Makefile \
           pkg/anal/lib/makefile \
-          pkg/anal/source/makefile )
+          pkg/anal/source/makefile \
+          doc/makefile )
 
 dnl Final configuration ==============================
 

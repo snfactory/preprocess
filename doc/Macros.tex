@@ -1,0 +1,172 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Developing under the Euro3D environment
+% Macros
+%
+% v1.0 27/03/2003 PF Creation
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ---------------------------------------------------------------------
+% Miscellaneous
+% ---------------------------------------------------------------------
+\def\thebibliography#1{\section*{}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\let\endthebibliography=\endlist
+
+\newcommand{\warning}[2][Warning:]{%
+  \noindent\fbox{%
+    \begin{minipage}[t]{\linewidth}
+      \sffamily \textbf{#1} #2
+    \end{minipage}
+  }
+}
+
+\newcommand{\dsigw}{\mbox{$\dot\Sigma_{\rm w}$}{}}
+\newcommand{\D}{\partial}
+\newcommand{\dotl}{\mbox{$\dot{\it l}$}{}}
+\newcommand{\nuw}{\mbox{$\nu_{\rm w}$}{}}
+\newcommand{\mdot}{\mbox{$\dot M$}{}}
+\newcommand{\ten}[1] {10$^{#1}$}
+\newcommand{\cmc}{cm$^{-3}$}
+\newcommand{\kms}{km~s$^{-1}$}
+\newcommand{\ergs}{erg s$^{-1}$}
+\newcommand{\ergscm}{erg s$^{-1}$ cm$^{-2}$}
+\newcommand{\ergscmAarcsec}{erg s$^{-1}$ cm$^{-2}$ \AA$^{-1}$ arcsec$^{-2}$}
+\newcommand{\farcsec}{\hbox{$.\!\!^{\prime\prime}$}}
+\newcommand{\arcsec}{$^{\prime\prime}$}
+\newcommand{\degr}{\hbox{$^\circ$}}
+\newcommand{\pcmsev}{photons cm$^{-2}$ s$^{-1}$ eV$^{-1}$}
+\newcommand{\pcms}{photons cm$^{-2}$ s$^{-1}$}
+
+% ---------------------------------------------------------------------
+% The family of Hydrogen
+% ---------------------------------------------------------------------
+\newcommand{\Lya}{\hbox{Ly\,$\alpha$}}
+\newcommand{\Lyaw}{\hbox{Ly\,$\alpha$}\,$\lambda $1215.67}
+\newcommand{\Hz}{\hbox{H$\zeta$}}
+\newcommand{\Hzw}{\hbox{H$\zeta$\,$\lambda $3889}}
+\newcommand{\He}{\hbox{H$\epsilon$}}
+\newcommand{\Hew}{\hbox{H$\epsilon$\,$\lambda $3970}}
+\newcommand{\Hd}{\hbox{H$\delta$}}
+\newcommand{\Hdw}{\hbox{H$\delta$\,$\lambda $4102}}
+\newcommand{\Hg}{\hbox{H$\gamma$}}
+\newcommand{\Hgw}{\hbox{H$\gamma$\,$\lambda $4340}}
+\newcommand{\Hb}{H$\beta$}
+\newcommand{\Hbw}{\hbox{H$\beta$\,$\lambda $4861}}
+\newcommand{\Ha}{\hbox{H$\alpha$}}
+\newcommand{\Haw}{\hbox{H$\alpha$\,$\lambda $6563}}
+\newcommand{\HII}{\hbox{H\,{\sc ii}}}
+
+% ---------------------------------------------------------------------
+% The family of Nitrogen
+% ---------------------------------------------------------------------
+\newcommand{\NI}{\hbox{[N\,{\sc i}]}}
+\newcommand{\NIwa}{\hbox{[N\,{\sc i}]$\lambda $5198}}
+\newcommand{\NIwb}{\hbox{[N\,{\sc i}]$\lambda $5200}}
+\newcommand{\NIww}{\hbox{[N\,{\sc i}]$\lambda\lambda $5198,5200}}
+\newcommand{\nii}{\hbox{N\,{\sc ii}}}
+\newcommand{\NII}{\hbox{[N\,{\sc ii}]}}
+\newcommand{\NIIwa}{\hbox{[N\,{\sc ii}]$\lambda $6548}}
+\newcommand{\NIIwb}{\hbox{[N\,{\sc ii}]$\lambda $6583}}
+\newcommand{\NIIww}{\hbox{[N\,{\sc ii}]$\lambda\lambda $6548,6583}}
+\newcommand{\NIIwt}{\hbox{[N\,{\sc ii}]$\lambda $5755}}
+\newcommand{\NV}{\hbox{N\,{\sc v}}}
+\newcommand{\NVww}{\hbox{N\,{\sc v}$\lambda\lambda $1238.82,1242.80}}
+\newcommand{\NVwa}{\hbox{N\,{\sc v}$\lambda $1238.82}}
+\newcommand{\NVwb}{\hbox{N\,{\sc v}$\lambda $1242.80}}
+\newcommand{\NVw}{\hbox{N\,{\sc v}$\overline{\lambda} $1240.15}}
+
+% ---------------------------------------------------------------------
+% The family of Carbon
+% ---------------------------------------------------------------------
+\newcommand{\CIII}{\hbox{([)C\,{\sc iii}]}}
+\newcommand{\CIIIww}{([)\hbox{C\,{[\sc iii}]$\lambda\lambda $1909,1911}}
+\newcommand{\CIIIwa}{[\hbox{C\,{\sc iii}]$\lambda $1909.09}}
+\newcommand{\CIIIwb}{\hbox{C\,{\sc iii}]$\lambda $1911.18}}
+\newcommand{\CIIIw}{\hbox{C\,{\sc iii}]$\overline{\lambda} $1910.11}}
+\newcommand{\CIV}{\hbox{C\,{\sc iv}}}
+\newcommand{\CIVww}{\hbox{C\,{\sc iv} $\lambda\lambda $1548,1551}}
+\newcommand{\CIVwa}{\hbox{C\,{\sc iv}$\lambda $1548.19}}
+\newcommand{\CIVwb}{\hbox{C\,{\sc iv}$\lambda $1550.77}}
+\newcommand{\CIVw}{\hbox{C\,{\sc iv}$\overline{\lambda} $1549.05}}
+
+% ---------------------------------------------------------------------
+% The family of Oxygen
+% ---------------------------------------------------------------------
+\newcommand{\OI}{\hbox{[O\,{\sc i}]}}
+\newcommand{\OIwa}{\hbox{[O\,{\sc i}]$\lambda $6300}}
+\newcommand{\OIwb}{\hbox{[O\,{\sc i}]$\lambda $6364}}
+\newcommand{\OIww}{\hbox{[O\,{\sc i}]$\lambda\lambda $6300,6364}}
+\newcommand{\OII}{\hbox{[O\,{\sc ii}]}}
+\newcommand{\OIIwa}{\hbox{[O\,{\sc ii}]$\lambda $3726}}
+\newcommand{\OIIwb}{\hbox{[O\,{\sc ii}]$\lambda $3729}}
+\newcommand{\OIIww}{\hbox{[O\,{\sc ii}]$\lambda\lambda $3726,3729}}
+\newcommand{\OIIw}{\hbox{[O\,{\sc ii}]$\lambda $3727}}
+\newcommand{\oiii}{\hbox{O\,{\sc iii}}}
+\newcommand{\OIII}{\hbox{[O\,{\sc iii}]}}
+\newcommand{\OIIIwa}{\hbox{[O\,{\sc iii}]$\lambda $4959}}
+\newcommand{\OIIIwb}{\hbox{[O\,{\sc iii}]$\lambda $5007}}
+\newcommand{\OIIIww}{\hbox{[O\,{\sc iii}]$\lambda\lambda $4959,5007}}
+\newcommand{\OIIIwt}{\hbox{[O\,{\sc iii}]$\lambda $4363}}
+\newcommand{\OV}{\hbox{O\,{\sc v}]}}
+\newcommand{\OVw}{\hbox{O\,{\sc v}]$\lambda $1218.39}}
+
+% ---------------------------------------------------------------------
+% The family of Sulfur
+% ---------------------------------------------------------------------
+\newcommand{\sii}{\hbox{S\,{\sc ii}}}
+\newcommand{\SII}{\hbox{[S\,{\sc ii}]}}
+\newcommand{\SIIwa}{\hbox{[S\,{\sc ii}]$\lambda $4069}}
+\newcommand{\SIIwb}{\hbox{[S\,{\sc ii}]$\lambda $4077}}
+\newcommand{\SIIwc}{\hbox{[S\,{\sc ii}]$\lambda $6717}}
+\newcommand{\SIIwd}{\hbox{[S\,{\sc ii}]$\lambda $6731}}
+\newcommand{\SIIwwa}{\hbox{[S\,{\sc ii}]$\lambda\lambda $4069,4077}}
+\newcommand{\SIIwwb}{\hbox{[S\,{\sc ii}]$\lambda\lambda $6717,6731}}
+\newcommand{\SIII}{\hbox{[S\,{\sc iii}]}}
+\newcommand{\SIIIwa}{\hbox{[S\,{\sc iii}]$\lambda $6310}}
+
+% ---------------------------------------------------------------------
+% The family of Neon
+% ---------------------------------------------------------------------
+\newcommand{\NeIII}{\hbox{[Ne\,{\sc iii}]}}
+\newcommand{\NeIIIwa}{\hbox{[Ne\,{\sc iii}]$\lambda $3869}}
+\newcommand{\NeIIIwb}{\hbox{[Ne\,{\sc iii}]$\lambda $3969}}
+\newcommand{\NeV}{\hbox{[Ne\,{\sc v}]}}
+\newcommand{\NeVwa}{\hbox{[Ne\,{\sc v}]$\lambda $3346}}
+\newcommand{\NeVwb}{\hbox{[Ne\,{\sc v}]$\lambda $3426}}
+\newcommand{\NeVww}{\hbox{[Ne\,{\sc v}]$\lambda\lambda $3346,3426}}
+
+% ---------------------------------------------------------------------
+% The family of Calcium
+% ---------------------------------------------------------------------
+\newcommand{\CaII}{\hbox{[Ca\,{\sc ii}]}}
+\newcommand{\CaIIwa}{\hbox{[Ca\,{\sc ii}]$\lambda $3934}}
+\newcommand{\CaIIwb}{\hbox{[Ca\,{\sc ii}]$\lambda $3969}}
+
+% ---------------------------------------------------------------------
+% The family of Iron
+% ---------------------------------------------------------------------
+\newcommand{\FeII}{\hbox{[Fe\,{\sc ii}]}}
+\newcommand{\FeVII}{\hbox{[Fe\,{\sc vii}]}}
+\newcommand{\FeVIIwa}{\hbox{[Fe\,{\sc vii}]$\lambda $3760}}
+\newcommand{\FeVIIwb}{\hbox{[Fe\,{\sc vii}]$\lambda $4942}}
+\newcommand{\FeVIIwc}{\hbox{[Fe\,{\sc vii}]$\lambda $5158}}
+\newcommand{\FeVIIwd}{\hbox{[Fe\,{\sc vii}]$\lambda $5276}}
+\newcommand{\FeVIIwe}{\hbox{[Fe\,{\sc vii}]$\lambda $5721}}
+\newcommand{\FeVIIwf}{\hbox{[Fe\,{\sc vii}]$\lambda $6086}}
+\newcommand{\FeX}{\hbox{[Fe\,{\sc x}]}}
+\newcommand{\FeXwa}{\hbox{[Fe\,{\sc x}]$\lambda $6374}}
+
+% ---------------------------------------------------------------------
+% The family of Iron
+% ---------------------------------------------------------------------
+\newcommand{\HeI}{\hbox{He\,{\sc i}}}
+\newcommand{\HeIwa}{\hbox{He\,{\sc i}$\lambda $3889}}
+\newcommand{\HeIwb}{\hbox{He\,{\sc i}$\lambda $5876}}
+\newcommand{\HeII}{\hbox{He\,{\sc ii}}}
+\newcommand{\HeIIwa}{\hbox{He\,{\sc ii}$\lambda $4686}}

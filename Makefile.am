@@ -6,7 +6,7 @@
 ## Created at:    Tue Mar 25 16:21:44 2003
 ######################################################################
 
-SUBDIRS=pkg
+SUBDIRS=pkg doc
 
 EXTRA_DIST=add_defs
 
