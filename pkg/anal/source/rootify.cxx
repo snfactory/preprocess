@@ -18,6 +18,7 @@ extern "C" {
 }
 #endif
 
+#include "section.hxx"
 
 
 /*--- Specific ROOT includes */
@@ -278,40 +279,134 @@ void OverscanError(IMAGE2D* image,int xin, int xout,float sigma){
   
 }
 
+/* ----- MeanValue ----------------------------------------------------- */
+double MeanValue(IMAGE2D* image,Section* Sec,int step=1){
+  //Computes the mean value of the section data
+  // the step factor is here to speed-up the computation
+  
+  double sum;
+  int i,j,n=0;
+
+  i = Sec->XFirst();
+  for ( j=Sec->YFirst() ; j<Sec->YLast() ; ) {
+    for ( ; i<Sec->XLast() ; i+=step ) {
+      sum += RD_frame(image,i,j);
+      n++;
+    }
+    while(i>=Sec->XLast()) {
+      i-=Sec->XLength();
+      j++;
+    }
+  }
+  return sum/n;
+}
+
+/*-------------- élairement moyen ----------------------------- */
+double Meanlight(IMAGE2D* image, int xin, int xout)
+{
+  Section sec(xin,xout,1,image->ny);
+  return MeanValue(image,&sec,1);
+}
+
+/*-------------- hf ------------------------------------------- */
+void HF(IMAGE2D* image, int xin, int xout)
+{
+  double rapporth,rapportv,minh,minv,mintot,maxh,maxv,maxtot;
+
+  minh = 1;
+  minv = 1;
+  maxh = 0;
+  maxv = 0;
+
+  for (int j=0; j<(image->ny)-1;j++){
+    for (int i=xin; i<xout-1;i++){
+      rapporth = (RD_frame(image,i,j))/(RD_frame(image,i,j+1));
+      rapportv = (RD_frame(image,i,j))/(RD_frame(image,i+1,j));
+      if (rapporth<minh) 
+        minh = rapporth;
+      else if (rapporth>maxh) 
+        maxh = rapporth; 
+      if (rapportv<minv) 
+        minv = rapportv;
+      else if (rapportv>maxv) 
+        maxv = rapportv;
+    }
+  }
+  
+  if (minh<minv){
+    mintot = minh;
+  }
+  else mintot = minv;
+  
+  if (maxh<maxv){
+    maxtot = maxv;
+  }
+  else maxtot = maxh;
+  
+  
+  TH1F* histoh = new TH1F("rapporth","Rapport horizontal",1000,minh-1,maxh+1);
+  TH1F* histov = new TH1F("rapportv","Rapport vertical",1000,minv-1,maxv+1);
+  TH1F* histotot = new TH1F("rapportot","Rapport aux voisins",1000,mintot-1,maxtot+1);
+    
+
+  for (int j=0; j<(image->ny)-1;j++){
+    for (int i=xin; i<xout-1;i++){
+      rapporth = (RD_frame(image,i,j))/(RD_frame(image,i,j+1));
+      rapportv = (RD_frame(image,i,j))/(RD_frame(image,i+1,j));
+      histoh->Fill(rapporth);
+      histov->Fill(rapportv);
+      histotot->Fill(rapporth);
+      histotot->Fill(rapportv);
+    }
+  }
+  
+  histoh->Write();
+  histov->Write();
+  histotot->Write();
+  
+  delete histoh;
+  delete histov;
+  delete histotot;
+  
+}
 
 
 /*-------------- main ROOT routine ---------------------------- */
-void rootify(IMAGE2D * image,int xin, int xout,int x2in, int x2out,float sigma) 
+void rootify(IMAGE2D * image, char* out_name, Section sec, int x2in, int x2out,float sigma) 
 {
   /* note : x2 is for left overscan : should be less than xout*/
 
-  /* makes the ROOT file */
-  TString name(image->name);
-  char match[] = ".fits";  
 
-  if (name.Contains(match))
-    name.ReplaceAll(".fits",".root");
-  else
-    name.Append(".root");
-  //name.Prepend(image->path);
-  printf("creating %s\n",name.Data());
+  double min, max;
+  min = RD_frame(image,0,0);
+  max = RD_frame(image,0,0);
+  
+  for (int j=sec.YFirst();j<sec.YLast();j++){
+    for (int i=sec.XFirst();i<sec.XLast();i++){
+      if (RD_frame(image,i,j)<min) 
+        min = RD_frame(image,i,j);
+      else if (RD_frame(image,i,j)>max) 
+        max = RD_frame(image,i,j);
+    }
+  }
   
 
-  TFile * file = new TFile(name.Data(),"RECREATE");
-  TH1F * histo = new TH1F("data","Histo of data values",1000,0,0);
+  printf("creating %s\n",out_name);
+  TFile * file = new TFile(out_name,"RECREATE");
+  TH1F * histo = new TH1F("data","Histo of data values",1000,min-1,max+1);
   TH1F * histoo = new TH1F("ovsc","Histo of overscan values",1000,0,0);
 
   histo->SetBuffer(10000);
   
 
   /* table of values */
-  TMatrix * mat = new TMatrix(image->nx,image->ny);
+  TMatrix * mat = new TMatrix(sec.XLast(),sec.YLast());
   
-  for (int j=0;j<image->ny;j++) {
-    for (int i=0;i<image->nx;i++)
+  for (int j=sec.YFirst();j<sec.YLast();j++) {
+    for (int i=sec.XFirst();i<sec.XLast();i++){
       (*mat)(i,j) = RD_frame(image,i,j);
-    for (int i=xin;i<xout;i++)
       histo->Fill(RD_frame(image,i,j));
+    }
     for (int i=x2in;i<x2out;i++)
       histoo->Fill(RD_frame(image,i,j));
   }
@@ -325,13 +420,15 @@ void rootify(IMAGE2D * image,int xin, int xout,int x2in, int x2out,float sigma)
   
 
   /* others */
-  VerticalProfile(image,xin,xout,sigma);
+  VerticalProfile(image,sec.XFirst(),sec.XLast(),sigma);
   OverscanProfile(image,x2in,x2out,sigma);
-  OddEvenVerticalProfile(image,xin,xout,sigma);
-  OverscanError(image,xin,xout,sigma);
-  HorizontalProfile(image,0,image->ny,sigma);
+  OddEvenVerticalProfile(image,sec.XFirst(),sec.XLast(),sigma);
+  OverscanError(image,sec.XFirst(),sec.XLast(),sigma);
+  HorizontalProfile(image,sec.YFirst(),sec.YLast(),sigma);
+  HF(image,sec.XFirst(),sec.XLast());
+  printf("éclairement moyen = %f\n", Meanlight(image, sec.XFirst(), sec.XLast()));
   /* note the inversion */
-  //LRDiff(image,x2in,x2out,xin,xout,sigma);
+  //LRDiff(image,x2in,x2out,sec.XFirst(),sec.XLast(),sigma);
   
   
   /* close output*/
@@ -347,11 +444,12 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   IMAGE2D in;
-  int xin,xout,x2in,x2out,cat;
+  TFile out;
+  int x2in,x2out,cat;
   float sigma;
-  char nom_cat[lg_name+1],text[81], im_name[lg_name+1];
+  char nom_cat[lg_name+1],text[81], im_name[lg_name+1], nom_cat_out[lg_name+1], out_name[lg_name+1];
 
-  set_arglist("-in null -xin 6 -xout 1026 -x2in 1028 -x2out 1056 -sigma 5.0");
+  set_arglist("-in null -out null -sec [6:1026,1:4102] -x2in 1028 -x2out 1056 -sigma 5.0");
   init_session(argv,argc,&arglabel,&argval);
 
   /* xin and xout follows the convention :
@@ -359,21 +457,29 @@ int main(int argc, char **argv) {
      xin and xout are inside selection
   */
 
-  get_argval(1,"%d", &xin);
-  get_argval(2,"%d", &xout);
+  Section sec(argval[2]);
+  
   get_argval(3,"%d", &x2in);
   get_argval(4,"%d", &x2out);
   get_argval(5,"%f", &sigma);
 
   /* check catalog */
   strcpy(nom_cat, argval[0]);
+  strcpy(nom_cat_out, argval[1]);
   cat = (strstr(nom_cat,".cat") != NULL);
   if (cat) {
+    if (!strstr(nom_cat_out,".cat")) {
+      print_error ("-out shall be a catalog");
+      exit_session(1);
+    }
+    
     sprintf(text,"Image Catalog: %s", nom_cat);
     print_msg(text);
     RD_catalog(nom_cat, im_name);
+    RD_catalog(nom_cat_out, out_name);
   } else {
     strcpy(im_name, nom_cat);
+    strcpy(out_name, nom_cat_out);
   }
 
   /* loop on catalog */
@@ -381,11 +487,11 @@ int main(int argc, char **argv) {
     printf("Opening now %s\n",im_name);
     open_frame(&in,im_name,"I");
     /* parameters in rootify are for i=xin, i<xout */
-    rootify(&in,xin-1,xout,x2in,x2out,sigma); 
-    close_frame(&in);
+    rootify(&in,out_name,sec,x2in,x2out,sigma);  
+  close_frame(&in);
     
 
-  } while (cat && RD_catalog(nom_cat, im_name));
+  } while (cat && RD_catalog(nom_cat, im_name) &&  RD_catalog(nom_cat_out, out_name));
 
 
   exit_session(0);

@@ -374,7 +374,7 @@ void ImageSimple::SubstractOverscan(Section* S) {
         ovGuess=ov[0];
       // no data after - no info
       else if (col>=S->YLast())
-        ovGuess = ov[S->YLength()];
+        ovGuess = ov[S->YLength()-1];
       // first line : extrapolate the slope (best guess)
       else if (col==S->YFirst()) {
         ovGuess = (ov[S->YFirst()+1]-ov[S->YFirst()])
