@@ -1,0 +1,5 @@
+2004-11-02  Yannick Copin  <ycopin@ipnl.in2p3.fr>
+
+	* bichip.cxx: new gains for Red channel (there's was a 5.6%
+	difference seen on W-exp.)
+
