@@ -1,3 +1,7 @@
+2004-11-09  Pierre Antilogus  <P.Antilogus@in2p3.fr>
+
+	* add_defs/makedefs.in (STATLIB): statlib.a is now libstat.a
+
 2004-11-08  Yannick Copin  <ycopin@ipnl.in2p3.fr>
 
 	* add_defs/makedefs.in (STATLIB): wrongly commented-out
