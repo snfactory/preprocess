@@ -1,0 +1,60 @@
+######################################################################
+## Filename:      makefile.in
+## Version:       
+## Description:   
+## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
+## Created at:    Tue Mar 25 16:21:56 2003
+## Modified at:   Mon Sep 22 15:58:28 2003
+## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+######################################################################
+
+topdir = @top_srcdir@
+include $(topdir)/add_defs/makedefs
+include $(topdir)/add_defs/makedefs.local
+
+# ============================================================
+
+# Local libraries
+
+LOCLIB = $(O)/libpreprocess.a
+
+# Targets
+
+EXE = $(E)/substract_overscan\
+	$(E)/substract_dark\
+	$(E)/substract_flat\
+	$(E)/build_flat\
+	$(E)/add_poisson\
+	$(E)/odd_even_correct\
+	$(E)/bichip_assemble\
+	$(E)/bichip_sub_bias\
+	$(E)/bichip_overscan\
+	$(E)/bichip_variance\
+	$(E)/preprocess_bias\
+	$(E)/preprocess_dark\
+	$(E)/preprocess_flat\
+	$(E)/preprocess\
+	$(E)/rickify\
+	$(E)/split_image
+
+
+# ============================================================
+
+OUT : dirbin dirobj $(EXE)
+
+# Objects
+$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC)
+	$(C_COMPILE)
+
+# Objects C++
+$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC)
+	$(C_COMPILE)
+
+# Executables (beware: the % syntax might not be standard)
+$(E)/% : $(O)/%.o $(LOCLIB) $(IOLIB)
+	$(LD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
+		$(ADD_LIBS) $(DISLIB)
+	$(STRIP) $@
+
+clear:
+	rm -f $(OBJ) $(EXE)

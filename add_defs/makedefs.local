@@ -1,0 +1,18 @@
+##-*- Makefile -*-####################################################
+## Filename:      makedefs.local
+## Version:       1.0
+## Description:   Local makedefs
+## Author:        $Author$
+## Created at:    $Date$
+######################################################################
+
+# ===== Project-wide includes ==============================
+
+preprocess_INC = $(topdir)/pkg/preprocess/incl/utils.h\
+		 $(topdir)/pkg/preprocess/incl/image.hxx\
+		 $(topdir)/pkg/preprocess/incl/bichip.hxx\
+		 $(topdir)/pkg/preprocess/incl/section.hxx\
+
+preprocess_INCDIR= $(topdir)/pkg/preprocess/incl
+
+preprocess_LIB = $(topdir)/pkg/preprocess/obj/libpreprocess.a

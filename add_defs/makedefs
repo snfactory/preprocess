@@ -1,0 +1,121 @@
+##-*- Makefile -*-####################################################
+## Filename:      makedefs
+## Version:       1.0
+## Description:   General makedefs
+## Author:        $Author$
+## Created at:    $Date$
+######################################################################
+
+# C libraries ==============================
+C_ioLIBS_PATH = $(topdir)/../E3D_io_LCL
+C_mathLIBS_PATH = $(topdir)/../IFU_C_mathlibs
+
+# I/O and general
+GENLIB = $(C_ioLIBS_PATH)/C_libs/obj/genlib.a 
+
+IOLIB = $(C_ioLIBS_PATH)/C_libs/io/obj/libio.a $(GENLIB)
+
+# Maths
+NAGLIB = $(C_mathLIBS_PATH)/C_libs/obj/sublibnag.a 
+STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
+INTERPLIB = $(C_mathLIBS_PATH)/C_libs/obj/interplib.a
+LEASTSQLIB = $(C_mathLIBS_PATH)/C_libs/obj/least_sqlib.a
+POLYLIB = $(C_mathLIBS_PATH)/C_libs/obj/polylib.a
+GSLLIB = $(C_mathLIBS_PATH)/C_libs/gsl/.libs/libgsl.a
+
+
+MATHLIB = $(STATLIB) $(INTERPLIB) $(LEASTSQLIB) $(POLYLIB) $(NAGLIB) $(GSLLIB)
+
+# Format ==============================
+SEL_OBJ = *.o
+FANSI = -DANSI
+# select here what format you want
+FITS_FLAG = -DFITS
+FITSOBJ = fits_io/obj/$(SEL_OBJ)
+IRAF_FLAG = 
+IRAFOBJ = 
+MIDAS_FLAG = -DMIDAS
+MIDASOBJ = 
+
+# Includes ==============================
+INC =  $(C_ioLIBS_PATH)/incl
+LINC = $(C_mathLIBS_PATH)/incl
+GSLINC = $(C_mathLIBS_PATH)/C_libs/gsl
+FITSINC = $(C_ioLIBS_PATH)/C_libs/io/cfitsio
+PKG_INC = ../../incl
+USER_INC = ../incl
+LOCAL_INC =  /usr/local/include
+STAND_INC = $(INC)/gendef.h $(INC)/items.h $(INC)/alloc.h $(INC)/iofuncdecl.h $(INC)/funcdecl.h $(INC)/macro.h $(INC)/soft_version.h $(INC)/3D_items.h $(INC)/funcdef.h $(INC)/tiger_defs.h $(INC)/3D_iofunc.h $(INC)/IFU_io.h
+
+# Compilation commands ==============================
+
+CFLAGS = -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV
+FFLAGS = $(F_OPT) -I$(PKG_INC) -I$(INC) -I$(USER_INC) -I$(LOCAL_INC)
+
+C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+F_COMPILE = $(F77) $(DEBUG) $(FFLAGS) -c $(@F:.o=.f) && mv $(@F) $@
+LDF = -lm
+
+# Lex & Yacc ==============================
+LEXOUTPUT = y.tab.o
+CYACC_OUTPUT = y.tab.c
+OYACC_OUTPUT = y.tab.o
+
+# Directories ==============================
+E = ../../../user/bin
+O = ../obj
+TK= ../../../user/tk
+PAR= ../../../user/par
+
+OBJ =
+EXE =
+
+DEBUG = 
+
+# Tcl/tk ==============================
+UPDATE_BIN = cp $? $(E)
+UPDATE_PAR = cp $? $(PAR)
+UPDATE_TK = cp $? $(TK)
+REINDEX   = echo "auto_mkindex ." > reindex; tclsh reindex; rm reindex
+
+STRIP = strip
+
+.SUFFIXES: .o .c .for .h .l .y
+
+all : OUT
+
+dirobj :
+	@ if [ ! -d $(O) ]; then (mkdir -p $(O);) fi
+
+dirbin :
+	@ if [ ! -d $(E) ]; then (mkdir -p $(E);) fi
+
+dirtk :
+	@ if [ ! -d $(TK) ]; then (mkdir -p $(TK);) fi
+
+dirpar :
+	@ if [ ! -d $(PAR) ]; then (mkdir -p $(PAR);) fi
+
+clean :
+	$(RM) $(EXE) $(OBJ)
+
+distdir :
+	@for file in `ls -a`; do \
+        if test -d $$file ; then continue; fi; \
+        if ls $$file | grep stamp >> /dev/null; then \
+                continue; \
+        fi; \
+        if ls $$file | grep tclIndex >> /dev/null; then \
+                continue; \
+        fi; \
+        if file $file | grep -i executable >> /dev/null; then \
+                continue; \
+        fi; \
+               if file $file | grep -i object >> /dev/null; then \
+                continue; \
+        fi; \
+               if file $file | grep -i relocable >> /dev/null; then \
+                continue; \
+               fi; \
+        cp $$file $$distdir/$$file;  \
+        done             

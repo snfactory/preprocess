@@ -1,0 +1,80 @@
+dnl ######################################################################
+dnl ## Filename:      configure.in
+dnl ## Version:       1.0
+dnl ## Description:   autoconf makefile
+dnl ## Author:        $Author$
+dnl ## Created at:    $Date$
+dnl ######################################################################
+
+dnl Process this file with autoconf to produce a configure script.
+dnl Variables to be edited to meet your needs: AC_INIT, AM_INIT_AUTOMAKE
+dnl and AC_OUTPUT. You should not have to edit the rest of the file.
+
+dnl ##### START EDITING #########################
+dnl A source file from your development tree
+AC_INIT(pkg/preprocess/source/template.c)
+dnl ##### STOP EDITING ##########################
+
+AC_CANONICAL_SYSTEM 
+
+dnl ##### START EDITING #########################
+dnl Project name and version
+CVSVERS=`echo '$Name$' | sed 's/.*://;s/..$//'`
+if test -z $CVSVERS; then
+        CVSVERS=developer
+fi
+AM_INIT_AUTOMAKE(Ccd, $CVSVERS) 
+dnl ##### STOP EDITING ##########################
+
+dnl Checks for programs ==============================
+AC_PROG_F77
+AC_PROG_CC
+AC_SUBST(C_OPT)
+case $build_os in
+        linux* ) C_OPT=-DUNDER ;;
+        aix* ) C_OPT= ;;
+        solaris* ) C_OPT=-DUNDER;;
+esac 
+AC_PROG_GCC_TRADITIONAL
+AC_PROG_AWK
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+dnl AM_PROG_LEX
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_F77_LIBRARY_LDFLAGS
+                          
+dnl Checks for libraries ==============================
+
+dnl Checks for header files ==============================
+AC_HEADER_STDC
+AC_CHECK_HEADERS(malloc.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics ==========
+AC_HEADER_TIME
+
+dnl Checks for library functions ==============================
+AC_CHECK_FUNCS(select strerror strspn strstr)
+
+dnl Output ==============================
+
+dnl ##### START EDITING #########################
+dnl *All* the [M|m]akefile's of your development tree:
+AC_OUTPUT(pkg/Makefile pkg/preprocess/lib/makefile pkg/preprocess/source/makefile pkg/preprocess/Makefile Makefile doc/Doxygen/makefile pkg/anal/source/makefile pkg/anal/Makefile )
+dnl ##### STOP EDITING ##########################
+
+dnl Final configuration ==============================
+
+dnl OUTPUT=`find . -name '?akefile.??'|sed 's|^\./||;s|\...$| \\\\|'|uniq|sort|sed '$s|\\\\$||'`
+
+echo "
+=============== EURO3D final configuration ===============
+Project:        $PACKAGE
+Version:        $VERSION
+
+If all settings are OK, type:
+   make                                to compile the project
+   make DEBUG=\"-g -Wall\" STRIP=@echo   to compile in debug-mode
+   make dist                           to create a stand-alone tarball
+=========================================================="
+

@@ -1,0 +1,54 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:573: checking host system type
+configure:594: checking target system type
+configure:612: checking build system type
+configure:651: checking for a BSD compatible install
+configure:704: checking whether build environment is sane
+configure:761: checking whether make sets ${MAKE}
+configure:807: checking for working aclocal
+configure:820: checking for working autoconf
+configure:833: checking for working automake
+configure:846: checking for working autoheader
+configure:859: checking for working makeinfo
+configure:879: checking for g77
+configure:912: checking whether the Fortran 77 compiler (g77  ) works
+configure:925: g77 -o conftest   conftest.f  1>&5
+configure:951: checking whether the Fortran 77 compiler (g77  ) is a cross-compiler
+configure:956: checking whether we are using GNU Fortran 77
+configure:965: g77 -E conftest.fpp
+configure:980: checking whether g77 accepts -g
+configure:1013: checking for gcc
+configure:1126: checking whether the C compiler (gcc  ) works
+configure:1142: gcc -o conftest    conftest.c  1>&5
+configure:1168: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:1173: checking whether we are using GNU C
+configure:1182: gcc -E conftest.c
+configure:1201: checking whether gcc accepts -g
+configure:1239: checking how to run the C preprocessor
+configure:1260: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1320: checking whether gcc needs -traditional
+configure:1370: checking for gawk
+configure:1411: checking for a BSD compatible install
+configure:1466: checking for ranlib
+configure:1494: checking whether ln -s works
+configure:1515: checking whether make sets ${MAKE}
+configure:1542: checking for Fortran 77 libraries
+configure:1699: checking for ANSI C header files
+configure:1712: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1779: gcc -o conftest -g -O2   conftest.c  1>&5
+configure:1806: checking for malloc.h
+configure:1816: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1806: checking for unistd.h
+configure:1816: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1844: checking whether time.h and sys/time.h may both be included
+configure:1858: gcc -c -g -O2  conftest.c 1>&5
+configure:1882: checking for select
+configure:1910: gcc -o conftest -g -O2   conftest.c  1>&5
+configure:1882: checking for strerror
+configure:1910: gcc -o conftest -g -O2   conftest.c  1>&5
+configure:1882: checking for strspn
+configure:1910: gcc -o conftest -g -O2   conftest.c  1>&5
+configure:1882: checking for strstr
+configure:1910: gcc -o conftest -g -O2   conftest.c  1>&5

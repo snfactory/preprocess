@@ -1,0 +1,43 @@
+######################################################################
+## Filename:      makefile.in
+## Version:       
+## Description:   
+## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
+## Created at:    Tue Mar 25 16:21:56 2003
+## Modified at:   Thu Aug  7 16:02:06 2003
+## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+######################################################################
+
+topdir = @top_srcdir@
+include $(topdir)/add_defs/makedefs
+include $(topdir)/add_defs/makedefs.local
+
+# ============================================================
+
+# Targets
+
+OBJ = $(O)/bichip.o\
+	$(O)/image.o\
+	$(O)/section.o\
+	$(O)/utils.o \
+
+
+LIB = $(O)/libpreprocess.a 
+
+# ============================================================
+
+OUT : dirobj $(LIB)       
+
+# Objects
+$(O)/%.o : %.c $(STAND_INC) $(preprocess_INC)
+	$(C_COMPILE)
+
+# Objects C++
+$(O)/%.o : %.cxx $(STAND_INC) $(preprocess_INC)
+	$(C_COMPILE)
+
+# Library
+$(LIB) : $(OBJ)
+	$(AR) rv $(LIB) $(OBJ)
+	$(RANLIB) $@
+
