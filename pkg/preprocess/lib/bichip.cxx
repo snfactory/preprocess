@@ -20,7 +20,8 @@
 /* ##### Data ################################################# */
 
 static double kGainBlue[2]={0.773,0.744};
-static double kGainRed[2]={0.736,0.792};
+//static double kGainRed[2]={0.736,0.792};
+static double kGainRed[2]={0.757,0.770};     // YC: correction of gain factor from conts
 static double kGainPhot[4]={1.618,1.576,1.51,1.52};
 
 /* ##### BiChipSnifs ################################################# */
