@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Wed May 19 09:43:30 2004
+## Modified at:   Wed May 19 10:47:19 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -64,6 +64,7 @@ OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))
 WEXE = $(patsubst %.cxx, $(E)/%, $(WSRC))
 OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) $(OPTSRC) )
 
+include make.depend
 
 # ============================================================
 
@@ -84,19 +85,23 @@ $(E)/% : $(O)/%.o $(LOCLIB) $(IOLIB) makefile
 	$(CXXLINK)
 	$(STRIP) $@
 
+#%.cxx : 
+#	@echo WARNING : missing $@
+
 # placate make.depend .cxx dependancies
 %.cxx :
+	@echo ==============================
 	@echo WARNING : missing $@
+	@echo ==============================
 
 clear:
 	rm -f $(OBJ) $(EXE)
 
 makefile: makefile.in  $(top_builddir)/config.status
-	rm make.depend
+#	rm make.depend
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 make.depend: makefile $(SRC) $(OPTSRC)
 	$(CC) -MM $(CFLAGS) -c $(SRC) $(OPTSRC) | sed 's%\(.*\)\.o[ :]*%$$(O)/\1.o make.depend :%' > make.depend
 
-include make.depend
