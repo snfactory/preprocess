@@ -1,3 +1,7 @@
+2004-11-08  Yannick Copin  <ycopin@ipnl.in2p3.fr>
+
+	* add_defs/makedefs.in (STATLIB): wrongly commented-out
+
 2004-11-04  Yannick Copin  <yannick@ipnl.in2p3.fr>
 
 	* add_defs/makedefs.in: switch to IFU_C_iolibs-6.1

@@ -23,7 +23,7 @@ IRAF_FLAG =
 
 # Maths
 #NAGLIB = $(C_mathLIBS_PATH)/C_libs/obj/sublibnag.a 
-#STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
+STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/statlib.a
 #INTERPLIB = $(C_mathLIBS_PATH)/C_libs/obj/interplib.a
 #LEASTSQLIB = $(C_mathLIBS_PATH)/C_libs/obj/least_sqlib.a
 #POLYLIB = $(C_mathLIBS_PATH)/C_libs/obj/polylib.a
