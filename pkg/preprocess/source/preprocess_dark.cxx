@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   char **argval, **arglabel;
   int nlines;
   
-  set_arglist("-in none -out none -stackout null -bias null -sigma 4.0 -nlines 5000");
+  set_arglist("-in none -out none -stackout null -bias null -sigma 4.0 -nlines 5000 -all");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile catIn(argval[0]);
@@ -24,6 +24,9 @@ int main(int argc, char **argv) {
   get_argval(5,"%d",&nlines);
   
   Preprocessor P;
+  if (is_true(argval[6]))
+    P.SetAllImage(1);
+
   char inName[lg_name+1],outName[lg_name+1];
 
   if (is_set(argval[2])) {

@@ -1,5 +1,16 @@
+/* === Doxygen Comment ======================================= */
+/*! 
+ * \file          preprocess_bias.cxx
+ * \copyright     (c) 2004 SNIFS Collaboration
+ * \date          Wed Aug  6 17:44:35 2003
+ * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+ * \version       0.0
+ * \brief         
+ *                
+ * $Id$
+ **/
+/* =========================================================== */
 
-//#include "bichip.hxx"
 #include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
 #include "kombinator.hxx"

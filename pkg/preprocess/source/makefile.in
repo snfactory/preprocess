@@ -37,6 +37,7 @@ SRC =	 preprocess_bias.cxx\
 	 stack_bias.cxx\
 	 stack_bichip.cxx\
 	 preprocess_dark.cxx\
+         filter_image.cxx\
 
 OPTSRC =   substract_overscan.cxx\
 	 substract_dark.cxx\

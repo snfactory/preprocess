@@ -37,6 +37,7 @@ SRCC = bichip.cxx\
 	preprocessor.cxx \
 	algocams.cxx\
 	overscan.cxx\
+	filter.cxx\
 
 COBJ = $(patsubst %.c, $(O)/%.o, $(SRC))
 CCOBJ = $(patsubst %.cxx, $(O)/%.o, $(SRCC))

@@ -103,7 +103,12 @@ void BiChipSnifs::CheckNameRecipee(char* ChipNameRecipee) {
     print_error("BiChipSnifs::CheckNameRecipee : %s contains an extension but no %d");
     return;
   }
-  sprintf(ChipNameRecipee,"%s[chip0%%d]",ChipNameRecipee);
+  // for the naive user : allow a non .fits file name
+  // note that this may become controversial one day
+  if (strstr (ChipNameRecipee,".fits"))
+    sprintf(ChipNameRecipee,"%s[chip0%%d]",ChipNameRecipee);
+  else
+    sprintf(ChipNameRecipee,"%s.fits[chip0%%d]",ChipNameRecipee);
 }
 
 /* ----- SetNLines ----------------------------------------------- */

@@ -384,7 +384,11 @@ int ut_is_bichip_detcom(char* filename){
     return 1;
   if (strrchr(filename,'['))
     return 0;
-  sprintf(testName,"%s[chip00]",filename);
+  // .fits file extension default
+  if (strstr(filename,".fits"))
+    sprintf(testName,"%s[chip00]",filename);
+  else
+    sprintf(testName,"%s.fits[chip00]",filename);
   if (exist(testName))
     return 1;
   else 
