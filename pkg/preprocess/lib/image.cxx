@@ -142,6 +142,13 @@ int ImageSimple::CloseFrame(){
   return close_frame(fFrame);
 }
 
+/* ----- CloseFrame --------------------------------------------------- */
+int ImageSimple::DeleteFrame(){
+  // Wrapper to delete_frame
+  fLoaded=false;
+  return delete_frame(fFrame);
+}
+
 
 /* ----- CreateFrame -------------------------------------------------- */
 int ImageSimple::CreateFrame(char *Name,int Nx, int Ny, short Type ){

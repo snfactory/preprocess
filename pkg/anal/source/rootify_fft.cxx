@@ -54,13 +54,8 @@ int main(int argc, char **argv) {
       /* Fill the desired histos */ 
 
       // FillHistoLine(in,sec); // cumbersome... use only with small secs
-      ana.HorizontalProfile(sigma);
-      ana.VerticalProfile(sigma);
-      ana.OddEvenVerticalProfile(sigma);
-      ana.OverscanError(sigma);
-      ana.HistoData();
-      ana.MatrixData ();
-      ana.HighFrequency();
+      ana.OverscanError(-1);
+      ana.Fft();
     }
     out->Purge();
     out->Close();

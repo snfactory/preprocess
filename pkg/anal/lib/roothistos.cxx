@@ -115,12 +115,11 @@ void RootAnalyser::OddEvenVerticalProfile(float sigma){
   
   char histName[lg_name+1];
   sprintf(histName,"OeVertPrfl%s",fSec->Name());
-  TProfile * prof = new TProfile(histName,"Odd-Even Vertical profile",fSec->YLength(),fSec->YFirst()-0.5,fSec->YLast()-0.5);
+  TH1D * prof = new TH1D(histName,"Odd-Even Vertical profile",fSec->YLength(),fSec->YFirst()-0.5,fSec->YLast()-0.5);
   
   int i,j,remainOdd,remainEven;
   double *odd,*oddptr;
   double *even,*evenptr;
-  double wodd,weven;
 
   odd = new double[fSec->XLength()/2];
   even = new double[fSec->XLength()/2];
@@ -145,15 +144,13 @@ void RootAnalyser::OddEvenVerticalProfile(float sigma){
       ut_trunc_sigma_unknown(&evenptr,&remainEven,sigma);
     }
 
-    /* wheighting condition : sum w = Ntot, sum wodd=sum weven */
-    wodd = (remainOdd+remainEven)/(2.0*remainOdd);
-    weven = (remainOdd+remainEven)/(2.0*remainEven);
-    
     /* fill the profile */
-        for (i=0;i<remainOdd;i++)
-    prof->Fill(j,oddptr[i],wodd);
-    for (i=0;i<remainEven;i++)
-      prof->Fill(j,-evenptr[i],weven);
+    double oddMean=ut_mean(oddptr,remainOdd);
+    double evenMean=ut_mean(evenptr,remainEven);
+    double err = sqrt(gsl_stats_variance_m(oddptr,1,remainOdd,oddMean)/remainOdd + gsl_stats_variance_m(evenptr,1,remainEven,evenMean)/remainEven);
+    int bin = prof->GetXaxis()->FindBin(j);
+    prof->SetBinContent(bin,oddMean-evenMean);
+    prof->SetBinError(bin,err);
   }
   HistoSetMinMax(prof);
   prof->Write();
@@ -325,17 +322,30 @@ void RootAnalyser::Fft()
   double *autocorr = new double[length];
   double *autocorrwork = new double[length];
   double *powerspec = new double[length/2+1];
+  double *powerspec2 = new double[length/2+1];
+
+  for (int i=0;i<length/2+1;i++) {
+    fft[i]=0;
+    powerspec2[i] = 0;
+    autocorr[i]=0;
+  }
+  for (int i=length/2+1;i<length;i++) {
+    autocorr[i]=0;
+  }
+  
 
   //  double seuils[6]={-0.1,0.2,0.4,0.6,0.8,0.99};
   //int nseuil=0, maxseuil=6;
 
   char histName[lg_name+1];
   sprintf(histName,"Fft%s",fSec->Name());
-  TH1D *hfft = new TH1D(histName,"Sum of FFTs",length/2+1,0,length/2+1);
+  TH1D *hfft = new TH1D(histName,"Sum of FFTs",length/2+1,-0.5/length, (length/2)*1.0/length + 0.5/length);
   sprintf(histName,"AutoCov%s",fSec->Name());
   TH1D *hauto = new TH1D(histName,"Autocovariance",length,0,length);
   sprintf(histName,"Power%s",fSec->Name());
-  TH1D *hpower = new TH1D(histName,"Power spectrum",length/2+1,0,length);
+  TH1D *hpower = new TH1D(histName,"Power spectrum",length/2+1,-0.5/length, (length/2)*1.0/length + 0.5/length);
+  sprintf(histName,"Power2%s",fSec->Name());
+  TH1D *hpower2 = new TH1D(histName,"Power spectrum 2",length/2+1,-0.5/length, (length/2)*1.0/length + 0.5/length);
 
   gsl_fft_real_wavetable * real;
   gsl_fft_real_workspace * work;
@@ -344,7 +354,7 @@ void RootAnalyser::Fft()
   real = gsl_fft_real_wavetable_alloc (length);
 
   for (int j=fSec->YFirst();j<fSec->YLast();j++) {
-    if (!((j-fSec->YFirst())%100))
+    if (!((j-fSec->YFirst())%1000))
       printf("Fft : processing line %d\n",j);
     
     /* fill a line */
@@ -371,17 +381,20 @@ void RootAnalyser::Fft()
 
     /* increment fft knowledge */
     fft[0] += fabs(line[0])/nlines;
+    powerspec2[0] += line[0]*line[0]/nlines;
     //    if (hffttmp)
     //  hffttmp->SetBinContent(0,fabs(line[0]));
     int i=1;
     for (;i<length-1;i+=2) {
-      double module = sqrt(line[i]*line[i]+line[i+1]*line[i+1]);
-      fft[i/2+1] += module/nlines;
+      double module2 = line[i]*line[i]+line[i+1]*line[i+1];
+      fft[i/2+1] += sqrt(module2)/nlines;
+      powerspec2[i/2+1] += module2/nlines;
       //      if (hffttmp)
       //  hffttmp->SetBinContent(i/2+1,module);
     }
     if (i<length) {
       fft[i/2+1] += fabs(line[i])/nlines;    
+      powerspec2[i/2+1] += line[i]*line[i]/nlines;    
       //      if (hffttmp)
       //  hffttmp->SetBinContent(i/2+1,fabs(line[i]));
     }
@@ -393,8 +406,11 @@ void RootAnalyser::Fft()
     
   }
 
-  for (int i=0;i<length/2+1;i++)
+  for (int i=0;i<length/2+1;i++) {
     hfft->SetBinContent(i+1,fft[i]);
+    hpower2->SetBinContent(i+1,powerspec2[i]);
+  }
+  
   for (int i=0;i<length;i++)
     hauto->SetBinContent(i+1,autocorr[i]);
   
@@ -420,6 +436,7 @@ void RootAnalyser::Fft()
   hfft->Write();
   hauto->Write();
   hpower->Write();
+  hpower2->Write();
   delete hfft;
   delete hauto;
   delete hpower;
@@ -428,6 +445,7 @@ void RootAnalyser::Fft()
   delete[] autocorr;
   delete[] autocorrwork;
   delete[] powerspec;
+  delete[] powerspec2;
   
 }
 

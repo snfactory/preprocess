@@ -23,10 +23,12 @@
 /* ===== constructor/destructor ======================================= */
 ImageAnalyser::ImageAnalyser(){
   fVal=0;
+  fFftLength=0;
 }
 
 ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
   fVal=0;
+  fFftLength=0;
   SetImage(Image);
   SetSection(Sec);
 }
@@ -34,6 +36,11 @@ ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
 ImageAnalyser::~ImageAnalyser(){
   if (fVal) {
     delete[] fVal;
+  }
+  if (fFftLength) {
+     gsl_fft_real_wavetable_free (fReal);
+     gsl_fft_real_workspace_free (fWork);
+     fFftLength=0;
   }
 }
 
@@ -43,6 +50,7 @@ void ImageAnalyser::SetSection(Section* Sec){
   // Set only the section if it belongs to the image.
   if (fVal)
     delete[] fVal;
+
   if (fImage && Sec->XFirst()>=0 && Sec->YFirst()>=0 && Sec->XLast()<=fImage->Nx() && Sec->YLast()<=fImage->Ny()) {
     fSec = Sec;
     fNVal = Sec->XLength()*Sec->YLength();
@@ -82,6 +90,16 @@ int ImageAnalyser::NPixOut(double SigmaCut){
   return npix;
 }
 
+/* ----- NPixOver -------------------------------------- */
+int ImageAnalyser::NPixOver(double Limit){
+  int npix=0;
+  for (int i=0;i<fNVal;i++) {
+    if (fVal[i] > Limit)
+      npix++;
+  }
+  return npix;
+}
+
 /* ----- OutPixMean -------------------------------------- */
 double ImageAnalyser::OutPixMean(double SigmaCut){
   double mean = MeanLevel();
@@ -97,4 +115,36 @@ double ImageAnalyser::OutPixMean(double SigmaCut){
   if (npix)
     return meanOut/npix;
   else return 0;
+}
+
+/* ----- OutPixMean -------------------------------------- */
+ImageSnifs * ImageAnalyser::LineFft(char* outName){
+  
+  // prepare the gsl fft
+  if (fFftLength && fFftLength!=fSec->XLength()) {
+     gsl_fft_real_wavetable_free (fReal);
+     gsl_fft_real_workspace_free (fWork);
+     fFftLength=0;
+  }
+  fFftLength=fSec->XLength();
+  fWork = gsl_fft_real_workspace_alloc (fSec->XLength());
+  fReal = gsl_fft_real_wavetable_alloc (fSec->XLength());
+  double ffts[fSec->XLength()];
+
+  // builds the output image
+  ImageSnifs* out = new ImageSnifs();
+  out->CreateFrame(outName,fSec->XLength(),fSec->YLength());
+  out->ImportHeader(fImage);
+  out->DeleteDesc("DATASEC");
+  out->DeleteDesc("BIASSEC");
+  for (int j=fSec->YFirst();j<fSec->YLast();j++) {
+
+    for (int i=fSec->XFirst();i<fSec->XLast();i++)
+      ffts[i-fSec->XFirst()] =fImage->RdFrame(i,j);
+    
+    gsl_fft_real_transform (ffts, 1, fSec->XLength(), fReal, fWork);
+    for (int i=fSec->XFirst();i<fSec->XLast();i++) 
+      out->WrFrame(i-fSec->XFirst(),j-fSec->YFirst(),ffts[i-fSec->XFirst()]);  
+  }
+  return out;
 }

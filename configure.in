@@ -53,41 +53,55 @@ AC_ARG_WITH(ifuciolibs,
          [ac_ifuciolibs=$withval], 
          [ac_ifuciolibs=])
 dnl If the user does not provide one, try to see if somthing acceptable is found
-ac_ifuciolibs_vers_ok="6.0b++"
-echo Wait !
+ac_ifuciolibs_vers_ok_list="6.0b++ 6.0c"
 
+dnl try to find a valid version
 if test -z "$ac_ifuciolibs"
 then
     cwd=`pwd` 
-    for ac_ifuciolibs_config in `ls $cwd/../IFU_C_iolibs*/configure.in $cwd/../E3D_io_LCL*/configure.in`
+    [for ac_ifuciolibs_config in `ls $cwd/../IFU_C_iolibs*/configure.in $cwd/../E3D_io_LCL*/configure.in 2> /dev/null`]
     do
         ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs_config  | sed 's%.*, *\(.*\) *)%\1%' `
-        if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"
-        then
-           if test -n "$ac_ifuciolibs"
-           then
-               AC_MSG_ERROR([Too much valid ../IFU_C_iolibs ... Specify one with --with-ifuciolibs])
-           else
-           [ac_ifuciolibs=`echo $ac_ifuciolibs_config | sed 's%/[^/]*$%%'`]
-           fi
-        fi
+        for ac_ifuciolibs_vers_ok in $ac_ifuciolibs_vers_ok_list
+        do
+            if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"
+            then
+               if test -n "$ac_ifuciolibs"
+               then
+                   AC_MSG_ERROR([Too much valid ../IFU_C_iolibs ... Specify one with --with-ifuciolibs])
+               else
+                   [ac_ifuciolibs=`echo $ac_ifuciolibs_config | sed 's%/[^/]*$%%'`]
+               fi
+            fi
+        done
     done
+    dnl nothing found : give a hint
     if test -z "$ac_ifuciolibs"
     then
         if test -z "$ac_ifuciolibs_vers"
         then
-            AC_MSG_ERROR([No IFU_C_iolibs found. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+            AC_MSG_ERROR([No IFU_C_iolibs found. Use --with-ifuciolibs])
         else
-            AC_MSG_ERROR([Found only IFU_C_iolibs version $ac_ifuciolibs_vers, $ac_ifuciolibs_vers_ok is needed. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+            AC_MSG_ERROR([Found only IFU_C_iolibs version $ac_ifuciolibs_vers, one of $ac_ifuciolibs_vers_ok_list is needed. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
         fi
-    else
-        echo IFU_C_iolibs found :  $ac_ifuciolibs version is $ac_ifuciolibs_vers
+dnl    else
+dnl        echo IFU_C_iolibs found :  $ac_ifuciolibs version is $ac_ifuciolibs_vers
     fi
 fi
+dnl A version exists. Check now it is right (to improve)
 ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs/configure.in  | sed 's%.*, *\(.*\) *)%\1%' `
-if test "$ac_ifuciolibs_vers" != "$ac_ifuciolibs_vers_ok"
+for ac_ifuciolibs_vers_ok in $ac_ifuciolibs_vers_ok_list
+do
+    if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"
+    then
+        ac_ifuciolibs_vers_ok="OK"
+    fi
+done
+if test -z "$ac_ifuciolibs_vers_ok"
 then
-    AC_MSG_ERROR([IFU_C_iolibs version $ac_ifuciolibs_vers found - you should use  $ac_ifuciolibs_vers_ok. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+    AC_MSG_ERROR([IFU_C_iolibs version $ac_ifuciolibs_vers found - you should use one of $ac_ifuciolibs_vers_ok_list. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
+else
+   AC_MSG_RESULT([version $ac_ifuciolibs_vers in $ac_ifuciolibs])
 fi
 LIBS="$LIBS -L$ac_ifuciolibs/C_libs/io/obj $ac_ifuciolibs/C_libs/obj/genlib.a"
 AC_SUBST(ac_ifuciolibs)
@@ -97,13 +111,12 @@ AC_CHECK_LIB(io,open_frame,
         [AC_MSG_ERROR(Unable to locate open_frame in $ac_ifuciolibs)],"-lm")
 
 dnl checking now for the mathlibs -------------------------------------
-dnl needed marginally for obscure technical reasons
+dnl needed marginally for technical reasons
 AC_MSG_CHECKING([for IFU_C_mathlibs])
 AC_ARG_WITH(ifucmathlibs, 
          [  --with-ifucmathlibs=DIR       directory of IFU_mathlibs ],
          [ac_ifucmathlibs=$withval], 
          [ac_ifucmathlibs=])
-echo Wait !
 
 dnl If the user does not provide one, try to see if somthing acceptable is found
 if test -z "$ac_ifucmathlibs"
@@ -120,7 +133,7 @@ then
             ac_ifucmathlibs=`ls $cwd/../IFU_C_mathlibs*/configure.in | sed s%/configure.in%%`
         fi
     fi
-    echo IFU_C_mathlibs found :  $ac_ifucmathlibs    
+    AC_MSG_RESULT([$ac_ifucmathlibs])
 fi
 AC_SUBST(ac_ifucmathlibs)
 
@@ -131,7 +144,6 @@ AC_ARG_WITH(gsl,
          [  --with-gsl=DIR       directory of GSL ],
          [ac_gsl=$withval], 
          [ac_gsl=])
-echo Wait !
 
 dnl If the user does not provide one, try to see if somthing acceptable is found
 if test -z "$ac_gsl"
@@ -148,7 +160,7 @@ then
             ac_gsl=`ls -d $cwd/../IFU_C_mathlibs*/C_libs/gsl*`
         fi
     fi
-    echo GSL lib found $ac_gsl    
+    AC_MSG_RESULT([$ac_gsl])
 fi
 AC_SUBST(ac_gsl)
 

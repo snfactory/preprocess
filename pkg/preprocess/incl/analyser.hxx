@@ -21,6 +21,8 @@ but just references.
 
 class ImageSimple;
 class Section;
+#include "gsl/gsl_fft_real.h"
+#include "gsl/gsl_fft_halfcomplex.h"
 
 /* ===== IMAGE ANALYSER ============================== */
 
@@ -40,7 +42,9 @@ public :
   double MeanLevel();
   double StatsVariance();
   int NPixOut(double SigmaCut);
+  int NPixOver(double Value);
   double OutPixMean(double SigmaCut);
+  ImageSnifs* LineFft(char* outName);
   // double Chi2With(ImageSimple *Image);
 
   
@@ -49,7 +53,10 @@ protected :
   Section * fSec;
   double * fVal;
   int fNVal;
-
+   
+  gsl_fft_real_wavetable * fReal;
+  gsl_fft_real_workspace * fWork;
+  int fFftLength;
 };
 
 #endif

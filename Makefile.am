@@ -16,8 +16,12 @@ AM_MAKEFLAGS = CC=$(CC) F77=$(F77) F_OPT="$(F_OPT) -ftypeless-boz" LD=$(CC) \
 # needs to be sure makefiles are sync with add_defs/makedefs and configure
 
 # apparently missing from automake output
+# does not work with old automakes 
+# $(SHELL) ./config.status $@ $(am__depfiles_maybe)
+
 Makefile : $(top_builddir)/config.status $(srcdir)/Makefile.in  
-	cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+
 
 # trick to get config-clean-files checked somwhere in the build process
 Makefile : $(CONFIG_CLEAN_FILES)
