@@ -125,19 +125,25 @@ void BiChipSnifs::OddEvenCorrect() {
   for (int chip=0;chip<2;chip++) {
     fChip[chip]->OddEvenCorrect();
   }
-  
 }
 #endif 
 
 /* ----- substract bias ------------------------------------------------ */
 void BiChipSnifs::SubstractBias( BiChipSnifs* Bias) {
-  // substracts the odd-even from 2 chips
+  // substracts the bias from 2 chips
   for (int chip=0;chip<2;chip++) {
     fChip[chip]->SubstractBias(Bias->fChip[chip]);
   }
-  
 }
- 
+
+/* ----- substract dark ------------------------------------------------ */
+void BiChipSnifs::SubstractDark( BiChipSnifs* Dark) {
+  // substracts the dark from 2 chips
+  for (int chip=0;chip<2;chip++) {
+    fChip[chip]->SubstractDark(Dark->fChip[chip]);
+  }
+}
+
 /* ----- Assemble ----------------------------------------------------- */
 ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   // Assembles the 2 chips in 1 image

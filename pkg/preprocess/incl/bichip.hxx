@@ -47,6 +47,7 @@ class BiChipSnifs {
     //void SubstractOverscan();
     // void OddEvenCorrect();
     void SubstractBias(BiChipSnifs* Bias);
+    void SubstractDark(BiChipSnifs* Dark);
 
     ImageSnifs* Assemble(char* ImageName,IoMethod_t Io=kIoPlain,int nLines=kIoAll);
     double GuessGainRatio(Section* S);

@@ -4,8 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Wed May 19 10:47:19 2004
-## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+## $Id$
 ######################################################################
 
 topdir = @top_srcdir@

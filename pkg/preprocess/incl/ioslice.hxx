@@ -22,7 +22,6 @@
 */   
 
 #include "ioplain.hxx"
-#include "IFU_io.h"
 
 /* ===== IO SLICE ============================== */
 

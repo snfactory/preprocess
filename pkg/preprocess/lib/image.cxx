@@ -10,12 +10,11 @@
  * $Id$
  **/
 /* =========================================================== */
+
+/* ------ Library includes ----- */
 #include "gsl/gsl_statistics.h"
-//#include "gsl/gsl_fit.h"
 
-//#include "IFU_io.h"
-//#include "IFU_math.h"
-
+/* ----- Local includes ----- */
 #include "utils.h"
 #include "image.hxx"
 #include "section.hxx"

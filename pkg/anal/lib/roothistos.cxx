@@ -48,7 +48,7 @@ void RootAnalyser::HorizontalProfile(float sigma) {
   
   char histName[lg_name+1];
   sprintf(histName,"HoriPrfl%s",fSec->Name());
-  TProfile * prof = new TProfile(histName,"Horizontal Profile",fSec->XLength(),fSec->XFirst()-0.5,fSec->XLast()-0.5);
+  TProfile * prof = new TProfile(histName,"Horizontal Profile",fSec->XLength(),fSec->X1()-0.5,fSec->X2()+0.5);
   
   int i,j,remain;
   double *over, *overptr;
@@ -67,7 +67,7 @@ void RootAnalyser::HorizontalProfile(float sigma) {
       ut_trunc_sigma_unknown(&overptr,&remain,sigma);
     
     for (j=0;j<remain;j++) {
-      prof->Fill(i,overptr[j]);
+      prof->Fill(i+1,overptr[j]);
     }
   }
   HistoSetMinMax(prof);
@@ -82,7 +82,7 @@ void RootAnalyser::VerticalProfile(float sigma){
   
   char histName[lg_name+1];
   sprintf(histName,"VertPrfl%s",fSec->Name());
-  TProfile * prof = new TProfile(histName,"Vertical Profile",fSec->YLength(),fSec->YFirst()-0.5,fSec->YLast()-0.5);
+  TProfile * prof = new TProfile(histName,"Vertical Profile",fSec->YLength(),fSec->Y1()-0.5,fSec->Y2()+0.5);
   
   int i,j,remain;
   double *over,*overptr;
@@ -100,7 +100,7 @@ void RootAnalyser::VerticalProfile(float sigma){
      ut_trunc_sigma_unknown(&overptr,&remain,sigma);
     
     for (i=0;i<remain;i++) {
-      prof->Fill(j,overptr[i]);
+      prof->Fill(j+1,overptr[i]);
     }
   }
   HistoSetMinMax(prof);
@@ -115,7 +115,7 @@ void RootAnalyser::OddEvenVerticalProfile(float sigma){
   
   char histName[lg_name+1];
   sprintf(histName,"OeVertPrfl%s",fSec->Name());
-  TH1D * prof = new TH1D(histName,"Odd-Even Vertical profile",fSec->YLength(),fSec->YFirst()-0.5,fSec->YLast()-0.5);
+  TH1D * prof = new TH1D(histName,"Odd-Even Vertical profile",fSec->YLength(),fSec->Y1()-0.5,fSec->Y2()-0.5);
   
   int i,j,remainOdd,remainEven;
   double *odd,*oddptr;
