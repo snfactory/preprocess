@@ -4,7 +4,7 @@
 ## Description:   
 ## Author:        Yannick Copin <y.copin@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
-## Modified at:   Tue Dec  2 17:08:16 2003
+## Modified at:   Fri Feb 13 14:53:47 2004
 ## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
@@ -22,10 +22,9 @@ LOCLIB = $(O)/libpreprocess.a
 
 # Targets
 
-WEXE = $(E)/stack_bias
+WEXE = $(E)/preprocess
 
 EXE =	$(E)/preprocess_bias\
-	$(E)/preprocess_dark\
 	$(E)/preprocess_flat\
 	$(E)/preprocess\
 	$(E)/rickify\
@@ -36,6 +35,8 @@ EXE =	$(E)/preprocess_bias\
 	$(E)/copy_image_slice\
 	$(E)/test_extension\
 	$(E)/stack_bias\
+	$(E)/stack_bichip\
+	$(E)/preprocess_dark\
 
 OPTEXE =  $(E)/substract_overscan\
 	$(E)/substract_dark\
@@ -47,6 +48,10 @@ OPTEXE =  $(E)/substract_overscan\
 	$(E)/bichip_sub_bias\
 	$(E)/bichip_overscan\
 	$(E)/bichip_variance\
+	$(E)/stack_bichip_gain\
+	$(E)/wr_desc\
+	$(E)/add_image\
+	$(E)/image_flip\
 
 # ============================================================
 

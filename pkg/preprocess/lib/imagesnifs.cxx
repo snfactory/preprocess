@@ -29,7 +29,7 @@ ImageSnifs::ImageSnifs(const ImageSnifs &image,char* newname,short newtype,int c
 {
   
     
-  SetParanoMode(true);
+  SetParanoMode(image.ParanoMode());
 
   // if variance, try to copy if a meaningful naem can be done
   if (image.Variance()) {
@@ -443,28 +443,29 @@ void ImageSnifs::HackFitsKeywords() {
 /* ----- CreateVarianceFrame ------------------------------ */
 void ImageSnifs::CreateVarianceFrame(char* name) {
 
+    char varName[lg_name+1];
+    strcpy(varName,name);
+
   if (ParanoMode()) {
     if (Variance()) {
       print_error(" ImageSnifs::CreateVarianceFrame : already a variance in %s",Name());
       return;
-    }
-  
-    if (!name[0]) {
-      ut_varname_from_imname(Name(),name);
-      if (!name[0]) {
-         print_error(" ImageSnifs::CreateVarianceFrame : no name provided",Name());
-      return;
-      }
-    }
-
+    }  
   } // ParanoMode
+  
+  if (!varName[0]) {
+    ut_varname_from_imname(Name(),varName);
+    if (!varName[0]) {
+      print_error(" ImageSnifs::CreateVarianceFrame : no name provided",Name());
+      return;
+    }
+  }
+
 
   // Builds the variance frame
-  ImageSimple * var = new ImageSimple(*Image() , name,FLOAT,0,IoType(),Ny());
+  ImageSimple * var = new ImageSimple(*Image() , varName,FLOAT,0,IoType(),Ny());
   var->SetTo(0);
   SetVarianceFrame(var);
-  HandleSaturation();
-  
 }
 
 

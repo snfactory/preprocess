@@ -32,6 +32,29 @@ class Kombinator  {
   
 };
 
+/* ===== SPREAD KOMBINATOR ======================================== */
+
+/* For this class, the noise is computed from the data spread */
+
+class KSpread : public Kombinator {
+  public : 
+    KSpread(double MaxSigmaOutlier,int SpreadMode);
+  
+    void Kombine(vector<double> * Vals, vector<double> * Vars, double * Val, double * Var);
+    int NeedsVarIn(){return 0;}
+  
+
+  protected :
+    double Mean();
+    int RemoveFar(double SigmaCut);
+
+    double fSigma;
+    int fSpread;
+    vector<double> * fVals,fVars;
+    double fVal, fVar, fSum;
+  
+};
+
 /* ===== GAUSS KOMBINATOR ======================================== */
 
 /* For this class, the noise is gaussian */

@@ -14,6 +14,7 @@
 #include "catorfile.hxx"
 #include "image.hxx"
 #include "kombinator.hxx"
+#include "kombinatorfit.hxx"
 #include "imagestack.hxx"
 
 
@@ -24,6 +25,7 @@
 
 /* ----- ImageStack -------------------------------------------------- */
 ImageStack::ImageStack() {
+  fKombinatorFit=0;
   fKombinator=0;
   fIsOwner=0;
 }
@@ -121,6 +123,61 @@ void ImageStack::Kombine(ImageSimple *ToFill, int FillsVarOut, int UpdateInitial
       if (FillsVarOut) {
         ToFill->Variance()->WrFrame(i,j,retVar);
       }
+      if (UpdateInitialVar) {
+        for (unsigned int n=0;n<fImageList.size();n++) {
+          fImageList[n]->Variance()->WrFrame(i,j,vars[n]);
+        }
+      }
+    }
+  }
+}
+
+/* ----- Combine  -------------------------------------------------- */
+void ImageStack::KombineFit(ImageSimple **ToFill, int FillsVarOut, int UpdateInitialVar) {
+  vector<ImageSimple*>::const_iterator iter;
+  vector<double> x;
+  vector<double> vals;
+  vector<double> vars;
+  double retVar, *retVal;
+  int nParam = GetKombinatorFit()->NParam();
+  retVal = new double[nParam];
+  vals.assign(fImageList.size(),0);
+  vars.assign(fImageList.size(),0);
+  x.assign(fImageList.size(),0);
+
+  // check it is OK
+  if (GetKombinatorFit()->NeedsVarIn()) {
+    for (iter = fImageList.begin();iter !=fImageList.end();iter++) {
+      if (!(*iter)->Variance()) {
+        print_error(" ImageStack::KombineFit %s needs a variance",(*iter)->Name() );
+      }
+    }
+  } else {
+    UpdateInitialVar=0;
+  }
+  
+  // Covariance matrix is not yet implemented
+  // because I do not know how to do !
+  //  if (FillsVarOut && GetKombinatorFit()->FillsVarOut() && ! ToFill->Variance())
+  //  print_error(" ImageStack::KombineFit %s needs a variance frame",ToFill->Name() );
+  
+  for (unsigned int n=0;n<fImageList.size();n++) {
+    x[n]= GetValue(fImageList[n]);
+  }
+
+  for (int j=0;j<Ny();j++) {
+    for (int i=0;i<Nx();i++) {
+      for (unsigned int n=0;n<fImageList.size();n++) {
+        vals[n] = fImageList[n]->RdFrame(i,j);
+        if (GetKombinatorFit()->NeedsVarIn())
+          vars[n] = fImageList[n]->Variance()->RdFrame(i,j);
+      }
+      GetKombinatorFit()->KombineFit(&x,&vals,&vars,retVal,&retVar);
+      for (int nout=0;nout<nParam;nout++)
+        ToFill[nout]->WrFrame(i,j,retVal[nout]);
+      //      if (FillsVarOut) {
+      //ToFill->Variance()->WrFrame(i,j,retVar);
+      
       if (UpdateInitialVar) {
         for (unsigned int n=0;n<fImageList.size();n++) {
           fImageList[n]->Variance()->WrFrame(i,j,vars[n]);

@@ -21,18 +21,29 @@
 using namespace std;
 
 class CatOrFile;
-class ImageSnifs;
-class BiChipSnifs;
+class Kombinator;
+class KombinatorFit;
+class ValueGetter;
+
+#include "imagesnifs.hxx"
+#include "bichip.hxx"
 
 /* ===== ImageStackSnifs ======================================== */
 
 class ImageStackSnifs  {
   public :
 
+    ImageStackSnifs(int NLines=1){fNLinesMem = NLines;}
     ImageStackSnifs(CatOrFile * Cat, char * Mode="I");
+    ~ImageStackSnifs();
+  
+    ImageSnifs* Kombine(char *outName,Kombinator* k);
+    void AddImage(ImageSnifs* Image) {Image->SetNLines(fNLinesMem);fImages.push_back(Image);}
+  
 
   protected :
     vector<ImageSnifs *> fImages;
+    int fNLinesMem;
 
 };
 
@@ -47,8 +58,10 @@ class BiChipStackSnifs  {
 
     void AddBiChip(BiChipSnifs* BiChip) {BiChip->SetNLines(fNLinesMem);fBiChips.push_back(BiChip);}
   
-    BiChipStackSnifs* PreprocessBias(CatOrFile * tmpOut,int NLines=1); 
-    BiChipSnifs* KombineGauss(char* OutName,double SigCut);
+    BiChipStackSnifs* PreprocessBias(CatOrFile * Out,int NLines=1); 
+    ImageStackSnifs* PreprocessDark(CatOrFile * Out, BiChipSnifs * Bias, int NLines=1);
+    BiChipSnifs* Kombine(char* OutName,Kombinator* K);
+    void KombineFit(BiChipSnifs** out, char** OutName,KombinatorFit* K,ValueGetter *V);
     BiChipSnifs* MakeBiasFrame(CatOrFile * tmpOut, char* BiasName,double SigCut);
 
   protected :

@@ -1,43 +1,42 @@
 
 #include "bichip.hxx"
-#include "imagesnifs.hxx"
+#include "imagestacksnifs.hxx"
 #include "catorfile.hxx"
+#include "kombinator.hxx"
 
 int main(int argc, char **argv) {
 
   char **argval, **arglabel;
+  int nlines;
   
-  set_arglist("-in none -out none -bias null");
+  set_arglist("-in none -out none -stackout null -bias null -sigma 4.0 -nlines 5000");
   init_session(argv,argc,&arglabel,&argval);
 
-  char tmp_name[lg_name+1],inName[lg_name+1],outName[lg_name+1];
+  CatOrFile catIn(argval[0]);
+  CatOrFile catOut(argval[1]);
 
-  CatOrFile inCat(argval[0]);
-  CatOrFile outCat(argval[1]);
-  
-  BiChipSnifs * bias=0;
-  
+  BiChipSnifs * bias=0;  
   // Load once auxilliary files
-  if (is_set(argval[2]))
-    bias = new BiChipSnifs(argval[2]);
+  if (is_set(argval[3]))
+    bias = new BiChipSnifs(argval[3]);
 
-  while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
-  
-    BiChipSnifs * in=new BiChipSnifs(inName);
-    sprintf(tmp_name,"mem://%s",inName);
+  get_argval(4,"%d",&nlines);
 
-    BiChipSnifs * tmp_out= new BiChipSnifs(*in,tmp_name,FLOAT,1);
-    delete in;
-    
-    ImageSnifs *out = tmp_out->PreprocessAssemble(outName,bias);
-    delete tmp_out;
-      out->Assembled2Dark();
+  BiChipStackSnifs * in=new BiChipStackSnifs(&catIn,"I",nlines);
+  ImageStackSnifs * tmp= in->PreprocessDark(&catOut,bias,nlines);
+  delete in;
 
+  if (is_set(argval[2])) {
+    double sigma;
+    get_argval(4,"%lf", &sigma);
+    Kombinator * k = new KGaussPoisson(sigma);
+    ImageSnifs *out = tmp->Kombine(argval[2],k);
+    delete k;
     delete out;
   }
-
-  if (bias) delete bias;
+  delete tmp;
+  if (bias) 
+    delete bias;
 
   exit_session(0);
-  
 }

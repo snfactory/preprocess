@@ -16,7 +16,101 @@
 #include "utils.h"
 #include "kombinator.hxx"
 
-/* #####  KGaussPoisson ################################################# */
+/* #####  KSpread ################################################# */
+
+
+/* ===== constructor/destructor ======================================= */
+
+/* ----- KSpread  -------------------------------------------------- */
+KSpread::KSpread(double MaxSigmaOutlier,int SpreadMode) {
+  fSigma = MaxSigmaOutlier;
+  fSpread = SpreadMode;
+}
+
+/* ===== method ======================================= */
+
+/* ----- Kombine  -------------------------------------------------- */
+void KSpread::Kombine(vector<double> * Vals, vector<double> * Vars, double * Val, double * Var) {
+  /* The Kombine assumes the Vals are calibrated in electrons, 
+     and the Vars contain gaussian + poisson errors */
+  
+  fVals = Vals;
+  fVars.assign(fVals->size(),1);
+  fVal = Mean();
+  // throw-away
+  while (RemoveFar(fSigma)) {
+    fVal = Mean();
+  }
+
+  *Val = fVal;
+  if (!fSpread) {
+    *Var = fVar/fSum;
+  } else {
+    *Var = fVar;
+  }
+}
+
+/* ----- Mean  -------------------------------------------------- */
+double KSpread::Mean() {
+  // fits the fVal given the 
+  double sum=0;
+  double sumw=0;
+  //double weight;
+  for (unsigned int i=0;i<fVals->size(); i++) {
+    sum += (*fVals)[i]/fVars[i] ;
+    sumw += 1/fVars[i] ;
+  }
+  fVal = sum/sumw;
+  fSum = sumw;
+  // compute now the estimated variance
+  sum=0;
+  for (unsigned int i=0;i<fVals->size(); i++) {
+    sum += ((*fVals)[i]-fVal)*((*fVals)[i]-fVal)/fVars[i] ;
+  }
+  if (sumw>1)
+    fVar = sum/(sumw-1);
+  else
+    fVar = ut_big_value;
+  return fVal;
+}
+
+/* ----- RemoveFar  -------------------------------------------------- */
+int KSpread::RemoveFar(double SigmaCut) {
+
+  if (fSigma<=0 || fVals->size()<=2 )
+    return 0;
+
+  int iRm=-1;
+  double MaxSigma=0;
+
+  for ( unsigned int i=0;i<fVals->size();i++) {
+    // excluded already
+    if (fVars[i]>ut_big_value*0.99)
+      continue;
+    
+    // compute values with current value substracted
+    double newSum = fSum - 1/fVars[i];
+    double newVal = (fVal * fSum - (*fVals)[i]/fVars[i]) / newSum;
+    double newVar = 
+      ( fVar * (fSum-1) 
+        + fSum * (fVal-newVal) * (fVal-newVal)
+        -  ((*fVals)[i]-newVal)*((*fVals)[i]-newVal)/fVars[i] ) 
+      / (newSum -1);
+    
+    double sigma = fabs((*fVals)[i] - newVal)/sqrt(newVar);
+    if (sigma > MaxSigma && sigma > SigmaCut) {
+      iRm = i;
+      MaxSigma = sigma;
+    }
+  }
+  if (iRm>=0) {
+    fVars[iRm] = ut_big_value;
+    return 1;
+  }
+  return 0;
+}
+
+/* #####  KGauss ################################################# */
 
 
 /* ===== constructor/destructor ======================================= */

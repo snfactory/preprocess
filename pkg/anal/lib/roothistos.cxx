@@ -277,11 +277,13 @@ void RootAnalyser::HighFrequency()
 
   char histName[lg_name+1];
   sprintf(histName,"HfRatioH%s",fSec->Name());
-  TH1F* histoh = new TH1F(histName,"Horizontal ratio",1000,minh-1,maxh+1);
+  TH1F* histoh = new TH1F(histName,"Horizontal ratio",10000,0.5,2);
   sprintf(histName,"HfRatioV%s",fSec->Name());
-  TH1F* histov = new TH1F(histName,"Vertical ratio",1000,minv-1,maxv+1);
+  TH1F* histov = new TH1F(histName,"Vertical ratio",10000,0.5,2);
   sprintf(histName,"HfRatio%s",fSec->Name());
-  TH1F* histotot = new TH1F(histName,"Neighbours Ratio",1000,mintot-1,maxtot+1);
+  TH1F* histotot = new TH1F(histName,"Neighbours Ratio",10000,0.5,2);
+  sprintf(histName,"HfDiff%s",fSec->Name());
+  TH1F* histodiff = new TH1F(histName,"Neighbours diff",10000,-5000,5000);
     
 
   for (int j=fSec->YFirst(); j<fSec->YLast();j++){
@@ -290,11 +292,13 @@ void RootAnalyser::HighFrequency()
         rapporth = fImage->RdFrame(i,j)/fImage->RdFrame(i,j+1);
         histoh->Fill(rapporth);
         histotot->Fill(rapporth);
+        histodiff->Fill(fImage->RdFrame(i,j)-fImage->RdFrame(i,j+1));
       }
       if (i<fSec->XLast()-1) {
         rapportv = fImage->RdFrame(i,j)/fImage->RdFrame(i+1,j);
         histov->Fill(rapportv);
         histotot->Fill(rapportv);
+        histodiff->Fill(fImage->RdFrame(i,j)-fImage->RdFrame(i+1,j));
       }
     }
   }
@@ -302,10 +306,12 @@ void RootAnalyser::HighFrequency()
   histoh->Write();
   histov->Write();
   histotot->Write();
-  
+  histodiff->Write();
+
   delete histoh;
   delete histov;
   delete histotot;
+  delete histodiff;
   
 }
 
@@ -448,3 +454,21 @@ void RootAnalyser::Fft()
   
 }
 
+/*-------------- ADC Bits --------------------------- */
+void RootAnalyser::ADCBits(int NBits){
+
+  char histName[lg_name+1];
+  sprintf(histName,"ADC%s",fSec->Name());
+  TProfile * hADC = new TProfile(histName,"ADC Bits value",16,-0.5,15.5);
+  
+  for (int iy = fSec->YFirst(); iy<fSec->YLast();iy++)
+    for (int ix = fSec->XFirst(); ix<fSec->XLast();ix++) {
+      int val = (int) fImage->RdFrame(ix,iy);
+      for (int bit=0;bit<16;bit++) {
+        hADC->Fill(bit,(val>>bit)&1);
+      }
+    }
+  
+  hADC->Write(histName);
+  delete hADC;
+}

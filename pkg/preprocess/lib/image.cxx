@@ -184,6 +184,7 @@ void ImageSimple::ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Sta
       }
 }
 
+/* ----- ImportSection  -------------------------------------------------- */
 void ImageSimple::ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir,int YDir,double ZScale) {
   // pilots the ImportSectionFrame for both the image and the variance 
   // if it exists
@@ -191,10 +192,20 @@ void ImageSimple::ImportSection(ImageSimple * From, Section* Sec, int X1Start, i
   if (Variance()&&From->Variance()) {
     Variance()->ImportSection(From->Variance(),Sec,X1Start,Y1Start,XDir,YDir,ZScale*ZScale);
     }
-  
-    
-
 }
+
+/* ----- ImportFlip  -------------------------------------------------- */
+void ImageSimple::ImportFlip(ImageSimple * From,int XDir,int YDir,double ZScale) {
+  // pilots the ImportSection for a simple image flip
+  Section sec(1,From->Nx(),1,From->Ny());
+  int xstart=1,ystart=1;
+  if (XDir == -1)
+    xstart = From->Nx();
+  if (YDir == -1)
+    ystart = From->Ny();
+  ImportSection(From,&sec,xstart,ystart,XDir,YDir,ZScale);
+}
+
 
 /* ----- Add ----------------------------------------------------- */
 void ImageSimple::Add(ImageSimple* ToAdd, double Scale){

@@ -52,6 +52,8 @@ class RootAnalyser : public ImageAnalyser {
   void HighFrequency();
 
   void Fft();
+
+  void ADCBits(int nBits=16);
   
 };
 

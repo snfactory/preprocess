@@ -36,6 +36,7 @@ class BiChipSnifs {
     void CheckNameRecipee(char* ChipNameRecipee);  
     ImageSnifs* Chip(int chip)  {return fChip[chip];}
     void SetNLines(int NLines);
+    void SetParanoMode(bool Mode);
 
     // Methods
 
@@ -47,6 +48,7 @@ class BiChipSnifs {
     double GuessGainRatio(Section* S);
 
     void CreateVarianceFrame(char* VarianceNameRecipee="");
+    void HandleSaturation();
     void AddOverscanVariance();
     void PreprocessBias();
     ImageSnifs* PreprocessAssemble(char* OutName,BiChipSnifs *bias);

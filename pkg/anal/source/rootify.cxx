@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
       ana.HistoData();
       ana.MatrixData ();
       ana.HighFrequency();
+      ana.ADCBits(16);
     }
     out->Purge();
     out->Close();

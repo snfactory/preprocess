@@ -36,8 +36,8 @@ public :
   
   
   /* ----- Setters ---------------------------------------- */
-  void SetImage(ImageSimple * Image) {fImage = Image;}
-  void SetImage(ImageSnifs * Image) {fImage = Image->Image();}
+  void SetImage(ImageSimple * Image);
+  void SetImage(ImageSnifs * Image) {SetImage(Image->Image());}
   void SetSection(Section * Section); 
 
   /* ----- Analysis ---------------------------------------- */

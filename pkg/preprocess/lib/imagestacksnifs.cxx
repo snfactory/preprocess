@@ -26,6 +26,7 @@ The input catalog is supposed to be of homogeneous
 #include "bichip.hxx"
 #include "imagestack.hxx"
 #include "kombinator.hxx"
+#include "kombinatorfit.hxx"
 #include "imagestacksnifs.hxx"
 
 
@@ -67,7 +68,39 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode){
   
 }
 
+/* ----- ~ImageStackSnifs  -------------------------------------------------- */
+
+ImageStackSnifs::~ImageStackSnifs(){
+  vector<ImageSnifs*>::iterator iter;
+  for (iter = fImages.begin();iter != fImages.end();++iter){
+    delete *iter;
+  }
+}
+
+
 /* ===== method ======================================= */
+
+/* ----- Kombine ---------------------------------------- */
+ImageSnifs* ImageStackSnifs::Kombine(char* OutName,  Kombinator * K) {
+
+  ImageSnifs * out = new ImageSnifs(*fImages[0],OutName,FLOAT,0,kIoSlice,fNLinesMem);
+  vector<ImageSimple * > imList;
+  for (unsigned int i=0;i<fImages.size();i++) {
+    imList.push_back(fImages[i]);
+  }
+  if (!out->Variance()) {
+      out->CreateVarianceFrame();
+    }
+    
+  ImageStack images(imList);
+  images.SetKombinator(K);
+  images.Kombine(out);
+  imList.clear();
+
+  return out;
+}
+
+
 
 /* #####  BiChipStackSnifs ################################################# */
 
@@ -106,7 +139,7 @@ BiChipStackSnifs::BiChipStackSnifs(CatOrFile* Cat, char * Mode,int NLines){
       if (!imRef[0]->CanBeStackedWith(bichip->Chip(0)) ||
           !imRef[1]->CanBeStackedWith(bichip->Chip(1))) {
         
-        print_error("ImageStackSnifs::ImageStackSnifs %s is incompatible with teh firstone\n",fileName);
+        print_error("ImageStackSnifs::ImageStackSnifs %s is incompatible with teh first one\n",fileName);
         return;
       }
     nDone++;
@@ -124,18 +157,21 @@ BiChipStackSnifs::~BiChipStackSnifs(){
 
 /* ===== method ======================================= */
 
-/* ----- MakeBiasFrame ---------------------------------------- */
+/* ----- PreprocessBias ---------------------------------------- */
 BiChipStackSnifs* BiChipStackSnifs::PreprocessBias(CatOrFile * Out, int NLines) {
 
   char fileName[lg_name+1];
-  int iFile=0,nlines;
+  unsigned int iFile=0,nlines;
   BiChipStackSnifs* outStack = new BiChipStackSnifs(NLines);
-  while(Out->NextFile(fileName)) {
+  while(Out->NextFile(fileName) && iFile < fBiChips.size()) {
+    // load all the file for fast processing
     if (fBiChips[iFile]->Chip(0)->Ny() > fBiChips[iFile]->Chip(1)->Ny())
       nlines = fBiChips[iFile]->Chip(0)->Ny();
     else
       nlines = fBiChips[iFile]->Chip(1)->Ny();
     BiChipSnifs * out = new BiChipSnifs(*fBiChips[iFile],fileName,FLOAT,1,kIoSlice,nlines);
+    // free some memory
+    fBiChips[iFile]->SetNLines(1);
     out->PreprocessBias();
     outStack->AddBiChip(out);
     iFile++;
@@ -144,10 +180,37 @@ BiChipStackSnifs* BiChipStackSnifs::PreprocessBias(CatOrFile * Out, int NLines) 
   
 }
 
-/* ----- MakeBiasFrame ---------------------------------------- */
-BiChipSnifs* BiChipStackSnifs::KombineGauss(char* OutName, double SigCut) {
+/* ----- PreprocessDark ---------------------------------------- */
+ImageStackSnifs* BiChipStackSnifs::PreprocessDark(CatOrFile * Out, BiChipSnifs* bias, int NLines) {
 
-  KGauss gauss(SigCut);
+  char fileName[lg_name+1];
+  unsigned int iFile=0,nlines;
+  ImageStackSnifs* outStack = new ImageStackSnifs(NLines);
+  while(Out->NextFile(fileName) && iFile < fBiChips.size()) {
+    // load all the file for fast processing
+    if (fBiChips[iFile]->Chip(0)->Ny() > fBiChips[iFile]->Chip(1)->Ny())
+      nlines = fBiChips[iFile]->Chip(0)->Ny();
+    else
+      nlines = fBiChips[iFile]->Chip(1)->Ny();
+    BiChipSnifs * tmpBi = new BiChipSnifs(*fBiChips[iFile],"mem://tmp.fits",FLOAT,1,kIoPlain);
+    // free some memory
+    fBiChips[iFile]->SetNLines(1);
+    tmpBi->PreprocessBias();
+    ImageSnifs * out = tmpBi->PreprocessAssemble(fileName,bias);
+    delete tmpBi;
+    out->Assembled2Dark();
+    outStack->AddImage(out);
+    iFile++;
+  }
+  return outStack;
+  
+}
+
+
+
+/* ----- Kombine ---------------------------------------- */
+BiChipSnifs* BiChipStackSnifs::Kombine(char* OutName,  Kombinator * K) {
+
   BiChipSnifs * out = new BiChipSnifs(*fBiChips[0],OutName,FLOAT,0,kIoSlice,fNLinesMem);
   vector<ImageSimple * > imList;
   for (int iChip=0;iChip<2;iChip++) {
@@ -155,8 +218,12 @@ BiChipSnifs* BiChipStackSnifs::KombineGauss(char* OutName, double SigCut) {
       imList.push_back(fBiChips[i]->Chip(iChip));
       
     }
+    if (!out->Chip(iChip)->Variance()) {
+      out->Chip(iChip)->CreateVarianceFrame();
+    }
+    
     ImageStack images(imList);
-    images.SetKombinator(&gauss);
+    images.SetKombinator(K);
     images.Kombine(out->Chip(iChip));
     imList.clear();
   }
@@ -164,11 +231,41 @@ BiChipSnifs* BiChipStackSnifs::KombineGauss(char* OutName, double SigCut) {
 }
 
 
+/* ----- KombineFit ---------------------------------------- */
+void BiChipStackSnifs::KombineFit(BiChipSnifs ** Out, char** OutName, KombinatorFit * K, ValueGetter * V) {
+
+  ImageSimple ** outSimple;
+  outSimple = new ImageSimple*[K->NParam()];
+  for (int iOut=0;iOut<K->NParam();iOut++)
+    Out[iOut] = new BiChipSnifs(*fBiChips[0],OutName[iOut],FLOAT,0,kIoSlice,fNLinesMem);
+    
+  vector<ImageSimple * > imList;
+  for (int iChip=0;iChip<2;iChip++) {
+    for (unsigned int i=0;i<fBiChips.size();i++) {
+      imList.push_back(fBiChips[i]->Chip(iChip));
+    }
+    for (int iOut=0;iOut<K->NParam();iOut++)
+      outSimple[iOut] = Out[iOut]->Chip(iChip);
+    //    if (!Out[i]->Chip(iChip)->Variance()) {
+    //  Out->Chip(iChip)->CreateVarianceFrame();
+    //}
+    
+    ImageStack images(imList);
+    images.SetKombinatorFit(K);
+    images.SetValueGetter(V);
+    images.KombineFit(outSimple,0);
+    imList.clear();
+  }
+  return;
+}
+
+
 /* ----- MakeBiasFrame ---------------------------------------- */
 BiChipSnifs* BiChipStackSnifs::MakeBiasFrame(CatOrFile * tmpOut, char* BiasName, double SigCut) {
   
   BiChipStackSnifs* tmp = PreprocessBias(tmpOut,fNLinesMem);
-  BiChipSnifs* out = tmp->KombineGauss(BiasName,SigCut);
+  KGauss gauss(SigCut);
+  BiChipSnifs* out = tmp->Kombine(BiasName,&gauss);
   delete tmp;
   return out;
   

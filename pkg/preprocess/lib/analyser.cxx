@@ -22,22 +22,29 @@
 /* ##### ImageAnalyser ################################################# */
 
 /* ===== constructor/destructor ======================================= */
+/* ----- void constructor  ----------------------------------*/
 ImageAnalyser::ImageAnalyser(){
   fVal=0;
+  fSec=0;
+  fImage=0;
   fFftLength=0;
 }
 
+/* ----- constructor Image, Sec ----------------------------------*/
 ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
   fVal=0;
+  fSec=0;
   fFftLength=0;
   SetImage(Image);
   SetSection(Sec);
 }
 
+/* ----- constructor Image, Sec ----------------------------------*/
 ImageAnalyser::ImageAnalyser(ImageSnifs * Image, Section *Sec) {
   ImageAnalyser(Image->Image(),Sec);
 }
 
+/* ----- destructor --------------------------------------------*/
 ImageAnalyser::~ImageAnalyser(){
   if (fVal) {
     delete[] fVal;
@@ -51,6 +58,7 @@ ImageAnalyser::~ImageAnalyser(){
 
 
 /* ===== setters ====================================================== */
+/* ----- SetSection ----------------------------------------------------*/
 void ImageAnalyser::SetSection(Section* Sec){
   // Set only the section if it belongs to the image.
   if (fVal)
@@ -58,17 +66,41 @@ void ImageAnalyser::SetSection(Section* Sec){
 
   if (fImage && Sec->XFirst()>=0 && Sec->YFirst()>=0 && Sec->XLast()<=fImage->Nx() && Sec->YLast()<=fImage->Ny()) {
     fSec = Sec;
-    fNVal = Sec->XLength()*Sec->YLength();
+    fNVal = fSec->XLength()*fSec->YLength();
     fVal = new double[fNVal];
     for (int iy=fSec->YFirst();iy<fSec->YLast();iy++)
       for (int ix=fSec->XFirst();ix<fSec->XLast();ix++) {
-        fVal[ix-fSec->XFirst()+(iy-Sec->YFirst())*fSec->XLength()] 
+        fVal[ix-fSec->XFirst()+(iy-fSec->YFirst())*fSec->XLength()] 
             = fImage->RdFrame(ix,iy);
       }
   }
   else {
-    fSec=0;
+    fSec=Sec;
     fVal=0;
+    fNVal=0;
+  }
+}
+
+/* ----- SetImage ----------------------------------------------------*/
+void ImageAnalyser::SetImage(ImageSimple * Image){
+  // Set only the image if it fits the section.
+  if (fVal)
+    delete[] fVal;
+
+  if (fSec && fSec->XFirst()>=0 && fSec->YFirst()>=0 && fSec->XLast()<=Image->Nx() && fSec->YLast()<=Image->Ny()) {
+    fImage = Image;
+    fNVal = fSec->XLength()*fSec->YLength();
+    fVal = new double[fNVal];
+    for (int iy=fSec->YFirst();iy<fSec->YLast();iy++)
+      for (int ix=fSec->XFirst();ix<fSec->XLast();ix++) {
+        fVal[ix-fSec->XFirst()+(iy-fSec->YFirst())*fSec->XLength()] 
+            = fImage->RdFrame(ix,iy);
+      }
+  }
+  else {
+    fImage=Image;
+    fVal=0;
+    fNVal=0;
   }
 }
 

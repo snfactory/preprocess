@@ -59,7 +59,7 @@ class ImageSimple {
         {return Io()->CreateFrameFull(name,Npix,Start,Step,Type,a,b);}
 
     // internal setters and getters
-    // Io is not user settable for the moment. It is defined at the construction time
+    // Io is not user settable. It is defined at the construction time
     IoMethod* Io() const {return fIo;}
     IoMethod_t IoType() const {return Io()->IoType();}
     void SetNLines(int NLines);
@@ -69,8 +69,10 @@ class ImageSimple {
     void MinMax(Section* Sec, double * min, double * max);
   
     void ImportHeader(ImageSimple * From){ CP_non_std_desc(From->Frame(),Frame());}
+    // internal routine which does not import the variance.
     void ImportSectionFrame(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );
     void ImportSection(ImageSimple * From, Section* Sec, int X1Start, int Y1Start,int XDir=1,int YDir=1,double ZScale=1 );
+    void ImportFlip(ImageSimple * From, int XDir=1,int YDir=1,double ZScale=1 );
     void Add(ImageSimple* ToAdd, double Scale=1);
     void Add(double Constant);
     void Scale(double Scale);

@@ -79,14 +79,20 @@ void BiChipSnifs::CheckNameRecipee(char* ChipNameRecipee) {
   sprintf(ChipNameRecipee,"%s[chip0%%d]",ChipNameRecipee);
 }
 
-/* ----- CheckNameRecipee ----------------------------------------------- */
+/* ----- SetNLines ----------------------------------------------- */
 void BiChipSnifs::SetNLines(int NLines) {
   for (int iChip=0;iChip<2;iChip++) {
     Chip(iChip)->SetNLines(NLines);
   }
-  
 }
 
+/* ----- SetParanoMode ----------------------------------------------- */
+void BiChipSnifs::SetParanoMode(bool Mode) {
+  for (int iChip=0;iChip<2;iChip++) {
+    Chip(iChip)->SetParanoMode(Mode);
+  }
+  
+}
 
 
 /* ===== Methods ====================================================== */
@@ -215,6 +221,10 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName) {
 /* ----- GuessGainRatio ------------------------------------------------ */
 double BiChipSnifs::GuessGainRatio(Section* S) {
   // the ratio is gain(0)
+
+  // anti-hack !
+  return 0.75;
+
   double val[2];
   double line[S->XLength()];
   double column[S->YLength()];
@@ -271,10 +281,21 @@ void BiChipSnifs::AddOverscanVariance() {
   }
   
 }
+
+/* ----- HandleSaturation ---------------------------------------- */
+void BiChipSnifs::HandleSaturation() {
+  // substracts the odd-even from 2 chips
+  for (int chip=0;chip<2;chip++) {
+    fChip[chip]->HandleSaturation();
+  } 
+}
+
+
  
 /* ----- PreprocessBias ------------------------------------------------ */
 void BiChipSnifs::PreprocessBias() {
   CreateVarianceFrame();
+  HandleSaturation();
   HackFitsKeywords();
   OddEvenCorrect();
   AddOverscanVariance();
@@ -328,13 +349,13 @@ void  BiChipSnifs:: HackFitsKeywords()  {
   
   float gain;
   if (fChip[0]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
-    gain = 0.9;
+    gain = 0.7;
     fChip[0]->WrDesc("GAIN",FLOAT,1,&gain);
   }
 
   if (fChip[1]->RdIfDesc("GAIN",FLOAT,1,&gain) <0) {
     // but this gain may vary...
-    gain = 1.251;
+    gain = 0.7;
     fChip[1]->WrDesc("GAIN",FLOAT,1,&gain);
   }
 }
