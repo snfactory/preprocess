@@ -543,7 +543,7 @@ void ImageSnifs::HandleCosmetics() {
   // puts variance to infinity for some definite pixels
   if (Image()->Variance()) {
     int nmax=0;
-        const int * data;
+    const int * data;
     if (GetChannel()==kRedChannel) {
       nmax = kBadSectionsRed;
       data=kBadSectionsDataRed;
@@ -560,6 +560,42 @@ void ImageSnifs::HandleCosmetics() {
         }
     }
   } // if variance
+}
+
+/* -----  HandleCosmetics ----------------------------------------------- */
+void ImageSnifs::CheatCosmetics() {
+  // puts some number where there is a cosmetic in order to have
+  // a fast processing working
+  // it builds a linear interpolation to the data
+    int nmax=0;
+    const int * data;
+    if (GetChannel()==kRedChannel) {
+      nmax = kBadSectionsRed;
+      data=kBadSectionsDataRed;
+    }
+    if (GetChannel()&kPhotometric) {
+      nmax = kBadSectionsPhot;
+      data=kBadSectionsDataPhot;
+    }
+    for (int n=0;n<nmax;n++) {
+      Section Sec(data[n*4],data[n*4+1],data[n*4+2],data[n*4+3]);
+      for (int iy = Sec.YFirst(); iy<Sec.YLast();iy++) {
+        double p1[2];
+        if (Sec.XFirst()==0) {
+          p1[0]=Image()->RdFrame(Sec.XLast(),iy);
+          p1[1]=0;
+        } else if (Sec.XLast()==Nx()) {
+          p1[0]=Image()->RdFrame(Sec.XFirst()-1,iy);
+          p1[1]=0;
+        } else {
+          p1[0] = Image()->RdFrame(Sec.XFirst()-1,iy);
+          p1[1] = (Image()->RdFrame(Sec.XLast(),iy) - p1[0])/(Sec.XLength()+1);
+        }
+        for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
+          Image()->WrFrame(ix,iy,p1[0]+p1[1]*(ix-Sec.XFirst()+1));
+        }
+      }
+    }
 }
 
 /* ===== Hacks ======================================= */

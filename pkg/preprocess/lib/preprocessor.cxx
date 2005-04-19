@@ -278,6 +278,9 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSn
   delete bichip;
   // remove bad lines
   out->HandleCosmetics();
+  // Special request from Yannick
+  if (FastMode())
+    out->CheatCosmetics();
   if (bias) out->SubstractBias(bias);
   return out;
   

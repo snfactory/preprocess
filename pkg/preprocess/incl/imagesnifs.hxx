@@ -98,6 +98,7 @@ class ImageSnifs :public ImageSimple {
     void AddPoissonNoise();
     void HandleSaturation();
     void HandleCosmetics();
+    void CheatCosmetics();
   
 
     // Processing management
