@@ -57,7 +57,7 @@ class ImageSnifs :public ImageSimple {
   void WrFrame(int line, int col, double value) 
       {Image()->WrFrame(line,col,value);}
   double RdFrame(int line, int col) const {return Image()->RdFrame(line,col);}
-  int WrDesc(char* Descr, short Type, int NbElements, void* Values) 
+  int WrDesc(char* Descr, short Type, int NbElements, const void* Values) 
       {return Image()->WrDesc(Descr,Type,NbElements,Values);}
   int RdDesc(char* Descr, short Type, int NbElements, void* Values) const
       {return Image()->RdDesc(Descr,Type,NbElements,Values);}
@@ -97,7 +97,9 @@ class ImageSnifs :public ImageSimple {
     void BuildFlat();
     void AddPoissonNoise();
     void HandleSaturation();
+    void HandleCosmetics();
   
+
     // Processing management
     void CreateVarianceFrame(char* name="");
     void AddOverscanVariance();

@@ -20,6 +20,7 @@
 #include "imagesnifs.hxx"
 #include "section.hxx"
 #include "algocams.hxx"
+#include "snifs_const.h"
 
 //static const char kChannelName[4][lg_name+1]={"Blue channel","Red channel","Photometry","Guiding"} ;
 
@@ -126,6 +127,7 @@ void ImageSnifs::SetChannel(int channel){
   WrDesc("CHANNEL",CHAR,lg_name+1,name);
 }
 
+/* ----- Channel  ------------------------------ */
 int ImageSnifs::GetChannel(){
   char name[lg_name+1];
   int channel = kUnknown;
@@ -534,6 +536,30 @@ void ImageSnifs::HandleSaturation() {
   nsat = Image()->HandleSaturation(saturate-0.5);
   // not so good idea ...
   //  WrDesc("NSATU",INT,1,&nsat);
+}
+
+/* -----  HandleCosmetics ----------------------------------------------- */
+void ImageSnifs::HandleCosmetics() {
+  // puts variance to infinity for some definite pixels
+  if (Image()->Variance()) {
+    int nmax=0;
+        const int * data;
+    if (GetChannel()==kRedChannel) {
+      nmax = kBadSectionsRed;
+      data=kBadSectionsDataRed;
+    }
+    if (GetChannel()&kPhotometric) {
+      nmax = kBadSectionsPhot;
+      data=kBadSectionsDataPhot;
+    }
+    for (int n=0;n<nmax;n++) {
+      Section Sec(data[n*4],data[n*4+1],data[n*4+2],data[n*4+3]);
+      for (int iy = Sec.YFirst(); iy<Sec.YLast();iy++)
+        for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
+          Image()->Variance()->WrFrame(ix,iy,ut_big_value);
+        }
+    }
+  } // if variance
 }
 
 /* ===== Hacks ======================================= */

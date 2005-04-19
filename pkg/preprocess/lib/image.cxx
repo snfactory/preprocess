@@ -88,9 +88,11 @@ int ImageSimple::RdDesc(char* Descr, short Type, int NbElements, void* Values) c
 }
 
 /* ----- WrDesc ------------------------------------------------------- */
-int ImageSimple::WrDesc(char* Descr, short Type, int NbElements, void* Values) {
-  // Wrapper to RdDesc
-  return WR_desc(Frame(), Descr,Type,NbElements,  Values);
+int ImageSimple::WrDesc(char* Descr, short Type, int NbElements, const void* Values) {
+  // Wrapper to WrDesc
+  // necessary because C library doesn't know about constness
+  void * values = const_cast<void*>(Values);
+  return WR_desc(Frame(), Descr,Type,NbElements,  values);
 }
 
 /* ----- RdIfDesc ----------------------------------------------------- */

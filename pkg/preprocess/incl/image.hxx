@@ -46,7 +46,7 @@ class ImageSimple {
     // Wrappers to IMAGE2D methods (and very simple methods)
     void WrFrame(int col, int line, double value) {fIo->WrFrame(col,line,value);};
     double RdFrame(int col, int line) const {return fIo->RdFrame(col,line);}
-    int WrDesc(char* Descr, short Type, int NbElements, void* Values);
+    int WrDesc(char* Descr, short Type, int NbElements, const void* Values);
     int RdDesc(char* Descr, short Type, int NbElements, void* Values) const;
     int RdIfDesc(char* Descr, short Type, int NbElements, void* Values) const;
     int DeleteDesc(char* Descr);

@@ -276,6 +276,8 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSn
   SetIoMethod(mode);
   ImageSnifs *out = bichip->Assemble(outName,fMode,kIoAll);
   delete bichip;
+  // remove bad lines
+  out->HandleCosmetics();
   if (bias) out->SubstractBias(bias);
   return out;
   
