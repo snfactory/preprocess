@@ -542,6 +542,15 @@ void ImageSnifs::HandleSaturation() {
 void ImageSnifs::HandleCosmetics() {
   // puts variance to infinity for some definite pixels
   if (Image()->Variance()) {
+
+    // Exclude non-standard binning
+    int nbin[2];
+    Image()->RdDesc("CCDBIN",INT,2,&nbin);
+    if (nbin[0]!=1 || nbin[1]!=1) {
+      print_msg("ImageSnifs::HandleCosmetics refuses non-standard binning");
+      return ;
+    }
+
     int nmax=0;
     const int * data;
     if (GetChannel()==kRedChannel) {
@@ -552,11 +561,21 @@ void ImageSnifs::HandleCosmetics() {
       nmax = kBadSectionsPhot;
       data=kBadSectionsDataPhot;
     }
+
+    // Non-standard raster
+    char ccdSecString[lg_name+1];
+    Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+    Section ccdSec(ccdSecString);
+
     for (int n=0;n<nmax;n++) {
       Section Sec(data[n*4],data[n*4+1],data[n*4+2],data[n*4+3]);
       for (int iy = Sec.YFirst(); iy<Sec.YLast();iy++)
-        for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
-          Image()->Variance()->WrFrame(ix,iy,ut_big_value);
+        if (  iy-ccdSec.YFirst() < Ny() && 
+              iy-ccdSec.YFirst() >=0)
+          for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
+            if (ix-ccdSec.XFirst() < Nx() && 
+                ix-ccdSec.XFirst() >=0 )
+              Image()->Variance()->WrFrame(ix-ccdSec.XFirst(),iy-ccdSec.YFirst(),ut_big_value);
         }
     }
   } // if variance
@@ -567,6 +586,15 @@ void ImageSnifs::CheatCosmetics() {
   // puts some number where there is a cosmetic in order to have
   // a fast processing working
   // it builds a linear interpolation to the data
+
+    // Exclude non-standard binning
+    int nbin[2];
+    Image()->RdDesc("CCDBIN",INT,2,&nbin);
+    if (nbin[0]!=1 || nbin[1]!=1) {
+      print_msg("ImageSnifs::CheatCosmetics refuses non-standard binning");
+      return ;
+    }
+
     int nmax=0;
     const int * data;
     if (GetChannel()==kRedChannel) {
@@ -577,22 +605,41 @@ void ImageSnifs::CheatCosmetics() {
       nmax = kBadSectionsPhot;
       data=kBadSectionsDataPhot;
     }
+
+    // Non-standard raster
+    char ccdSecString[lg_name+1];
+    Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+    Section ccdSec(ccdSecString);
+
     for (int n=0;n<nmax;n++) {
       Section Sec(data[n*4],data[n*4+1],data[n*4+2],data[n*4+3]);
       for (int iy = Sec.YFirst(); iy<Sec.YLast();iy++) {
-        double p1[2];
-        if (Sec.XFirst()==0) {
-          p1[0]=Image()->RdFrame(Sec.XLast(),iy);
-          p1[1]=0;
-        } else if (Sec.XLast()==Nx()) {
-          p1[0]=Image()->RdFrame(Sec.XFirst()-1,iy);
-          p1[1]=0;
-        } else {
-          p1[0] = Image()->RdFrame(Sec.XFirst()-1,iy);
-          p1[1] = (Image()->RdFrame(Sec.XLast(),iy) - p1[0])/(Sec.XLength()+1);
-        }
-        for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
-          Image()->WrFrame(ix,iy,p1[0]+p1[1]*(ix-Sec.XFirst()+1));
+        if (  iy-ccdSec.YFirst() < Ny() && 
+              iy-ccdSec.YFirst() >=0) {
+          
+          double p1[2];
+          if (Sec.XFirst()-ccdSec.XFirst()<=0) {
+            if (Sec.XLast()-ccdSec.XFirst() < Nx() && Sec.XLast()-ccdSec.XFirst() >=0)
+              p1[0]=Image()->RdFrame(Sec.XLast()-ccdSec.XFirst(),iy-ccdSec.YFirst());
+            // nothing can be done
+            else p1[0]=0;
+            p1[1]=0;
+          } else if (Sec.XLast()-ccdSec.XFirst()>=Nx()) {
+            if (Sec.XFirst()-1-ccdSec.XFirst() < Nx() && 
+                Sec.XFirst()-1-ccdSec.XFirst() >=0)
+              p1[0]=Image()->RdFrame(Sec.XFirst()-1-ccdSec.XFirst(),iy-ccdSec.YFirst());
+            else p1[0]=0;
+            p1[1]=0;
+          } else {
+            p1[0] = Image()->RdFrame(Sec.XFirst()-1-ccdSec.XFirst(),iy-ccdSec.YFirst());
+            p1[1] = (Image()->RdFrame(Sec.XLast()-ccdSec.XFirst(),iy-ccdSec.YFirst()) - p1[0])/(Sec.XLength()+1);
+          }
+
+          for (int ix = Sec.XFirst(); ix<Sec.XLast();ix++) {
+            if (ix-ccdSec.XFirst() < Nx() && 
+                ix-ccdSec.XFirst() >=0 )
+              Image()->WrFrame(ix-ccdSec.XFirst(),iy-ccdSec.YFirst(),p1[0]+p1[1]*(ix-Sec.XFirst()+1));
+          }
         }
       }
     }

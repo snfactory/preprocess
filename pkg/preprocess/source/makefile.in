@@ -27,17 +27,19 @@ WSRC = bichip_build.cxx\
 SRC =	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
 	 preprocess.cxx\
+	 preprocess_overscan.cxx\
 	 rickify.cxx\
 	 split_image.cxx\
 	 quick_look.cxx\
 	 fft_image.cxx\
 	 copy_image.cxx\
 	 copy_image_slice.cxx\
-	 test_extension.cxx\
 	 stack_bias.cxx\
 	 stack_bichip.cxx\
 	 preprocess_dark.cxx\
          filter_image.cxx\
+	 add_image.cxx\
+	 image_flip.cxx\
 
 OPTSRC =   substract_overscan.cxx\
 	 substract_dark.cxx\
@@ -50,10 +52,9 @@ OPTSRC =   substract_overscan.cxx\
 	 bichip_variance.cxx\
 	 stack_bichip_gain.cxx\
 	 wr_desc_cat.cxx\
-	 add_image.cxx\
-	 image_flip.cxx\
 	 bichip_build.cxx\
 	 hack_B_headers.cxx\
+	 test_extension.cxx\
 
 # non-maintained executables
 OLDSRC = \
@@ -61,9 +62,10 @@ OLDSRC = \
 
 
 EXE = $(patsubst %.cxx, $(E)/%, $(SRC))
-OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))
+#OPTEXE = $(patsubst %.cxx, $(E)/%, $(OPTSRC))
 WEXE = $(patsubst %.cxx, $(E)/%, $(WSRC))
-OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) $(OPTSRC) )
+OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) )
+#OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) $(OPTSRC) )
 
 include make.depend
 

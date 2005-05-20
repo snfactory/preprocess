@@ -90,7 +90,15 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     bichip = new BiChipSnifs(name,"I",fMode,kIoAll);
     // not allowed because I mode
     //    bichip->SetAlgo("DETCOM");
-    return bichip;
+    // no new image asked for
+    if (!outName[0] || !strcmp(name,outName))
+      return bichip;
+    else {
+      BiChipSnifs* out = new BiChipSnifs(*bichip,outName,FLOAT,1,fMode,kIoAll);
+      out->SetAlgo("DETCOM");
+      delete bichip;
+      return out;
+    }
   }
   
   // Default : OTCOM
@@ -197,38 +205,28 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
 BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
   /* handles all the information relevant to the overscan */
 
-  // simply returns the debiased bichip
+  // Preliminary : getting a bichip in IO mode
 
-  BiChipSnifs * bichip = BuildRawBiChip(name);
-  BiChipSnifs * out;
+  // build a temporary name if needed
+  char imName[lg_name+1];
+  if (!outName[0]) {
+    strcpy(imName,name);
+    ut_build_tmp_name(imName,"bias");
+  } else
+    strcpy(imName,outName);
 
-  // Preliminary : getting an IO copy
+  BiChipSnifs * out = BuildRawBiChip(name,imName);
 
-  // Detcom image -> copy to out to be able to set keywords, etc...
-  // if algo not set, assume it is detcom
-  if (!bichip->Chip(0)->Algo()) {
-    // build the names
-    char imName[lg_name+1];
-    if (!outName[0]) {
-      strcpy(imName,name);
-      ut_build_tmp_name(imName,"bias");
-    }
-    else
-      strcpy(imName,outName);
+  // keyword hacking
 
-    out = new BiChipSnifs(*bichip,imName,FLOAT,1,fMode,kIoAll);
-    out->SetAlgo("DETCOM");
-    // keywords hacking
+  // Detcom image -> make a special header hack
+  if (!out->Chip(0)->Algo()->GetId() == kDetcom) {
     char primary_name[lg_name+1];
-    ut_primary_header_name(bichip->Chip(0)->Name(),primary_name);
+    ut_primary_header_name(out->Chip(0)->Name(),primary_name);
     out->HackFitsKeywords(primary_name);
-    delete bichip;
   } else { 
-    // otcom image : no need for an additional copy (was done in BuildRawBiChip )
-    out = bichip;
     // keywords hacking
     out->HackFitsKeywords();
-
   }
     
   //
