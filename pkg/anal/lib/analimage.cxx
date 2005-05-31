@@ -133,7 +133,7 @@ ImageSignature::ImageSignature(){
   Reset();
   fIsAlive = new int[fkNitems];
   SetPrintItems("100000111111110100");
-  fPrintInfo = new (PrintInfo*)[fkNitems];
+  fPrintInfo = new PrintInfo*[fkNitems];
   int i=0;
   fPrintInfo[i++] = new PrintInfoType<char>(" Name of the exposure","Name","%25.25s",25, fName);
   fPrintInfo[i++] = new PrintInfoType<int>(" FClass ","FClass","%3d",3,&fFClass);
