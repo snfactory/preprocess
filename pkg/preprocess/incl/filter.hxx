@@ -79,5 +79,24 @@ protected:
 
 };
 
+/* ===== FilterMax ==================== */
+
+// returns the maximum in the window
+
+class ImageFilterMax : public ImageFilter {
+  public :
+
+  ImageFilterMax(int Xsize, int Ysize, Bound_t B=kNoData);
+  ~ImageFilterMax();
+
+  //  virtual void SetInputImage(ImageSimple* I);
+  virtual void Filter(int X, int Y, Section* S);
+  
+
+protected:
+  ImageAnalyser* fAnal;
+
+};
+
 
 #endif

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   double *args;
   ImageFilter *F;
 
-  set_arglist("-in none -out none -halfwindow 2,2 -method hf -args 0");
+  set_arglist("-in none -out none -halfwindow 2,2 -method hf|max -args 0");
   init_session(argv,argc,&arglabel,&argval);
 
   char inName[lg_name+1],outName[lg_name+1];
@@ -48,6 +48,8 @@ int main(int argc, char **argv) {
     FHF->SetThreshold(args[0]);
     FHF->SetSignificance(args[1]);
     F= FHF;
+  } else if (!strcmp(argval[3],"max")) {
+    F = new ImageFilterMax(wx,wy,ImageFilter::kShrinks);
   } else {
     print_error("filter_image : unknown method %s",argval[3]);
   }

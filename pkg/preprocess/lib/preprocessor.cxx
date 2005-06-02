@@ -220,9 +220,13 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
   // keyword hacking
 
   // Detcom image -> make a special header hack
-  if (!out->Chip(0)->Algo()->GetId() == kDetcom) {
+  if (out->Chip(0)->Algo()->GetId() == kDetcom) {
     char primary_name[lg_name+1];
-    ut_primary_header_name(out->Chip(0)->Name(),primary_name);
+    // for some reason, it is not possible to open the temporary image ...
+    // I guess it is because it was not written properly yet...
+    // also, I pretty bet the primary header was not copied anyway ...
+    //    ut_primary_header_name(out->Chip(0)->Name(),primary_name);
+    ut_primary_header_name(name,primary_name);
     out->HackFitsKeywords(primary_name);
   } else { 
     // keywords hacking

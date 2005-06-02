@@ -17,6 +17,7 @@
 #include "section.hxx"
 #include "utils.h"
 #include "analyser.hxx"
+//#include "IFU_io.h"
 
 /* ##### Filter ################################################# */
 
@@ -56,13 +57,13 @@ void ImageFilter::Filter() {
         S.SetYFirst(0);
       if (S.YLast()>fInput->Ny())
         S.SetYLast(fInput->Ny());
-      for (i=0;i<fInput->Ny();i++) {
+      for (i=0;i<fInput->Nx();i++) {
         S.SetXFirst(i - fXsize);
         S.SetXLast(i + fXsize+1);
         if (S.XFirst()<0)
           S.SetXFirst(0);
-        if (S.YLast()>fInput->Ny())
-          S.SetYLast(fInput->Ny());
+        if (S.XLast()>fInput->Nx())
+          S.SetXLast(fInput->Nx());
         Filter(i,j,&S);
       }
     }
@@ -79,16 +80,16 @@ void ImageFilter::Filter() {
         S.SetYLast(fInput->Ny());
         S.SetYFirst(- fInput->Ny() + 2*j + 1);
       }
-      for (i=0;i<fInput->Ny();i++) {
+      for (i=0;i<fInput->Nx();i++) {
         S.SetXFirst(i - fXsize);
         S.SetXLast(i + fXsize+1);
         if (S.XFirst()<0) {
           S.SetXFirst(0);
-          S.SetYLast(2*i+1);
+          S.SetXLast(2*i+1);
         }
-        if (S.YLast()>fInput->Ny()) {
-          S.SetYLast(fInput->Ny());
-          S.SetYFirst(-fInput->Nx() + 2*i +1);
+        if (S.XLast()>fInput->Nx()) {
+          S.SetXLast(fInput->Nx());
+          S.SetXFirst(-fInput->Nx() + 2*i +1);
         }
         Filter(i,j,&S);
       }
@@ -164,6 +165,52 @@ void ImageFilterHF::Filter(int i, int j, Section* S) {
     else {
       WriteNoData(i,j);
     }
+  }
+}
+
+/* ##### ImageFilterMax ################################################# */
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterMax::ImageFilterMax(int Xsize, int Ysize, Bound_t B) {
+  fXsize=Xsize;
+  fYsize=Ysize;
+  fBound = B;
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterMax::~ImageFilterMax() {
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+//void ImageFilterMax::SetInputImage(ImageSimple* I){
+//  fInput=I;
+//}
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterMax::Filter(int i, int j, Section* S) {
+
+  double max = -ut_big_value;
+  int ix0,iy0;
+  for (int iy=S->YFirst();iy<S->YLast();iy++) {
+    for (int ix=S->XFirst();ix<S->XLast();ix++) {
+      //      if (ix<0 || ix>=fInput->Nx() || iy<0 || iy > fInput->Ny())
+      //  print_error("ImageFilterMax::Filter i,j = %d,%d",ix,iy );
+      
+      if (fInput->RdFrame(ix,iy)>max) {
+        max = fInput->RdFrame(ix,iy);
+        ix0=ix;
+        iy0=iy;
+      }
+    }
+  }
+
+  fOutput->WrFrame(i,j,max);
+  // very crude estimate now ...
+  if (fInput->Variance()&&fOutput->Variance()) {
+    fOutput->Variance()->WrFrame(i,j,
+           fInput->Variance()->RdFrame(ix0,iy0));
   }
 }
 
