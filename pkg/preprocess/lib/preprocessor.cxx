@@ -95,8 +95,22 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
       return bichip;
     else {
       BiChipSnifs* out = new BiChipSnifs(*bichip,outName,FLOAT,1,fMode,kIoAll);
-      out->SetAlgo("DETCOM");
       delete bichip;
+
+      // now try to know if we have CFHT of SNFactory detcom
+      char primary_name[lg_name+1],acqswv[lg_name+1];
+      ut_primary_header_name(name,primary_name);
+      Anyfile primary_header;
+      open_primary_hd(&primary_header,primary_name,"I");
+      disable_user_warnings();
+      int retCode = RD_desc(&primary_header,"ACQSWV",CHAR,lg_name+1,acqswv);
+      restore_user_warnings();
+      close_primary_hd(&primary_header);
+      if (retCode > 0)
+        out->SetAlgo("SNFDETCOM");
+      else
+        out->SetAlgo("DETCOM");
+
       return out;
     }
   }
@@ -220,7 +234,7 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
   // keyword hacking
 
   // Detcom image -> make a special header hack
-  if (out->Chip(0)->Algo()->GetId() == kDetcom) {
+  if (out->Chip(0)->Algo()->GetId() != kOtcom ) {
     char primary_name[lg_name+1];
     // for some reason, it is not possible to open the temporary image ...
     // I guess it is because it was not written properly yet...

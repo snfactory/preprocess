@@ -119,6 +119,67 @@ Section* AlgoDetcom::SafeOverscanStrip(ImageSnifs* I) {
   return Sec;
 }
 
+/* ##### AlgoSnfDetcom ################################################# */
+
+/* ===== Methods ======================================= */
+
+/* ----- HackFitsKeywords -------------------------------------------------- */
+void AlgoSnfDetcom::HackFitsKeywords(ImageSnifs* I) {
+
+  // First : hack for normal raster
+
+  // THIS HAS TO BE CORRECTED !!!! 
+  char key[lg_name+1];
+  I->RdDesc("DATASEC",CHAR,lg_name+1,key);
+  if (!strcmp(key,"[1:1024,1:4096]")){
+    
+    // The BiasSec is not correct
+    sprintf(key,"[%d:%d,%d:%d]",1028,1056,1,4128);
+    I->WrDesc("BIASSEC",CHAR,lg_name+1,key);
+    
+    // the DATASEC needs help too
+    sprintf(key,"[%d:%d,%d:%d]",4,1027,1,4102);
+    I->WrDesc("DATASEC",CHAR,lg_name+1,key);
+
+  } else { // rasters 
+      print_error("ImageSnifs::HackFitsKeywords : only works for FULL raster");
+      return;  
+  }
+
+  int channel;
+  if (I->RdIfDesc("CHANNEL",INT,1,&channel) <=0) {
+    // assume DETCOM = BLUE
+    I->SetChannel(kBlueChannel);
+  }
+
+  // No hack for JD as there is MJD
+
+  // SATURATE missing
+  int saturate = 65535;
+  if (I->RdIfDesc("SATURATE",INT,1,&saturate) <=0) {
+    I->WrDesc("SATURATE",INT,1,&saturate);
+  }
+  
+  // OBSTYPE missing
+  char type[lg_name+1];
+  if (I->RdIfDesc("OBSTYPE",CHAR,lg_name+1,type)<=0) {
+    if (I->RdIfDesc("IMTYPE",CHAR,lg_name+1,type) <=0){
+      print_warning("AlgoSnfDetcom::HackFitsKeywords no IMTYPE keyword found");
+      type[0]=0;
+    }
+    I->WrDesc("OBSTYPE",CHAR,lg_name+1,type);
+  }
+  
+  int nbin[2];
+  if (I->RdIfDesc("CCDBIN",INT,2,&nbin)<=1) {
+    char sum[lg_name+1];
+    I->RdDesc("CCDSUM",CHAR,lg_name+1,sum);
+    sscanf(sum,"%d %d",nbin,nbin+1);
+    I->WrDesc("CCDBIN",INT,2,&nbin);
+  }
+
+}
+
 /* ##### AlgoOtcom ################################################# */
 
 /* ===== Methods ======================================= */
@@ -128,16 +189,17 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
 
   int saturate = 65535;
   if (I->RdIfDesc("SATURATE",INT,1,&saturate) <=0) {
-    //    print_warning("AlgoOtcom::HackFitsKeywords no SATURATE keyword found");
     I->WrDesc("SATURATE",INT,1,&saturate);
   }
   
   char type[lg_name+1];
-  if (I->RdIfDesc("IMAGETYP",CHAR,lg_name+1,type) <=0){
-    print_warning("AlgoOtcom::HackFitsKeywords no IMAGETYP keyword found");
-    type[0]=0;
+  if (I->RdIfDesc("OBSTYPE",CHAR,lg_name+1,type)<=0) {
+    if (I->RdIfDesc("IMAGETYP",CHAR,lg_name+1,type) <=0){
+      print_warning("AlgoOtcom::HackFitsKeywords no IMAGETYP keyword found");
+      type[0]=0;
+    }
+    I->WrDesc("OBSTYPE",CHAR,lg_name+1,type);
   }
-  I->WrDesc("OBSTYPE",CHAR,lg_name+1,type);
 
   // The BiasSec contains a bad line (the last one)
   int x1,x2,y1,y2;

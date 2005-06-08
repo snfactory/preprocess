@@ -106,6 +106,8 @@ AlgoCams* ImageSnifs::Algo(){
     return 0;
   if (!strcmp(soft,"DETCOM"))
     fAlgo = new AlgoDetcom;
+  if (!strcmp(soft,"SNFDETCOM"))
+    fAlgo = new AlgoSnfDetcom;
   if (!strcmp(soft,"OTCOM"))
     fAlgo = new AlgoOtcom;
   return fAlgo;

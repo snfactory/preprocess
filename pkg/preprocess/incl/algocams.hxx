@@ -26,7 +26,7 @@ class Section;
 
 /* ===== ALGOCAMS ======================================== */
 
-enum AlgoMethod_t {kNone,kDetcom,kOtcom};
+enum AlgoMethod_t {kNone,kDetcom,kSnfDetcom, kOtcom};
 /* The virtual class*/
 
 class AlgoCams {
@@ -48,6 +48,7 @@ class AlgoCams {
   
 };
 
+/* ----- AlgoDetcom ------------------------------ */
 class AlgoDetcom : public AlgoCams{
   public :
    
@@ -66,6 +67,24 @@ class AlgoDetcom : public AlgoCams{
   
 };
 
+/* ----- AlgoSnfDetcom ------------------------------ */
+class AlgoSnfDetcom : public AlgoDetcom{
+  public :
+   
+    // Constructors/Destructors
+    virtual ~AlgoSnfDetcom() {}
+  
+    virtual AlgoMethod_t GetId()   {return kSnfDetcom;}
+
+    // method
+
+    virtual void HackFitsKeywords(ImageSnifs * Image);
+  // inherited from AlgoDetcom
+  //  virtual Section* SafeOverscanStrip(ImageSnifs* Image);
+  
+};
+
+/* ----- AlgoOtcom ------------------------------ */
 class AlgoOtcom :public AlgoCams {
   public :
    

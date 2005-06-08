@@ -476,6 +476,7 @@ void  BiChipSnifs::HackFitsKeywords(char* PrimaryName)  {
     open_primary_hd(&primary_header,PrimaryName,"I");
     for (int chip=0;chip<NChips();chip++)
       CP_non_std_desc(&primary_header,fChip[chip]->Frame());
+    close_primary_hd(&primary_header);
   }
 
   for (int chip=0;chip<NChips();chip++) 
