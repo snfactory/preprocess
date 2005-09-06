@@ -45,7 +45,7 @@ AC_F77_LIBRARY_LDFLAGS
                           
 dnl Checks for libraries ==============================
 
-dnl IFU_C_iolibs, >= 6.0d ------------------------------
+dnl IFU_C_iolibs, >= 6.2 ------------------------------
 dnl AC_HELP_STRING valid only for recent autoconfs
 
 AC_MSG_CHECKING([for a valid IFU_C_iolibs])
@@ -56,41 +56,18 @@ AC_ARG_WITH(ifuciolibs,
 dnl If the user does not provide one, try to see if somthing acceptable is found
 ac_ifuciolibs_vers_ok_list="6.2"
 
-dnl try to find a valid version
+dnl try to find a valid version (simplified now)
 if test -z "$ac_ifuciolibs"
 then
     cwd=`pwd` 
-    [for ac_ifuciolibs_config in `ls -t $cwd/../IFU_C_iolibs*/configure.in $cwd/../E3D_io_LCL*/configure.in 2> /dev/null`]
-    do
-        ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs_config  | sed 's%.*, *\(.*\) *)%\1%' `
-        for ac_ifuciolibs_vers_ok in $ac_ifuciolibs_vers_ok_list
-        do
-            if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"
-            then
-               if test -n "$ac_ifuciolibs"
-               then
-                   AC_MSG_WARN([Discarding ../IFU_C_iolibs version $ac_ifuciolibs_vers])
-               else
-                   [ac_ifuciolibs=`echo $ac_ifuciolibs_config | sed 's%/[^/]*$%%'`]
-               fi
-            fi
-        done
-    done
-    dnl nothing found : give a hint
-    if test -z "$ac_ifuciolibs"
-    then
-        if test -z "$ac_ifuciolibs_vers"
-        then
-            AC_MSG_ERROR([No IFU_C_iolibs found. Use --with-ifuciolibs])
-        else
-            AC_MSG_ERROR([Found only IFU_C_iolibs version $ac_ifuciolibs_vers, one of $ac_ifuciolibs_vers_ok_list is needed. Use --with-ifuciolibs or mailto:gangler@ipnl.in2p3.fr])
-        fi
-dnl    else
-dnl        echo IFU_C_iolibs found :  $ac_ifuciolibs version is $ac_ifuciolibs_vers
+    ac_ifuciolibs=$cwd/../IFU_C_iolibs
+    if test ! -e "$ac_ifuciolibs" 
+    then 
+        AC_MSG_ERROR([No IFU_C_iolibs found. Use --with-ifuciolibs])
     fi
 fi
 dnl A version exists. Check now it is right (to improve)
-ac_ifuciolibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_iolibs'  $ac_ifuciolibs/configure.in  | sed 's%.*, *\(.*\) *)%\1%' `
+ac_ifuciolibs_vers=` grep 'INIT(IFU_C_iolibs' ../IFU_C_iolibs/configure.ac | sed 's%.*s, *\(.*\), a.*)%\1%' `
 for ac_ifuciolibs_vers_ok in $ac_ifuciolibs_vers_ok_list
 do
     if test "$ac_ifuciolibs_vers" = "$ac_ifuciolibs_vers_ok"

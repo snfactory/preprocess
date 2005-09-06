@@ -98,5 +98,24 @@ protected:
 
 };
 
+/* ===== FilterMedian ==================== */
+
+// returns the maximum in the window
+
+class ImageFilterMedian : public ImageFilter {
+  public :
+
+  ImageFilterMedian(int Xsize, int Ysize, Bound_t B=kNoData);
+  ~ImageFilterMedian();
+
+  virtual void SetInputImage(ImageSimple* I);
+  virtual void Filter(int X, int Y, Section* S);
+  
+
+protected:
+  ImageAnalyser* fAnal;
+
+};
+
 
 #endif

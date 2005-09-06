@@ -134,12 +134,15 @@ double ImageAnalyser::StatsVariance(){
 
 /* ----- MeanMapVariance ------------------------------ */
 double ImageAnalyser::MeanMapVariance() {
-  if (!fImage->Variance()) {
-    return -1;
-  }
+  // Returns the variance computed from the variance map.
+
+  // force crash ?
+  //if (!fImage->Variance()) {
+  //  return -1;
+  //}
   double weight=0;
   for (int j=fSec->YFirst(); j< fSec->YLast();j++) 
-    for (int i=fSec->YFirst(); i< fSec->YLast();i++) {
+    for (int i=fSec->XFirst(); i< fSec->XLast();i++) {
       weight += 1/fImage->Variance()->RdFrame(i,j);
     }
   return 1/weight;

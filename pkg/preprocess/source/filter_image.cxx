@@ -12,7 +12,7 @@
 /* =========================================================== */
 
 /* ----- local include ----- */
-#include "image.hxx"
+#include "imagesnifs.hxx"
 #include "filter.hxx"
 #include "catorfile.hxx"
 #include "utils.h"
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   double *args;
   ImageFilter *F;
 
-  set_arglist("-in none -out none -halfwindow 2,2 -method hf|max -args 0");
+  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max -args 0");
   init_session(argv,argc,&arglabel,&argval);
 
   char inName[lg_name+1],outName[lg_name+1];
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
   sscanf(argval[2],"%d,%d",&wx,&wy);
 
-  if (!strcmp(argval[3],"hf")) {
+  if (!strcmp(arglabel[3],"-hf")) {
     args = new double[2];
     int nargs = sscanf(argval[4],"%lf,%lf",args,args+1);
     if (nargs<2) {
@@ -48,7 +48,9 @@ int main(int argc, char **argv) {
     FHF->SetThreshold(args[0]);
     FHF->SetSignificance(args[1]);
     F= FHF;
-  } else if (!strcmp(argval[3],"max")) {
+  } else if (!strcmp(arglabel[3],"-med")) {
+    F = new ImageFilterMedian(wx,wy,ImageFilter::kShrinks);
+  } else if (!strcmp(arglabel[3],"-max")) {
     F = new ImageFilterMax(wx,wy,ImageFilter::kShrinks);
   } else {
     print_error("filter_image : unknown method %s",argval[3]);
@@ -57,10 +59,10 @@ int main(int argc, char **argv) {
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     print_msg("Filtering %s",inName);
-    ImageSimple *in = new ImageSimple(inName,"I");
-    ImageSimple *out = new ImageSimple(*in,outName);
-    F->SetInputImage(in);
-    F->SetOutputImage(out);
+    ImageSnifs *in = new ImageSnifs(inName,"I");
+    ImageSnifs *out = new ImageSnifs(*in,outName);
+    F->SetInputImage(in->Image());
+    F->SetOutputImage(out->Image());
     F->Filter();
     delete in;
     delete out;

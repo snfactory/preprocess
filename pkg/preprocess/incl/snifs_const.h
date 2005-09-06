@@ -2,7 +2,7 @@
 /*! 
  * \file          snifs_const.h
  * \copyright     (c) 2003 SNIFS-Supernova Factory Experiment
- * \date          Tue Apr 19 16:34:34 2005
+ * \date          Tue Jul  5 14:13:13 2005
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
  * \brief         
@@ -25,10 +25,10 @@ static const int kBadSectionsBlue=0;
 static const int kBadSectionsRed=5;
 //coordinates are on the final assembled image
 static const int kBadSectionsDataRed[kBadSectionsRed*4]={
-  1570,1576,2905,2959,
-  1576,1576,1,2904,
-  1577,1581,2932,2946,
-  1581,1581,1,2931,
+  1570,1576,2844,2997,
+  1576,1576,1,2843,
+  1577,1581,2927,2954,
+  1581,1581,1,2926,
   1017,1018,1,4079};// format is [x1,x2,y1,y2]
 /* very hot
 + 10 pixels to be sure

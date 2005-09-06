@@ -38,7 +38,9 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
   // First : hack for normal raster
   char key[lg_name+1];
   I->RdDesc("RASTER",CHAR,lg_name+1,key);
-  if (!strcmp(key,"FULL")){
+  int nbin[2];
+  I->RdDesc("CCDBIN1",INT,2,nbin);
+  if (!strcmp(key,"FULL") ){
     // The BiasSec is not correct
     int x1,x2,y1,y2;
     I->RdDesc("BIASSEC",CHAR,lg_name+1,key);
@@ -49,16 +51,13 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     // the DATASEC needs help too
     I->RdDesc("DATASEC",CHAR,lg_name+1,key);
     sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5);
+    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5/nbin[1]);
     I->WrDesc("DATASEC",CHAR,lg_name+1,key);
 
   } else { // rasters 
-    int nbin1,nbin2;
-    I->RdDesc("CCDBIN1",INT,1,&nbin1);
-    I->RdDesc("CCDBIN2",INT,1,&nbin2);
-    if (nbin1 != 1 || nbin2 !=1 ) {
-      print_error("ImageSnifs::HackFitsKeywords : only works for BIN 1 1 raster");
-      return;  }
+    //if (nbin[0] != 1 || nbin[1] !=1 )
+    //  print_warning("ImageSnifs::HackFitsKeywords : tested only for BIN 1 1 raster");
+    
     int x1,x2,y1,y2;
     I->RdDesc("BIASSEC",CHAR,lg_name+1,key);
     if (sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2)==4) {
@@ -67,9 +66,9 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     }
     
     // OK, correct the DATASEC -- I don't know what to do with CCDSEC
-    I->RdDesc("DATASEC",CHAR,lg_name+1,key);
-    sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-    sprintf(key,"[%d:%d,%d:%d]",4,x2-1,1,y2-1);
+    //I->RdDesc("DATASEC",CHAR,lg_name+1,key);
+    //sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
+    sprintf(key,"[%d:%d,%d:%d]",4,I->Nx(),1,I->Ny());
     I->WrDesc("DATASEC",CHAR,lg_name+1,key);
   }
 

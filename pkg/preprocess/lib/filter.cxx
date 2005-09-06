@@ -145,10 +145,11 @@ void ImageFilterHF::Filter(int i, int j, Section* S) {
   double median = fAnal->Quantile(0.5);
   // this is the variance of the mean, with actual point excluded, not the variance of the median.
   double pointvar = fInput->Variance()->RdFrame(i,j);
-  double var = 1/(1/fAnal->MeanMapVariance() - 1/pointvar);
+  // variance of the mean
+  double var = fAnal->MeanMapVariance();
   int secSize = S->XLength()*S->YLength();
-  // now rough variance of the median :
-  var *= 3 * secSize / (secSize + 2 );
+  // now rough (guess) variance of the median :
+  var *= 3.0 * secSize / (secSize + 2.0 );
   
   // we consider 2 cases : 
   // the central point = the median. In that caes, we have no correction
@@ -165,6 +166,50 @@ void ImageFilterHF::Filter(int i, int j, Section* S) {
     else {
       WriteNoData(i,j);
     }
+  }
+}
+
+
+/* ##### ImageFilterHF ################################################# */
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterMedian::ImageFilterMedian(int Xsize, int Ysize, Bound_t B) {
+  fXsize=Xsize;
+  fYsize=Ysize;
+  fBound = B;
+  fAnal=new ImageAnalyser();
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterMedian::~ImageFilterMedian() {
+  delete fAnal;
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+void ImageFilterMedian::SetInputImage(ImageSimple* I){
+  fInput=I;
+  fAnal->SetImage(I);
+}
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterMedian::Filter(int i, int j, Section* S) {
+
+  fAnal->SetSection(S);
+  double median = fAnal->Quantile(0.5);
+  // this is the variance of the mean, with actual point excluded, not the variance of the median.
+  fOutput->WrFrame(i,j,median);
+
+  if (fInput->Variance() && fOutput->Variance()) {
+    
+    // variance of the mean
+    double var = fAnal->MeanMapVariance();
+    int secSize = S->XLength()*S->YLength();
+    // now rough (guess) variance of the median :
+    var *= 3.0 * secSize / (secSize + 2.0 );
+  
+    fOutput->Variance()->WrFrame(i,j,var);
   }
 }
 
