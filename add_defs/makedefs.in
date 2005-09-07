@@ -59,7 +59,7 @@ PKG_INC = ../../incl
 USER_INC = ../incl
 LOCAL_INC =  /usr/local/include
 STAND_INC = $(WCS_INC)/wcshdr.h \
-	$(INC)/gendef.h $(INC)/items.h $(INC)/alloc.h \
+	$(INC)/gendef.h $(INC)/items.h \
 	$(INC)/iofuncdecl.h $(INC)/funcdecl.h \
 	$(INC)/3D_items.h $(INC)/3D_iofunc.h \
 	$(INC)/macro.h $(INC)/funcdef.h $(INC)/IFU_io.h
