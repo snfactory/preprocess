@@ -129,6 +129,7 @@ void AlgoSnfDetcom::HackFitsKeywords(ImageSnifs* I) {
 
   // THIS HAS TO BE CORRECTED !!!! 
   char key[lg_name+1];
+/*
   I->RdDesc("DATASEC",CHAR,lg_name+1,key);
   if (!strcmp(key,"[1:1024,1:4096]")){
     
@@ -144,6 +145,7 @@ void AlgoSnfDetcom::HackFitsKeywords(ImageSnifs* I) {
       print_error("ImageSnifs::HackFitsKeywords : only works for FULL raster");
       return;  
   }
+*/
 
   int channel;
   if (I->RdIfDesc("CHANNEL",INT,1,&channel) <=0) {
