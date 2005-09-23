@@ -15,18 +15,15 @@ all : $(PDF)
 
 .PHONY : clean
 
-%.pdf : %.ps
-	ps2pdf $<
-
-%.ps : %.dvi
-	dvips -o $@ $<
+%.pdf : %.dvi
+	@DVIPDF@ $<
 
 %.dvi : %.tex makefile
 	latex $<
 	latex $<
 
 clear: 
-	rm -f *.dvi *.log *.toc *.aux *.ps *.pdf
+	rm -f *.dvi *.log *.toc *.aux *.pdf
 
 makefile: makefile.in  $(topdir)/config.status
 	cd $(topdir) \

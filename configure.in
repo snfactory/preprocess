@@ -90,47 +90,44 @@ AC_CHECK_LIB(io,open_frame,
 
 dnl checking now for the mathlibs -------------------------------------
 dnl needed marginally for technical reasons
-AC_MSG_CHECKING([for IFU_C_mathlibs])
+
+dnl IFU_C_iolibs, >= 6.2 ------------------------------
+dnl AC_HELP_STRING valid only for recent autoconfs
+
+AC_MSG_CHECKING([for a valid IFU_C_mathlibs])
 AC_ARG_WITH(ifucmathlibs, 
-         [  --with-ifucmathlibs=DIR       directory of IFU_mathlibs ],
+         [  --with-ifucmathlibs=DIR       directory of IFU_C_mathlibs ],
          [ac_ifucmathlibs=$withval], 
          [ac_ifucmathlibs=])
-
 dnl If the user does not provide one, try to see if somthing acceptable is found
 ac_ifucmathlibs_vers_ok_list="6.0 6.1 6.2"
 
+
+dnl try to find a valid version (simplified now)
 if test -z "$ac_ifucmathlibs"
 then
     cwd=`pwd` 
-    [for ac_ifucmathlibs_config in `ls -t $cwd/../IFU_C_mathlibs*/configure.in 2> /dev/null`]
-    do   
-        ac_ifucmathlibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_mathlibs' $ac_ifucmathlibs_config  | sed 's%.*, *\(.*\) *)%\1%' `
-        for ac_ifucmathlibs_vers_ok in $ac_ifucmathlibs_vers_ok_list
-        do
-            [if test "$ac_ifucmathlibs_vers" = "$ac_ifucmathlibs_vers_ok"]
-            then
-               if test -n "$ac_ifucmathlibs"
-               then
-                   AC_MSG_WARN([Discarding ../IFU_C_mathlibs version $ac_ifucmathlibs_vers])
-               else
-                   [ac_ifucmathlibs=`echo $ac_ifucmathlibs_config | sed 's%/[^/]*$%%'`]
-               fi
-            fi
-        done
-    done
-    dnl nothing found : give a hint
-    if test -z "$ac_ifucmathlibs"
-    then
-        if test -z "$ac_ifucmathlibs_vers"
-        then
-            AC_MSG_ERROR([No IFU_C_mathlibs found. Use --with-ifucmathlibs])
-        else
-            AC_MSG_ERROR([Found only IFU_C_mathlibs version $ac_ifucmathlibs_vers, one of $ac_ifucmathlibs_vers_ok_list is needed. Use --with-ifucmathlibs])
-        fi
+    ac_ifucmathlibs=$cwd/../IFU_C_mathlibs
+    if test ! -e "$ac_ifucmathlibs" 
+    then 
+        AC_MSG_ERROR([No IFU_C_mathlibs found. Use --with-ifucmathlibs])
     fi
 fi
-ac_ifucmathlibs_vers=` grep 'INIT_AUTOMAKE(IFU_C_mathlibs' $ac_ifucmathlibs/configure.in  | sed 's%.*, *\(.*\) *)%\1%' `
-AC_MSG_RESULT([version $ac_ifucmathlibs_vers in $ac_ifucmathlibs])
+dnl A version exists. Check now it is right (to improve)
+ac_ifucmathlibs_vers=` grep 'INIT(IFU_C_mathlibs' ../IFU_C_mathlibs/configure.ac | sed 's%.*s, *\(.*\), a.*)%\1%' `
+for ac_ifucmathlibs_vers_ok in $ac_ifucmathlibs_vers_ok_list
+do
+    if test "$ac_ifucmathlibs_vers" = "$ac_ifucmathlibs_vers_ok"
+    then
+        ac_ifucmathlibs_vers_ok="OK"
+    fi
+done
+if test -z "$ac_ifucmathlibs_vers_ok"
+then
+    AC_MSG_ERROR([IFU_C_mathlibs version $ac_ifucmathlibs_vers found - you should use one of $ac_ifucmathlibs_vers_ok_list. Use --with-ifucmathlibs or mailto:gangler@ipnl.in2p3.fr])
+else
+   AC_MSG_RESULT([version $ac_ifucmathlibs_vers in $ac_ifucmathlibs])
+fi
 AC_SUBST(ac_ifucmathlibs)
 
 dnl checking now for the GSL -----------------------------------------------
@@ -174,6 +171,15 @@ else
 fi
 AC_SUBST(PKG_ROOT)
 echo setting PKG_ROOT to $PKG_ROOT
+
+dnl Checking for dvipdf -----------------------------
+AC_CHECK_PROG(DVIPDF, dvipdf, yes, no)
+if test "x$DVIPDF" = "xyes"; then
+   DVIPDF=dvipdf
+else 
+   DVIPDF=echo
+fi
+AC_SUBST(DVIPDF)
 
 dnl Checks for header files ==============================
 AC_HEADER_STDC
@@ -252,7 +258,7 @@ dnl Final configuration ==============================
 dnl OUTPUT=`find . -name '?akefile.??'|sed 's|^\./||;s|\...$| \\\\|'|uniq|sort|sed '$s|\\\\$||'`
 
 echo "
-=============== EURO3D final configuration ===============
+=============== Ccd final configuration ===============
 Project:        $PACKAGE
 Version:        $VERSION
 
