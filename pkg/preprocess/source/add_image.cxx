@@ -11,13 +11,14 @@ int main(int argc, char **argv) {
   get_argval(3,"%lf",&sc1);
   get_argval(4,"%lf",&sc2);
 
+  if (is_true(argval[5]) && is_true(argval[6])){
+    print_error("Must choose between add and divide options");
+    exit_session(1);
+  }
+  
   ImageSnifs *in1 = new ImageSnifs(argval[0],"I");
   ImageSnifs *in2 = new ImageSnifs(argval[1],"I");
   ImageSnifs *out=new ImageSnifs(*in1,argval[2],0,1);
-  
-  if (is_set(argval[5]) && is_set(argval[6])){
-    print_error("Must choose between add and divide options");
-  }
   
   if (is_set(argval[6]))
     out->Divide(in2);
