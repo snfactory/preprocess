@@ -4,7 +4,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in1 none -in2 none -out none -sc1 1.0 -sc2 1.0 -add|divide");
+  set_arglist("-in1 none -in2 none -out none -sc1 1.0 -sc2 1.0 -add -divide");
   init_session(argv,argc,&arglabel,&argval);
 
   double sc1,sc2;
@@ -14,8 +14,12 @@ int main(int argc, char **argv) {
   ImageSnifs *in1 = new ImageSnifs(argval[0],"I");
   ImageSnifs *in2 = new ImageSnifs(argval[1],"I");
   ImageSnifs *out=new ImageSnifs(*in1,argval[2],0,1);
-
-  if (strstr(arglabel[5],"divide"))
+  
+  if (is_set(argval[5]) && is_set(argval[6])){
+    print_error("Must choose between add and divide options");
+  }
+  
+  if (is_set(argval[6]))
     out->Divide(in2);
   else { // add 
     out->Scale(sc1);
