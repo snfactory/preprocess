@@ -20,7 +20,7 @@
 #include "algocams.hxx"
 #include "overscan.hxx"
 
-/* Note about the fast mode : it suppresses OddEven correction and Variance computation */
+/* Note about the fast mode : it suppresses and Variance computation */
 
 /* ##### Preprocessor ################################################# */
 
@@ -261,10 +261,8 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
   // overscan substraction
   if (out->Chip(0)->HasOverscan()) {
     // normal exposure with an overscan
-    if (FastMode())
-      fOverscanSnifs->SetOddEven(0);
-    else
-      fOverscanSnifs->SetOddEven(1);
+    // we have to substract odd-even, as it has deep impacts on the fit_background, which is very sensitive to local minimas
+    fOverscanSnifs->SetOddEven(1);
     fOverscanSnifs->Correct(out);
   }
   // rescue procedure
