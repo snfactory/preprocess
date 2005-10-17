@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   ImageSnifs *in2 = new ImageSnifs(argval[1],"I");
   ImageSnifs *out=new ImageSnifs(*in1,argval[2],0,1);
   
-  if (is_set(argval[6]))
+  if (is_true(argval[6]))
     out->Divide(in2);
   else { // add 
     out->Scale(sc1);
