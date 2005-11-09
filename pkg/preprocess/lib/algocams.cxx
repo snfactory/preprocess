@@ -51,7 +51,10 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     // the DATASEC needs help too
     I->RdDesc("DATASEC",CHAR,lg_name+1,key);
     sscanf(key,"[%d:%d,%d:%d]",&x1,&x2,&y1,&y2);
-    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5/nbin[1]);
+    // the truth is this one, but it is not compatible with Snf Detcom
+    // so we truncate at 4096...
+    //    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5/nbin[1]);    
+    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2-1);
     I->WrDesc("DATASEC",CHAR,lg_name+1,key);
 
   } else { // rasters 
