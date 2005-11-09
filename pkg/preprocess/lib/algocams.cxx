@@ -39,7 +39,7 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
   char key[lg_name+1];
   I->RdDesc("RASTER",CHAR,lg_name+1,key);
   int nbin[2];
-  I->RdDesc("CCDBIN1",INT,2,nbin);
+  I->RdDesc("CCDBIN",INT,2,nbin);
   if (!strcmp(key,"FULL") ){
     // The BiasSec is not correct
     int x1,x2,y1,y2;

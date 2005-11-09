@@ -78,6 +78,6 @@ makefile: makefile.in  $(top_builddir)/config.status
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 make.depend: makefile $(SRC) $(SRCC)
-	$(CC) -MM $(CFLAGS) -c $(SRC) $(SRCC) | sed 's%\(.*\)\.o[ :]*%$$(O)/\1.o make.depend :%' > make.depend
+	$(CC) -MM $(CFLAGS) -c $(SRC) $(SRCC) | sed 's%\(.*\)\.o[ :]*%$$(O)/\1.o  :%' > make.depend
 
 .PHONY : OUT all
