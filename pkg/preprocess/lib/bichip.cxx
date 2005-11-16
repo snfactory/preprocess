@@ -327,9 +327,13 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   if (variance) {
     variance->WrDesc("DATASEC",CHAR,lg_name+1,key);
     variance->DeleteDesc("BIASSEC");
+    variance->DeleteDesc("GAIN");
   }
   
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
+  // deletes non-relevant parameters, as values are different for the 2 chips
+  compound->DeleteDesc("RDNOISE");
+  compound->DeleteDesc("GAIN");
 
   // and update the number of saturating pixels
   // compound->WrDesc("NSATU",INT,1,&nSatu);
