@@ -464,7 +464,7 @@ open_frame_fast(IMAGE2D *frame, char *name, char *mode)
 	memset(frame->history,' ',lg_hist);
 	frame->history[lg_hist] = '\0';
 	frame->external_info = 0;
-	frame->file_type = IMA_TYPE;
+	frame->file_type = T_IMA2D;
 	frame->data_format = InputIO.basic_io;
 
 	strcpy(filename,name);
