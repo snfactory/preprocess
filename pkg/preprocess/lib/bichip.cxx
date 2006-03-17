@@ -284,7 +284,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   // Puts the image data from chips
   //
   char keyName[lg_name+1];
-  double gain,rdnoise[NChips()];
+  double gain,rdnoise[NChips()],saturate[NChips()],satur,ovscmax,oeparam[2];
   for (int chip=0;chip<NChips();chip++) {
 
   // Note that R channel is flipped (180deg rotation) ... it is economic to do it here
@@ -315,6 +315,12 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     // propagates the RdNoises
     fChip[chip]->RdDesc("RDNOISE",DOUBLE,1,rdnoise+chip);
     rdnoise[chip]*=gain;
+    // propagate the saturation level
+    fChip[chip]->RdDesc("SATURATE",DOUBLE,1,&satur);
+    fChip[chip]->RdDesc("OVSCMAX",DOUBLE,1,&ovscmax);
+    fChip[chip]->RdDesc("OEPARAM",DOUBLE,2,oeparam);
+    saturate[chip]=satur-ovscmax-fabs(MAX(oeparam[0],oeparam[0]+oeparam[1]*compound->Ny()));
+    saturate[chip]*=gain*0.99; // security parameter 
   }
   
   // ... remains to update DATASEC and remove BIASSEC
@@ -331,9 +337,11 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   }
   
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
+  compound->WrDesc("SATURAT",DOUBLE,NChips(),saturate);
   // deletes non-relevant parameters, as values are different for the 2 chips
   compound->DeleteDesc("RDNOISE");
   compound->DeleteDesc("GAIN");
+  compound->DeleteDesc("SATURATE");
 
   // and update the number of saturating pixels
   // compound->WrDesc("NSATU",INT,1,&nSatu);

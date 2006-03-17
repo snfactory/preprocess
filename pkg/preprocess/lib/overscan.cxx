@@ -98,7 +98,7 @@ void OverscanBase::SubstractRamp(double *ov, double * var) {
   // Substract the overscan - makes a ramp between left and right
   // overscans. Left overscan = right line before. The fixed point
   // for the ramp are the middle ov overscan strip
-  // An small extrapolation is made on one line after the fixed point
+  // A small extrapolation is made on one line after the fixed point
   // As it amounts to about 14 points, it is considered as a negligible
   // approximation 
   for (int col=fSubSec->YFirst();col<fSubSec->YLast();col++) {
@@ -567,17 +567,17 @@ void OverscanSnifs::SubstractOffset() {
     }
   }
 
-  
-  // Get the real overscan work done.
-
-  double ov[fBiasSec->YLength()];
-  double var[fBiasSec->YLength()];
+  //
+  // Get the real overscan work done (core of the computation)
+  //
+  double* ov= new double[fBiasSec->YLength()];
+  double* var= new double[fBiasSec->YLength()];
   ComputeLines(ov,var);
   Substract(ov,var);
 
+  // back to keyword business
   overscanDone=1;
   fImage->WrDesc("OVSCDONE",INT,1,&overscanDone);
-
   // set the biasframe if allowed
   char obstype[lg_name+1];
   fImage->RdDesc("OBSTYPE",CHAR,lg_name+1,obstype);
@@ -587,6 +587,19 @@ void OverscanSnifs::SubstractOffset() {
   }
   if (Image()->GetFClass() == RAW_BIAS)
     Image()->SetFClass(BIAS_FRAME);
+  
+  // last : get the max value of the substracted offset
+  double max=0;
+  for (int i=0;i<fBiasSec->YLength();i++) {
+    if (ov[i]>max)
+      max=ov[i];
+  }
+  if ((2*ov[0]-ov[1])>max)
+    max=2*ov[0]-ov[1];
+  fImage->WrDesc("OVSCMAX",DOUBLE,1,&max);
+  delete[] ov;
+  delete[] var;
+  
 
 }
 

@@ -99,6 +99,7 @@ class ImageSnifs :public ImageSimple {
     void HandleSaturation();
     void HandleCosmetics();
     void CheatCosmetics();
+    void SpecialRedCosmetics();
   
 
     // Processing management

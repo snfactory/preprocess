@@ -28,18 +28,18 @@ SRC =	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
 	 preprocess.cxx\
 	 preprocess_overscan.cxx\
-	 rickify.cxx\
 	 split_image.cxx\
 	 quick_look.cxx\
 	 fft_image.cxx\
 	 copy_image.cxx\
 	 copy_image_slice.cxx\
-	 stack_bias.cxx\
+	 stack_image.cxx\
 	 stack_bichip.cxx\
 	 preprocess_dark.cxx\
          filter_image.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
+
 
 OPTSRC =   substract_overscan.cxx\
 	 substract_dark.cxx\
@@ -55,6 +55,8 @@ OPTSRC =   substract_overscan.cxx\
 	 bichip_build.cxx\
 	 hack_B_headers.cxx\
 	 test_extension.cxx\
+	 rickify.cxx\
+	 lrerror.cxx\
 
 # non-maintained executables
 OLDSRC = \

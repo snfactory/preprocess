@@ -26,6 +26,8 @@ SRC = 	rootify.cxx\
 	rootify_data.cxx\
 	rootify_tree.cxx\
 	quick_anal.cxx\
+	test_wavelets.cxx\
+	dwt_image.cxx\
 
 EXECC = $(patsubst %.cxx, $(E)/%, $(SRC))
 OBJ = $(patsubst %.cxx, $(O)/%.o, $(SRC) )

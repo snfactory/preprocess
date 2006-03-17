@@ -164,7 +164,6 @@ void AlgoSnfDetcom::HackFitsKeywords(ImageSnifs* I) {
     sscanf(sum,"%d %d",nbin,nbin+1);
     I->WrDesc("CCDBIN",INT,2,&nbin);
   }
-
 }
 
 /* ##### AlgoOtcom ################################################# */

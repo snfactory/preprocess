@@ -141,7 +141,7 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   Section ccdSec(ccdSecString);
   if (ccdSec.XLength()!=1024*nAmp) {
     print_msg("Preprocessor::BuildRawBiChip detected a Raster image");
-    isRaster=1;
+    isRaster=0;// =0 in case of a bias. Or we just keep all
   }
 
   // build the bichip
@@ -290,11 +290,12 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSn
   SetIoMethod(mode);
   ImageSnifs *out = bichip->Assemble(outName,fMode,kIoAll);
   delete bichip;
-  // remove bad lines
+  // repair hot zone
+  out->SpecialRedCosmetics();
+  // remove bad lines ... order matters here.
   out->HandleCosmetics();
   // Special request from Yannick
-  if (FastMode())
-    out->CheatCosmetics();
+  out->CheatCosmetics();
   if (bias) out->SubstractBias(bias);
   return out;
   

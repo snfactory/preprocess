@@ -21,6 +21,7 @@
 #include "section.hxx"
 #include "algocams.hxx"
 #include "snifs_const.h"
+#include "analyser.hxx"
 
 //static const char kChannelName[4][lg_name+1]={"Blue channel","Red channel","Photometry","Guiding"} ;
 
@@ -556,7 +557,10 @@ void ImageSnifs::HandleCosmetics() {
     int nmax=0;
     const int * data;
     if (GetChannel()==kRedChannel) {
-      nmax = kBadSectionsRed;
+      if (Variance())
+        nmax = kBadSectionsRed;
+      else
+        nmax=kBadSectionsRedNoVar;
       data=kBadSectionsDataRed;
     }
     if (GetChannel()&kPhotometric) {
@@ -600,7 +604,10 @@ void ImageSnifs::CheatCosmetics() {
     int nmax=0;
     const int * data;
     if (GetChannel()==kRedChannel) {
-      nmax = kBadSectionsRed;
+      if (Variance())
+        nmax = kBadSectionsRed;
+      else
+        nmax=kBadSectionsRedNoVar;
       data=kBadSectionsDataRed;
     }
     if (GetChannel()&kPhotometric) {
@@ -645,6 +652,177 @@ void ImageSnifs::CheatCosmetics() {
         }
       }
     }
+}
+
+/* -----  SpecialHotSpots -------------------------------------------- */
+void ImageSnifs::SpecialRedCosmetics() {
+  // special treatment for R channel hot lines.
+
+  if (GetChannel()!=kRedChannel) {
+    return;
+  }  
+  
+  //
+  // Handling non-standard raster
+  //
+  char ccdSecString[lg_name+1];
+  Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  Section ccdSec(ccdSecString);
+  // saturate value : 1 as there is a flip !!!
+  double saturate;
+  Image()->RdDesc("SATURAT1",DOUBLE,1,&saturate);
+  
+  const double kBadCols[2]={1575,1580};
+  
+  for (int icol=0;icol<2;icol++) {
+
+    int ix=kBadCols[icol]-ccdSec.XFirst();
+    if (ix<0) 
+      continue;
+    
+    //
+    // Get the saturating range
+    //
+    int ybeg=-1,yend=-1;
+    ybeg = 2938-ccdSec.YFirst(); // bad pixel which sometimes does not saturate
+    // try to find the saturating range.
+    // ybeg : the first saturated point
+    // yend-1 : the last saturated point
+    for(int iy=0;iy<Ny();iy++) {
+      if ( RdFrame(ix,iy)>saturate ) {
+        if (iy<ybeg) 
+          ybeg=iy;
+        yend = iy+1;
+      }
+    } // 2943 for the 2nd case !
+    if (yend<2942+icol-ccdSec.YFirst())
+      yend=2942+icol-ccdSec.YFirst();
+    
+    // the profile approach is not robust in case of a signal : over 10 pixels,
+    // the computed step can be 25% off of the real data in the worst case,
+    // and an error of 4% in the best case is usual
+    
+    // make the correction from data computed once
+    // we have to treat the first points outside the bounds also, but treatment will be different
+    if (ybeg>0 && RdFrame(ix,ybeg)>saturate ) 
+      ybeg--;
+    for(int iy=ybeg;iy<=yend && iy<Ny();iy++){
+      
+      double prop=1;
+      int bound=0;
+      
+      // check for boundaries
+      if ( RdFrame(ix,iy)<saturate ) {
+        bound=1;
+        if (ix>0 && ix+1<Nx()) {
+          double guess=(RdFrame(ix-1,iy)+RdFrame(ix+1,iy))/2;
+          prop= (RdFrame(ix,iy)-guess)/(saturate-guess);
+        }
+        else // very rare case : we are at the edge in x
+          prop= RdFrame(ix,iy)/saturate;
+      }
+      if (  RdFrame(ix,iy)>saturate && (iy-1>=0 &&  RdFrame(ix,iy-1)<saturate)
+            || (iy+1<Ny() &&  RdFrame(ix,iy+1)<saturate) )
+        bound=1;
+      
+      for (int dx=0;dx<kSpecialRed[1];dx++){
+        double val=RdFrame(ix-dx-1,iy)-kSpecialCorr[1][dx]*prop;
+        WrFrame(ix-1-dx,iy,val);
+        if (Variance()) {
+          double var;
+          if (bound)
+            var=Variance()->RdFrame(ix-1-dx,iy)+SQ(kSpecialCorr[1][dx]*prop*kSpecialConservative);
+          else
+            var=Variance()->RdFrame(ix-1-dx,iy)+SQ(kSpecialVar[1][dx]*prop*kSpecialConservative);
+          
+          Variance()->WrFrame(ix-dx-1,iy,var);
+        }
+      }      
+    }
+    
+    //
+    // now, the line itself.
+    //
+    
+    //
+    // 1st, the quick-clocked part
+    //
+    // that is, the beginning of the line = high y as it is flipped
+    
+    ImageAnalyser a;
+    a.SetImage(this);
+    // 4087 as the 8 last lines are spurious sometimes
+    // 4047 to avoid being contaminated by 1st order light
+    const int kHeight=40;
+    const int kLast=4087;
+    if (Ny()>kLast){    
+      Section lastGround(ix+1-4,ix+1+4,kLast-kHeight,kLast);
+      a.SetSection(&lastGround);
+      double ground=a.Quantile(0.5);
+      Section lastLine(ix+1,ix+1,kLast-kHeight,kLast);
+      a.SetSection(&lastLine);
+      double correction=ground-a.Quantile(0.5);
+      // apply the correction
+      for (int iy=yend+1;iy<Ny();iy++) {
+        double val=RdFrame(ix,iy)+correction;
+        WrFrame(ix,iy,val);
+        // we neglect the scaling of +0.04% effect on the variance.
+        // but there is a systematic uncertainty we take into account.
+        // called kSpecialErrorFast
+        // [the computation is however NOT accurate for rasters]
+        if (Variance()){
+          double var=Variance()->RdFrame(ix,iy)
+            + SQ((Ny()-iy)*1.0/(Ny()-yend)*correction*kSpecialErrorFast*
+                 kSpecialConservative);
+          Variance()->WrFrame(ix,iy,var);
+        }
+      }
+      WrDesc("CORRLOW",DOUBLE,1,&correction);
+    }
+    
+    //
+    // The medium part : assume we lost all the information
+    //
+    for (int iy=ybeg;iy<=yend&&iy<Ny();iy++) {
+      if (ix>0 && ix+1<Nx()) {
+        double guess=(RdFrame(ix-1,iy)+RdFrame(ix+1,iy))/2;
+        WrFrame(ix,iy,guess);
+      }
+      if (Variance())
+        Variance()->WrFrame(ix,iy,ut_big_value);
+    }
+    
+    //
+    // the hot part of the line is difficult to handle.
+    //
+    // the function to fit is p0+p1/(x-p2), where p2 is very close to ybeg.
+    // but the best estimate we can get for p0 comes from the "end" of the line
+    // that is, the beginning once it is flipped.
+    // we know that an estimate using the mean of left and right makes a 
+    // systematic error, and we apply it :
+    // 1.0*the mean (measurment on the data from continnum lamp)
+    // 
+    // the varying part is not handled yet.
+    
+    if (ix>0 && ix+1<Nx()) {
+      const int kLength=50;
+      double guesses[kLength],diffs[kLength];
+      for(int iy=0;iy<kLength;iy++){
+        guesses[iy]=(RdFrame(ix-1,iy)+RdFrame(ix+1,iy))/2;
+        diffs[iy]=RdFrame(ix,iy)-guesses[iy];
+      }
+      double correction=ut_median(diffs,kLength);
+      //    double uncertainty=ut_median(guesses,kLength)*1.0*kSpecialConservative;
+      for (int iy=0;iy<ybeg;iy++) {
+        double val=RdFrame(ix,iy)-correction;
+        WrFrame(ix,iy,val);
+        //      double var= Variance()->RdFrame(ix,iy)+uncertainty*uncertainty;
+        // better loose the line than doing something complex and maby wrong
+        if (Variance())
+          Variance()->WrFrame(ix,iy,ut_big_value);
+      }
+    }
+  }
 }
 
 /* ===== Hacks ======================================= */
