@@ -2,7 +2,7 @@
 /*! 
  * \file          snifs_const.h
  * \copyright     (c) 2003 SNIFS-Supernova Factory Experiment
- * \date          Fri Mar 17 16:50:19 2006
+ * \date          Fri Mar 17 17:30:37 2006
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
  * \brief         
@@ -35,7 +35,7 @@ static const int kBadSectionsDataRed[kBadSectionsRedNoVar*4]={
   1029,1029,1,2032,
   1032,1032,1,1000,
   1062,1062,1,620,
-  1577,1580,2939,2944
+  1577,1580,2939,2944,
 };
   
 

@@ -654,7 +654,7 @@ void ImageSnifs::CheatCosmetics() {
     }
 }
 
-/* -----  SpecialHotSpots -------------------------------------------- */
+/* -----  SpecialRedCosmetics -------------------------------------------- */
 void ImageSnifs::SpecialRedCosmetics() {
   // special treatment for R channel hot lines.
 
@@ -672,7 +672,7 @@ void ImageSnifs::SpecialRedCosmetics() {
   double saturate;
   Image()->RdDesc("SATURAT1",DOUBLE,1,&saturate);
   
-  const double kBadCols[2]={1575,1580};
+  const int kBadCols[2]={1575,1580};
   
   for (int icol=0;icol<2;icol++) {
 
@@ -813,13 +813,35 @@ void ImageSnifs::SpecialRedCosmetics() {
       }
       double correction=ut_median(diffs,kLength);
       //    double uncertainty=ut_median(guesses,kLength)*1.0*kSpecialConservative;
-      for (int iy=0;iy<ybeg;iy++) {
-        double val=RdFrame(ix,iy)-correction;
-        WrFrame(ix,iy,val);
-        //      double var= Variance()->RdFrame(ix,iy)+uncertainty*uncertainty;
-        // better loose the line than doing something complex and maby wrong
-        if (Variance())
+
+      // the correction is applied, but the variance is set to something big
+      // a special control is added in order to get the numbers not too bad
+      if (Variance()) {
+        for (int iy=0;iy<ybeg;iy++) {
+          double val=RdFrame(ix,iy)-correction;
+          // check it is acceptable : shall not be outside the 
+          // bounds by more than 1 sigma...
+          if ( fabs(val - (RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2 )
+               >  sqrt( SQ(1.0*(RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2)
+                        + Variance()->RdFrame(ix,iy)))
+            WrFrame(ix,iy,(RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2);
+          else
+            WrFrame(ix,iy,val);
+          // double var= Variance()->RdFrame(ix,iy)+uncertainty*uncertainty;
+          // better loose the line than doing something complex and maby wrong
           Variance()->WrFrame(ix,iy,ut_big_value);
+        }
+      } else {
+        for (int iy=0;iy<ybeg;iy++) {
+          double val=RdFrame(ix,iy)-correction;
+          // check it is acceptable : shall not be outside the 
+          // bounds by more than 1 sigma...
+          if ( fabs(val - (RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2) 
+               >  fabs(1.0*(RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2 ))
+            WrFrame(ix,iy,(RdFrame(ix+1,iy)+RdFrame(ix-1,iy))/2);
+          else
+            WrFrame(ix,iy,val);
+        }
       }
     }
   }
