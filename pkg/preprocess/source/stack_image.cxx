@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -sigcut 3.0 -nlines 1");
+  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -method Gauss|Spread");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile catIn(argval[0]);
@@ -19,8 +19,14 @@ int main(int argc, char **argv) {
   ImageStackSnifs * in=new ImageStackSnifs(&catIn,"I",nlines);
   double sigma;
   get_argval(2,"%lf", &sigma);
-  KGauss k(sigma);
-  ImageSnifs* out = in->Kombine(argval[1],&k);
+
+  Kombinator * k;
+  if (argval[4][0]=='S')
+    k = new KSpread(sigma,1);
+  else
+    k = new KGauss(sigma);
+
+  ImageSnifs* out = in->Kombine(argval[1],k);
   delete out;
   
   delete in;
