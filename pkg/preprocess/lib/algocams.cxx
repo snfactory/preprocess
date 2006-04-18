@@ -202,6 +202,14 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
     //    I->SetFClass(DONT_KNOW);
   }
 
+  int nbin[2];
+  if (I->RdIfDesc("CCDBIN",INT,2,&nbin)<=1) {
+    char sum[lg_name+1];
+    I->RdDesc("CCDSUM",CHAR,lg_name+1,sum);
+    sscanf(sum,"%d %d",nbin,nbin+1);
+    I->WrDesc("CCDBIN",INT,2,&nbin);
+  }
+
 }
 
 /* ----- SafeOverscanStrip -------------------------------------------------- */
