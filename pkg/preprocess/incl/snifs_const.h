@@ -2,7 +2,7 @@
 /*! 
  * \file          snifs_const.h
  * \copyright     (c) 2003 SNIFS-Supernova Factory Experiment
- * \date          Fri Apr 21 15:32:39 2006
+ * \date          Fri Apr 21 17:52:47 2006
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
  * \brief         
@@ -82,12 +82,17 @@ static const double kSpecialErrorFast=0.18;
                                          
 /* ===== HFFF LINES ================================================== */  
 
-static const int kRedNHfff=8;
+static const int kRedNHfff[2]={11,9};
 // starting at 1
-static const int kRedHfffLine[kRedNHfff]={1020,2041,2042,2043,2044,2045,3068,3069};
-static const double kRedHfffVal[kRedNHfff]={
-  0.9852,0.9840,0.9287,0.8752,0.9697,0.9675,1.0324,0.9925};
-static const double kRedHfffSigma=0.003;
+  static const int kRedHfffLine[2][11]={
+    {  509,1020,1021,2041,2042,2043,2044,2045,2046,3068,3069},
+    { 2041,2042,2043,2044,2045,2556,3068,3069,3580,-1,-1}};
+
+static const double kRedHfffVal[2][11]={
+  {0.9808,0.9751,1.0138,0.9827,0.9281,0.8741,0.9717,0.9678,0.9925,1.0368,
+   0.9918},
+  {  0.9852,0.9292,0.8764,0.9695,0.9681,1.0117,1.0267,0.9936,1.0541,1,1}};
+static const double kRedHfffSigma=0.004;
   
 
 #ifdef __cplusplus

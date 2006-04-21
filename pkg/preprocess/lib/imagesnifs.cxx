@@ -868,21 +868,31 @@ void ImageSnifs::CustomFlat() {
   Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
   Section ccdSec(ccdSecString);
 
-  for (int i=0;i<kRedNHfff;i++) {
-    int iy=kRedHfffLine[i]-1-ccdSec.YFirst();
-    if (iy<0 || iy>=Ny())
+  for (int amp=0;amp<2;amp++){
+    int xstart = amp*1024-ccdSec.XFirst();
+    int xend=(amp+1)*1024-ccdSec.XFirst();
+    if (xstart >= Nx() || xend < 0)
       continue;
-    for (int ix=0;ix<Nx();ix++) { // no -XFirst as we take all the line
-      if (Variance()) {
-        double var = Variance()->RdFrame(ix,iy)*kRedHfffVal[i]*kRedHfffVal[i]
-          + RdFrame(ix,iy)* RdFrame(ix,iy)*kRedHfffSigma*kRedHfffSigma;
-        Variance()->WrFrame(ix,iy,var);
+    if (xstart<0) 
+      xstart=0;
+    if (xend>Nx())
+      xend=Nx();
+    
+    for (int i=0;i<kRedNHfff[amp];i++) {
+      int iy=kRedHfffLine[amp][i]-1-ccdSec.YFirst();
+      if (iy<0 || iy>=Ny())
+        continue;
+      for (int ix=xstart;ix<xend;ix++) { 
+        if (Variance()) {
+          double var = Variance()->RdFrame(ix,iy)*kRedHfffVal[amp][i]*kRedHfffVal[amp][i]
+            + RdFrame(ix,iy)* RdFrame(ix,iy)*kRedHfffSigma*kRedHfffSigma;
+          Variance()->WrFrame(ix,iy,var);
+        }
+        double val = RdFrame(ix,iy)*kRedHfffVal[amp][i];
+        WrFrame(ix,iy,val);
       }
-      double val = RdFrame(ix,iy)*kRedHfffVal[i];
-      WrFrame(ix,iy,val);
     }
   }
-  
       
 }
 
