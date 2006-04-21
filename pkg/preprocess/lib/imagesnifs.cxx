@@ -847,6 +847,47 @@ void ImageSnifs::SpecialRedCosmetics() {
   }
 }
 
+/* -----  CustomFlat -------------------------------------------- */
+void ImageSnifs::CustomFlat() {
+  // special treatment for R channel hot lines.
+
+  if (GetChannel()!=kRedChannel) {
+    return;
+  }  
+
+  // Exclude non-standard binning
+  int nbin[2];
+  Image()->RdDesc("CCDBIN",INT,2,&nbin);
+  if (nbin[0]!=1 || nbin[1]!=1) {
+    print_msg("ImageSnifs::CheatCosmetics refuses non-standard binning");
+      return ;
+  }
+
+  // Non-standard raster
+  char ccdSecString[lg_name+1];
+  Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  Section ccdSec(ccdSecString);
+
+  for (int i=0;i<kRedNHfff;i++) {
+    int iy=kRedHfffLine[i]-1-ccdSec.YFirst();
+    if (iy<0 || iy>=Ny())
+      continue;
+    for (int ix=0;ix<Nx();ix++) { // no -XFirst as we take all the line
+      if (Variance()) {
+        double var = Variance()->RdFrame(ix,iy)*kRedHfffVal[i]*kRedHfffVal[i]
+          + RdFrame(ix,iy)* RdFrame(ix,iy)*kRedHfffSigma*kRedHfffSigma;
+        Variance()->WrFrame(ix,iy,var);
+      }
+      double val = RdFrame(ix,iy)*kRedHfffVal[i];
+      WrFrame(ix,iy,val);
+    }
+  }
+  
+      
+}
+
+
+
 /* ===== Hacks ======================================= */
 
 /* ----- HackFitsKeywords ---------------------------------------------- */

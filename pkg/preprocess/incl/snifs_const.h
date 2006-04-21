@@ -2,7 +2,7 @@
 /*! 
  * \file          snifs_const.h
  * \copyright     (c) 2003 SNIFS-Supernova Factory Experiment
- * \date          Fri Mar 17 17:30:37 2006
+ * \date          Fri Apr 21 15:32:39 2006
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
  * \version       0.0
  * \brief         
@@ -15,11 +15,14 @@
 extern "C" {
 #endif
 
+/* ===== GAINS ================================================== */ 
 static const double kGainBlue[2]={0.773,0.744};
 //static double kGainRed[2]={0.736,0.792}; // from GL measurments
 static const double kGainRed[2]={0.757,0.770};     // YC: correction of gain factor from conts
 static const double kGainPhot[4]={1.618,1.576,1.51,1.52};
 
+
+/* ===== BAD COLUMNS ================================================== */
 
 static const int kBadSectionsBlue=0;
 static const int kBadSectionsRedNoVar=6;
@@ -69,12 +72,22 @@ static const int kBadSectionsDataPhot[kBadSectionsPhot*4]={
 638 60 640 4096
 */
 
+/* ===== HOT COLUMNS BLEEDING ============================================ */
+
 static const int kSpecialRed[2]={4,12};
 static const double kSpecialCorr[2][12]={{60.7,10.3,8.4,6.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},{61.3,12.1,10.3,7.1,5.1,3.8,3.4,2.6,2.1,1.8,1.2,0.5}};
 static const double kSpecialVar[2][12]= {{15.1, 3.1,3.1,1.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},{14.6, 5.4, 5.4,5.4,1.7,0.8,0.8,0.8,0.6,0.5,0.5,0.5}};
 static const double kSpecialConservative=2;
 static const double kSpecialErrorFast=0.18;
                                          
+/* ===== HFFF LINES ================================================== */  
+
+static const int kRedNHfff=8;
+// starting at 1
+static const int kRedHfffLine[kRedNHfff]={1020,2041,2042,2043,2044,2045,3068,3069};
+static const double kRedHfffVal[kRedNHfff]={
+  0.9852,0.9840,0.9287,0.8752,0.9697,0.9675,1.0324,0.9925};
+static const double kRedHfffSigma=0.003;
   
 
 #ifdef __cplusplus

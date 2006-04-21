@@ -328,6 +328,8 @@ ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,
     out->SubstractDark( dark);
   if (flat) 
     out->ApplyFlat(flat);
+  else if (!FastMode())
+    out->CustomFlat();
   return out;
 }
 

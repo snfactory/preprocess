@@ -100,6 +100,7 @@ class ImageSnifs :public ImageSimple {
     void HandleCosmetics();
     void CheatCosmetics();
     void SpecialRedCosmetics();
+    void CustomFlat();
   
 
     // Processing management
