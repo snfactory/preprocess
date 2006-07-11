@@ -222,8 +222,8 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
   int nAmp;
   if (Preprocessed->RdIfDesc("CCDNAMP",INT,1,&nAmp)<=0)
     nAmp = 2;
-  int saturate;
-  Preprocessed->RdDesc("SATURATE",INT,1,&saturate);
+  int saturate[2];
+  Preprocessed->RdDesc("SATURAT",INT,2,saturate);
   // useful definitions for the rest of the method
   Section * dataSec = Preprocessed->DataSec();
   dataSec->SetName("Data");
@@ -243,7 +243,7 @@ void ImageSignature::Fill(ImageSnifs* Preprocessed) {
     anaSub[iamp].SetImage(Preprocessed);
     anaSub[iamp].SetSection(subSec[iamp]);
     // hack : some quantity was already removed from the saturation (overscan)
-    fSatu += anaSub[iamp].NPixOver(saturate *0.9 * gain);
+    fSatu += anaSub[iamp].NPixOver(saturate[iamp]);
   }
   
   // do not know how to do and if it is relevant ...
