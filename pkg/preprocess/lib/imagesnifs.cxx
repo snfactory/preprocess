@@ -685,6 +685,7 @@ void ImageSnifs::SpecialRedCosmetics() {
     //
     int ybeg=-1,yend=-1;
     ybeg = 2938-ccdSec.YFirst(); // bad pixel which sometimes does not saturate
+    
     // try to find the saturating range.
     // ybeg : the first saturated point
     // yend-1 : the last saturated point
@@ -704,6 +705,9 @@ void ImageSnifs::SpecialRedCosmetics() {
     
     // make the correction from data computed once
     // we have to treat the first points outside the bounds also, but treatment will be different
+    if (ybeg>=Ny()) 
+      ybeg=Ny()-1;
+
     if (ybeg>0 && RdFrame(ix,ybeg)>saturate ) 
       ybeg--;
     for(int iy=ybeg;iy<=yend && iy<Ny();iy++){
