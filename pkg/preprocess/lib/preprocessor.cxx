@@ -170,15 +170,28 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
     sprintf(gainKey,"CCD%dGAIN",chip);
     image->RdDesc(gainKey,DOUBLE,1,&gain);
     im[chip]->WrDesc("GAIN",DOUBLE,1,&gain);
-    sprintf(dataSecString,"[%d:%d,%d:%d]",1,newDataXLength,1,dataSec.YLength());
+
     if (newNamp != nAmp)
       im[chip]->WrDesc("CCDNAMP",INT,1,&newNamp);
     
+    sprintf(dataSecString,"[%d:%d,%d:%d]",1,newDataXLength,1,dataSec.YLength());
     im[chip]->WrDesc("DATASEC",CHAR,lg_name+1,dataSecString);
     sprintf(biasSecString,"[%d:%d,%d:%d]",newDataXLength+1,newDataXLength+newBiasXLength,1,dataSec.YLength());
     
     im[chip]->WrDesc("BIASSEC",CHAR,lg_name+1,biasSecString);
     bichip->SetChip(chip,im[chip]);
+
+    // various other keywords to uniformize
+    char aKey[lg_name+1],aString[lg_name+1];
+    sprintf(aKey,"AMPSEC%d",chip);
+    image->RdDesc(aKey,CHAR,lg_name+1,aString);
+    im[chip]->WrDesc("AMPSEC",CHAR,lg_name+1,aString);
+    sprintf(aKey,"CCDSEC%d",chip);
+    image->RdDesc(aKey,CHAR,lg_name+1,aString);
+    im[chip]->WrDesc("CCDSEC",CHAR,lg_name+1,aString);
+    sprintf(aKey,"DETSEC%d",chip);
+    image->RdDesc(aKey,CHAR,lg_name+1,aString);
+    im[chip]->WrDesc("DETSEC",CHAR,lg_name+1,aString);
 
     // fill the image
     Section sec;

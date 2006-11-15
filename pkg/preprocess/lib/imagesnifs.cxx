@@ -571,6 +571,10 @@ void ImageSnifs::HandleCosmetics() {
     // Non-standard raster
     char ccdSecString[lg_name+1];
     Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+    if (!strcmp(ccdSecString,"Undefined")) {
+      print_warning("ImageSnifs::HandleCosmetics Undefined CCDSEC");
+      return;
+    }
     Section ccdSec(ccdSecString);
 
     for (int n=0;n<nmax;n++) {
@@ -618,6 +622,10 @@ void ImageSnifs::CheatCosmetics() {
     // Non-standard raster
     char ccdSecString[lg_name+1];
     Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+    if (!strcmp(ccdSecString,"Undefined")) {
+      print_warning("ImageSnifs::CheatCosmetics Undefined CCDSEC");
+      return;
+    }
     Section ccdSec(ccdSecString);
 
     for (int n=0;n<nmax;n++) {
@@ -667,7 +675,12 @@ void ImageSnifs::SpecialRedCosmetics() {
   //
   char ccdSecString[lg_name+1];
   Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  if (!strcmp(ccdSecString,"Undefined")) {
+    print_warning("ImageSnifs::SpecialRedCosmetics Undefined CCDSEC");
+    return;
+  }
   Section ccdSec(ccdSecString);
+  
   // saturate value : 1 as there is a flip !!!
   double saturate;
   Image()->RdDesc("SATURAT1",DOUBLE,1,&saturate);
@@ -863,13 +876,17 @@ void ImageSnifs::CustomFlat() {
   int nbin[2];
   Image()->RdDesc("CCDBIN",INT,2,&nbin);
   if (nbin[0]!=1 || nbin[1]!=1) {
-    print_msg("ImageSnifs::CheatCosmetics refuses non-standard binning");
+    print_msg("ImageSnifs::CustomFlat refuses non-standard binning");
       return ;
   }
 
   // Non-standard raster
   char ccdSecString[lg_name+1];
   Image()->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  if (!strcmp(ccdSecString,"Undefined")) {
+    print_warning("ImageSnifs::CustomFlat Undefined CCDSEC");
+    return;
+  }
   Section ccdSec(ccdSecString);
 
   for (int amp=0;amp<2;amp++){

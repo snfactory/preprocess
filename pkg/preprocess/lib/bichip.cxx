@@ -321,6 +321,17 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     fChip[chip]->RdDesc("OEPARAM",DOUBLE,2,oeparam);
     saturate[chip]=satur-ovscmax-fabs(MAX(oeparam[0],oeparam[0]+oeparam[1]*compound->Ny()));
     saturate[chip]*=gain*0.99; // security parameter 
+    // and some more
+    char aKey[lg_name+1],aString[lg_name+1];
+    sprintf(aKey,"AMPSEC%d",chip);
+    fChip[chip]->RdDesc("AMPSEC",CHAR,lg_name+1,aString);
+    compound->WrDesc(aKey,CHAR,lg_name+1,aString);
+    sprintf(aKey,"CCDSEC%d",chip);
+    fChip[chip]->RdDesc("CCDSEC",CHAR,lg_name+1,aString);
+    compound->WrDesc(aKey,CHAR,lg_name+1,aString);
+    sprintf(aKey,"DETSEC%d",chip);
+    fChip[chip]->RdDesc("DETSEC",CHAR,lg_name+1,aString);
+    compound->WrDesc(aKey,CHAR,lg_name+1,aString);
   }
   
   // ... remains to update DATASEC and remove BIASSEC
@@ -335,13 +346,42 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     variance->DeleteDesc("BIASSEC");
     variance->DeleteDesc("GAIN");
   }
+  // special CCDSEC doesn't always have a meaning !
+  char ccdSecString[lg_name+1];
+  fChip[0]->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  Section s0(ccdSecString);
+  int firstx=s0.X2()>s0.X1() ? s0.X1() : s0.X2();
+  fChip[NChips()-1]->RdDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  Section sN(ccdSecString);
+  int lastx=sN.X2()>sN.X1() ? sN.X2() : sN.X1();
+  // continuity test
+  if (lastx-firstx+1 == compound->Nx()) {
+    sprintf(ccdSecString,"[%d:%d,%d:%d]",firstx,lastx,sN.Y1(),sN.Y2());
+    compound->WrDesc("CCDSEC",CHAR,lg_name+1,ccdSecString);
+  } else {
+    compound->WrDesc("CCDSEC",CHAR,lg_name+1,"Undefined");
+  }
   
+  
+  
+
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
   compound->WrDesc("SATURAT",DOUBLE,NChips(),saturate);
   // deletes non-relevant parameters, as values are different for the 2 chips
   compound->DeleteDesc("RDNOISE");
   compound->DeleteDesc("GAIN");
   compound->DeleteDesc("SATURATE");
+  compound->DeleteDesc("AMPSEC");
+  compound->DeleteDesc("DETSEC");
+  if (variance){
+      variance->DeleteDesc("RDNOISE");
+      variance->DeleteDesc("GAIN");
+      variance->DeleteDesc("SATURATE");
+      variance->DeleteDesc("AMPSEC");
+      variance->DeleteDesc("DETSEC");
+  }
+  
+    
 
   // and update the number of saturating pixels
   // compound->WrDesc("NSATU",INT,1,&nSatu);
