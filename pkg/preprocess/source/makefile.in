@@ -28,6 +28,7 @@ SRC =	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
 	 preprocess.cxx\
 	 preprocess_overscan.cxx\
+	 ccd_rem_cosmic.cxx\
 	 split_image.cxx\
 	 quick_look.cxx\
 	 fft_image.cxx\

@@ -11,6 +11,9 @@
  **/
 /* =========================================================== */
 
+#include <vector>
+using namespace std;
+
 #include "gsl/gsl_statistics.h"
 
 #include "section.hxx"
@@ -18,6 +21,8 @@
 #include "imagesnifs.hxx"
 #include "analyser.hxx"
 #include "utils.h"
+#include "kombinator.hxx"
+
 
 /* ##### ImageAnalyser ################################################# */
 
@@ -25,6 +30,7 @@
 /* ----- void constructor  ----------------------------------*/
 ImageAnalyser::ImageAnalyser(){
   fVal=0;
+  fVar=0;
   fSec=0;
   fImage=0;
   fFftLength=0;
@@ -33,6 +39,7 @@ ImageAnalyser::ImageAnalyser(){
 /* ----- constructor Image, Sec ----------------------------------*/
 ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
   fVal=0;
+  fVar=0;
   fSec=0;
   fFftLength=0;
   SetImage(Image);
@@ -42,6 +49,7 @@ ImageAnalyser::ImageAnalyser(ImageSimple * Image, Section *Sec){
 /* ----- constructor Image, Sec ----------------------------------*/
 ImageAnalyser::ImageAnalyser(ImageSnifs * Image, Section *Sec) {
   fVal=0;
+  fVar=0;
   fSec=0;
   fFftLength=0;
   SetImage(Image);
@@ -54,6 +62,8 @@ ImageAnalyser::~ImageAnalyser(){
   if (fVal) {
     delete[] fVal;
   }
+  if (fVar)
+    delete[] fVar;
   if (fFftLength) {
      gsl_fft_real_wavetable_free (fReal);
      gsl_fft_real_workspace_free (fWork);
@@ -85,6 +95,9 @@ void ImageAnalyser::ResetVal(){
   if (fVal)
     delete[] fVal;
   fVal=0;
+  if (fVar)
+    delete[] fVar;
+  fVar=0;
   fNVal=0;
   fMeanDone=0;
   fVarDone=0;
@@ -111,6 +124,23 @@ void ImageAnalyser::FillVal(){
   
 }
 
+/* ----- SetImage ----------------------------------------------------*/
+void ImageAnalyser::FillVar(){
+  // Set only the image if it fits the section.
+
+  // FillVal shall have been called before
+  if (fVal && fImage->Variance()) {
+    fVar = new double[fNVal];
+    for (int iy=fSec->YFirst();iy<fSec->YLast();iy++)
+      for (int ix=fSec->XFirst();ix<fSec->XLast();ix++) {
+        fVar[ix-fSec->XFirst()+(iy-fSec->YFirst())*fSec->XLength()] 
+            = fImage->Variance()->RdFrame(ix,iy);
+      }
+  } else {
+    print_warning("Analyser::FillVar shall be called after FillVal");
+  }
+}
+
 /* ===== Analysis ======================================= */
 /* ----- MeanLevel -------------------------------------- */
 double ImageAnalyser::MeanLevel(){
@@ -125,11 +155,11 @@ double ImageAnalyser::MeanLevel(){
 /* ----- MeanLevel -------------------------------------- */
 double ImageAnalyser::StatsVariance(){
   if (fVarDone)
-    return fVar;
+    return fVariance;
   
   fVarDone=1;
   double mean = MeanLevel();    
-  return fVar = gsl_stats_variance_m(fVal,1,fNVal,mean);
+  return fVariance = gsl_stats_variance_m(fVal,1,fNVal,mean);
 }
 
 /* ----- MeanMapVariance ------------------------------ */
@@ -225,6 +255,31 @@ void ImageAnalyser::SigmaClippedInfo(double SigmaCut,double * Mean, double * Rms
   *Mean = ut_mean(valRef,nValRef);
   *Rms = gsl_stats_sd_m(valRef,1,nValRef,*Mean);
   *Nout = fNVal - nValRef;
+}
+
+/* ----- SigmaClippedInfo -------------------------------------- */
+void ImageAnalyser::SigmaClippedInfoVarKnown(double SigmaCut,double * Mean, double * Rms){
+
+  if (!Val()) {
+    FillVal();
+  }
+  if (!Var())
+    FillVar();
+  
+  vector<double> vals;
+  vector<double> vars;
+  double retVal;
+  
+
+  for (int i=0; i<fNVal ; i++) {
+    vals.push_back(fVal[i]);
+    vars.push_back(fVar[i]);
+  }
+  KGauss K=KGauss(SigmaCut);
+  K.Kombine(&vals,&vars,Mean,&retVal);
+  
+  *Rms = sqrt(retVal);
+  
 }
 
 /* ----- LineFft -------------------------------------- */

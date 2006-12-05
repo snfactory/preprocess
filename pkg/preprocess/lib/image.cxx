@@ -345,6 +345,21 @@ void ImageSimple::CutLow(double LowBound){
     }
 }
 
+/* ----- CutLow ----------------------------------------------------- */
+int ImageSimple::AbsThreshold(double Threshold){
+  // Cuts the lowest significant image values
+  // The variance is not touched after the cut
+  int nout=0;
+  for (int j=0;j<Ny();j++)
+    for (int i=0;i<Nx();i++) {
+      if (fabs(RdFrame(i,j))<Threshold) {
+        WrFrame(i,j,0);
+        nout++;
+      } 
+    }
+  return nout;
+}
+
 /* ----- Divide ----------------------------------------------------- */
 void ImageSimple::Divide(ImageSimple* Denom){
   //Divides by Denom 

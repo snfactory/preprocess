@@ -42,9 +42,11 @@ public :
   void ResetVal();
   void SetSection(Section * Section); 
   void FillVal();
+  void FillVar();
 
   /* ----- Getters ---------------------------------------- */
   double *Val() {return fVal;}
+  double *Var() {return fVar;}
 
   /* ----- Analysis ---------------------------------------- */
   double MeanLevel();
@@ -55,6 +57,7 @@ public :
   double OutPixMean(double SigmaCut);
   double Quantile(double Q);
   void SigmaClippedInfo(double SigmaCut,double * Mean, double * Rms, int * Nout);
+  void SigmaClippedInfoVarKnown(double SigmaCut,double * Mean, double * Rms);
   ImageSnifs* LineFft(char* outName);
 
   
@@ -63,11 +66,12 @@ protected :
   Section * fSec;
   double * fVal;
   int fNVal;
+  double * fVar;
 
   int fMeanDone;
   double fMean;
   int fVarDone;
-  double fVar;
+  double fVariance;
   int fIsSorted;
    
   gsl_fft_real_wavetable * fReal;

@@ -1,3 +1,4 @@
+
 /* === Doxygen Comment ======================================= */
 /*! 
  * \file          filter.cxx
@@ -24,7 +25,8 @@
 void ImageFilter::Filter() {
   int i,j;
   Section S;
-  
+
+  reset_print_progress();
   switch (fBound) {
 
   case kNoData :
@@ -39,6 +41,7 @@ void ImageFilter::Filter() {
         S.SetXLast(i+fXsize);
         S.SetYFirst(j-fYsize);
         S.SetYLast(j+fYsize);
+        print_progress("Filtering",100*(i+j*fInput->Nx())/(fInput->Ny()*fInput->Nx()*1.0),1.0);      
         Filter(i,j,&S);
       }
       for (i=fInput->Nx()-fXsize;i<fInput->Nx();i++)
@@ -64,6 +67,7 @@ void ImageFilter::Filter() {
           S.SetXFirst(0);
         if (S.XLast()>fInput->Nx())
           S.SetXLast(fInput->Nx());
+        print_progress("Filtering",100*(i+j*fInput->Nx())/(fInput->Ny()*fInput->Nx()*1.0),1.0);      
         Filter(i,j,&S);
       }
     }
@@ -91,6 +95,7 @@ void ImageFilter::Filter() {
           S.SetXLast(fInput->Nx());
           S.SetXFirst(-fInput->Nx() + 2*i +1);
         }
+        print_progress("Filtering",100*(i+j*fInput->Nx())/(fInput->Ny()*fInput->Nx()*1.0),1.0);      
         Filter(i,j,&S);
       }
     }
@@ -170,7 +175,7 @@ void ImageFilterHF::Filter(int i, int j, Section* S) {
 }
 
 
-/* ##### ImageFilterHF ################################################# */
+/* ##### ImageFilterMedian ################################################# */
 
 
 /* ----- constructor -------------------------------------------------- */
@@ -210,6 +215,48 @@ void ImageFilterMedian::Filter(int i, int j, Section* S) {
     var *= 3.0 * secSize / (secSize + 2.0 );
   
     fOutput->Variance()->WrFrame(i,j,var);
+  }
+}
+
+/* ##### ImageFilterSigmaClip ################################################# */
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterSigmaClip::ImageFilterSigmaClip(int Xsize, int Ysize, Bound_t B) {
+  fXsize=Xsize;
+  fYsize=Ysize;
+  fBound = B;
+  fAnal=new ImageAnalyser();
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterSigmaClip::~ImageFilterSigmaClip() {
+  delete fAnal;
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+void ImageFilterSigmaClip::SetInputImage(ImageSimple* I){
+  fInput=I;
+  fAnal->SetImage(I);
+}
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterSigmaClip::Filter(int i, int j, Section* S) {
+
+
+  double mean,rms;
+  int nout;
+  fAnal->SetSection(S);
+
+  if (fInput->Variance()) 
+    fAnal->SigmaClippedInfoVarKnown(fSigma,&mean,&rms);
+  else
+    fAnal->SigmaClippedInfo(fSigma,&mean,&rms,&nout);
+
+  fOutput->WrFrame(i,j,mean);
+  if ( fOutput->Variance()) {
+    fOutput->Variance()->WrFrame(i,j,rms*rms);
   }
 }
 
@@ -258,4 +305,181 @@ void ImageFilterMax::Filter(int i, int j, Section* S) {
            fInput->Variance()->RdFrame(ix0,iy0));
   }
 }
+
+/* ##### ImageFilterLaplacian ################################################# */
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterLaplacian::ImageFilterLaplacian(int Xsize, int Ysize, Bound_t B) {
+  fXsize=1;
+  fYsize=1;
+  fBound = kNoData;
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterLaplacian::~ImageFilterLaplacian() {
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+//void ImageFilterMax::SetInputImage(ImageSimple* I){
+//  fInput=I;
+//
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterLaplacian::Filter() {
+  double noise[2];
+  if (!fInput->Variance())
+    print_error("ImageFilterLaplacian::Filter works only on a slow preprocessed file");
+  fInput->RdDesc("RDNOISE",DOUBLE,2,noise);
+  if (noise[1]>noise[0])
+    fCut=noise[1];
+  else
+    fCut=noise[0];
+  
+
+  for (int j=1;j<fInput->Ny()-1;j++){
+    for (int i=1;i<fInput->Nx()-1;i++)
+      Filter(i,j,0);
+  }
+  for (int j=0;j<fInput->Ny();j++){
+    WriteNoData(0,j);
+    WriteNoData(fInput->Nx()-1,j);
+  }
+  for (int i=0;i<fInput->Nx();i++) {
+    WriteNoData(i,0);
+    WriteNoData(i,fInput->Ny()-1);
+  }
+}
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterLaplacian::Filter(int i0, int j0, Section* S) {
+
+  double nsigma=3.0;
+
+  if (fInput->RdFrame(i0,j0)<nsigma*fCut){
+    fOutput->WrFrame(i0,j0,0);
+    return;
+  }
+  
+  // i-1,i+1 and j-1, j+1 must have been checked before
+  double laplacian=fInput->RdFrame(i0,j0) -0.25*
+    ( fInput->RdFrame(i0-1,j0) + fInput->RdFrame(i0+1,j0)
+    + fInput->RdFrame(i0,j0-1) + fInput->RdFrame(i0,j0+1));
+  ImageSimple* var=fInput->Variance();
+  double varlap=var->RdFrame(i0,j0) + 0.0625*
+    (var->RdFrame(i0-1,j0) + var->RdFrame(i0+1,j0)
+     + var->RdFrame(i0,j0-1) + var->RdFrame(i0,j0+1));
+  if (varlap<ut_big_value*0.001 && fabs(laplacian)<3*sqrt(varlap)){
+    fOutput->WrFrame(i0,j0,0);
+    return;
+  }
+  
+  double buffer[9];
+  for (int j=0;j<3;j++){
+    for (int i=0;i<3;i++) {
+      buffer[i+j*3]=fInput->RdFrame(i0-1+i,j0-1+j);
+    }
+    
+  }
+  double median = ut_median(buffer,9);
+  if (median<fCut)
+    median=fCut;
+  fOutput->WrFrame(i0,j0,laplacian/median);
+}
+
+/* ##### ImageFilterLaplacian ################################################# */
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterRemCosmic::ImageFilterRemCosmic(int Xsize, int Ysize, Bound_t B):ImageFilterLaplacian(Xsize,Ysize,B) {
+  double fRatio=2.0;//2.0 is safe for arcs ... insufficient for R dark
+
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterRemCosmic::~ImageFilterRemCosmic() {
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+//void ImageFilterMax::SetInputImage(ImageSimple* I){
+//  fInput=I;
+//
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterRemCosmic::Filter() {
+  double noise[2];
+  if (!fInput->Variance())
+    print_error("ImageFilterRemCosmic::Filter needs variance");
+  fInput->RdDesc("RDNOISE",DOUBLE,2,noise);
+  if (noise[1]>noise[0])
+    fCut=noise[1];
+  else
+    fCut=noise[0];
+  
+
+  for (int j=1;j<fInput->Ny()-1;j++){
+    for (int i=1;i<fInput->Nx()-1;i++) {
+      fRemoved=0;
+      Filter(i,j,0);
+      if (fRemoved) {
+        if (i>1)
+          i-=2;
+        if (j>1)
+          j--;
+      }
+    }
+  }
+}
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterRemCosmic::Filter(int i0, int j0, Section* S) {
+
+  double nsigma=3.0;
+
+  if (fOutput->RdFrame(i0,j0)<nsigma*fCut){
+    return;
+  }
+  
+  // i-1,i+1 and j-1, j+1 must have been checked before
+  double laplacian=fOutput->RdFrame(i0,j0) -0.25*
+    ( fOutput->RdFrame(i0-1,j0) + fOutput->RdFrame(i0+1,j0)
+    + fOutput->RdFrame(i0,j0-1) + fOutput->RdFrame(i0,j0+1));
+  ImageSimple* var=fOutput->Variance();
+  double varlap=var->RdFrame(i0,j0) + 0.0625*
+    (var->RdFrame(i0-1,j0) + var->RdFrame(i0+1,j0)
+     + var->RdFrame(i0,j0-1) + var->RdFrame(i0,j0+1));
+  if (varlap<ut_big_value*0.001 && fabs(laplacian)<3*sqrt(varlap)){
+    return;
+  }
+  
+  int maxi=3;
+  int maxj=3;
+  double buffer[maxi*maxj];
+  for (int j=0;j<maxj;j++){
+    for (int i=0;i<maxi;i++) {
+      buffer[i+j*maxi]=fOutput->RdFrame(i0-maxi/2+i,j0-maxj/2+j);
+    }
+    
+  }
+  double median = ut_median(buffer,maxi*maxj);
+  if (median<fCut)
+    median=fCut;
+  if (laplacian/median>fRatio) {
+    int maxj=9;
+    double buffer[maxi*maxj];
+    for (int j=0;j<maxj;j++){
+      for (int i=0;i<maxi;i++) {
+        buffer[i+j*maxi]=fOutput->RdFrame(i0-maxi/2+i,j0-maxj/2+j);
+      }
+      median = ut_median(buffer,maxi*maxj);
+    }
+    fOutput->WrFrame(i0,j0,median);
+    fOutput->Variance()->WrFrame(i0,j0,ut_big_value);
+    fRemoved=1;
+  }
+  
+}
+
 

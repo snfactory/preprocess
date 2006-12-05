@@ -49,8 +49,8 @@ class RootAnalyser : public ImageAnalyser {
 
   void OverscanError(float sigma=0);
 
-  void HistoData(int nbins=4000);
-  TH1F* HistoDataBuild(char * histName ,int nbins=4000);
+  void HistoData(double start=0,double end=0,int nbins=4000);
+  TH1F* HistoDataBuild(char * histName ,int nbins,double start=0, double end=0);
 
   void MatrixData();
 

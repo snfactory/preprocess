@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   double *args;
   ImageFilter *F;
 
-  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max -args 0");
+  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max|sclip|laplacian -args 0");
   init_session(argv,argc,&arglabel,&argval);
 
   char inName[lg_name+1],outName[lg_name+1];
@@ -52,6 +52,18 @@ int main(int argc, char **argv) {
     F = new ImageFilterMedian(wx,wy,ImageFilter::kShrinks);
   } else if (!strcmp(arglabel[3],"-max")) {
     F = new ImageFilterMax(wx,wy,ImageFilter::kShrinks);
+  } else if (!strcmp(arglabel[3],"-sclip")) {
+    double args;
+    int nargs = sscanf(argval[4],"%lf",&args);
+    if (nargs<1) {
+      print_error("filter_image : expects -args <double> option");
+      exit_session(1);
+    }
+    ImageFilterSigmaClip * FSclip = new ImageFilterSigmaClip(wx,wy,ImageFilter::kShrinks);
+    FSclip->SetSigma(args);
+    F=FSclip;
+  } else if (!strcmp(arglabel[3],"-laplacian")){
+     F = new ImageFilterLaplacian();
   } else {
     print_error("filter_image : unknown method %s",argval[3]);
   }

@@ -168,7 +168,8 @@ int KGauss::RemoveFar(double SigmaCut) {
   double MaxSigma=0;
 
   for ( unsigned int i=0;i<fVals->size();i++) {
-    double sigma = fabs((*fVals)[i] - fVal)/sqrt((*fVars)[i]);
+    //we compute it the current point excluded;
+    double sigma = fabs((*fVals)[i] - fVal)/sqrt((*fVars)[i]-fVar);
     if (sigma > MaxSigma && sigma > SigmaCut) {
       iRm = i;
       MaxSigma = sigma;

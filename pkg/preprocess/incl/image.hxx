@@ -78,6 +78,7 @@ class ImageSimple {
     void Scale(double Scale);
     void SetTo(double Value);
     void CutLow(double LowBound);
+    int AbsThreshold(double Threshold);
     void Divide(ImageSimple* Denom);
     double MeanValue(Section* Sec,int step=1);
 

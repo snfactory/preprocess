@@ -39,7 +39,7 @@ class ImageFilter {
   virtual void SetInputImage(ImageSimple* I) {fInput = I;}
   void SetOutputImage(ImageSimple* I) {fOutput = I;}
   virtual void Filter(int X, int Y, Section* S)=0;
-  void Filter();
+  virtual void Filter();
 
 protected:
   void WriteNoData(int I, int J);
@@ -114,6 +114,67 @@ class ImageFilterMedian : public ImageFilter {
 
 protected:
   ImageAnalyser* fAnal;
+
+};
+
+/* ===== FilterSigmaClip ==================== */
+
+// returns the sigmaclipping
+
+class ImageFilterSigmaClip : public ImageFilter {
+  public :
+
+  ImageFilterSigmaClip(int Xsize, int Ysize, Bound_t B=kNoData);
+  ~ImageFilterSigmaClip();
+
+  virtual void SetInputImage(ImageSimple* I);
+  virtual void Filter(int X, int Y, Section* S);
+  void SetSigma(double Sigma) {fSigma=Sigma;};
+
+protected:
+  ImageAnalyser* fAnal;
+  double fSigma;
+
+};
+
+/* ===== FilterMedian ==================== */
+
+// returns the maximum in the window
+
+class ImageFilterLaplacian : public ImageFilter {
+  public :
+
+  ImageFilterLaplacian(int Xsize=1, int Ysize=1, Bound_t B=kNoData);
+  ~ImageFilterLaplacian();
+
+  virtual void Filter(int X, int Y, Section* S);
+  virtual void Filter();
+  
+
+protected:
+  ImageAnalyser* fAnal;
+  double fCut;
+
+};
+
+/* ===== FilterRemCosmic ==================== */
+
+// returns the maximum in the window
+
+class ImageFilterRemCosmic : public ImageFilterLaplacian {
+  public :
+
+  ImageFilterRemCosmic(int Xsize=1, int Ysize=1, Bound_t B=kNoData);
+  ~ImageFilterRemCosmic();
+
+  void SetRatio(double Ratio) { fRatio=Ratio;}
+  
+  virtual void Filter();
+  virtual void Filter(int X, int Y, Section* S);
+
+protected:
+  int fRemoved;
+  double fRatio;
 
 };
 

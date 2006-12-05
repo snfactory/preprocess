@@ -206,24 +206,30 @@ void RootAnalyser::OverscanError(float sigma){
 }
 
 /*-------------- HistoData ---------------------------- */
-void RootAnalyser::HistoData(int nbins){
+void RootAnalyser::HistoData(double start, double end,int nbins){
 
   char histName[lg_name+1];
   sprintf(histName,"Histo%s",fSec->Name());
-  TH1F * histo = HistoDataBuild(histName,nbins);
+  TH1F * histo = HistoDataBuild(histName,nbins,start,end);
 
   histo->Write();
   delete histo;
 }
 
 /*-------------- HistoDataBuild ---------------------------- */
-TH1F* RootAnalyser::HistoDataBuild(char* histName, int nbins){
+TH1F* RootAnalyser::HistoDataBuild(char* histName, int nbins,double start, double end){
 
   double min,max,center;
-  fImage->MinMax(fSec,&min, &max);
-  center = (min+max)/2;
-  max = center + (max-center)*1.01;
-  min = center - (max-center)*1.01;
+  if (start==end) {
+    fImage->MinMax(fSec,&min, &max);
+    center = (min+max)/2;
+    max = center + (max-center)*1.01;
+    min = center - (max-center)*1.01;
+  } else {
+    max=end;
+    min=start;
+  }
+  
 
   TH1F * histo = new TH1F(histName,"Data values",nbins,min,max);
 
