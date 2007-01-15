@@ -690,7 +690,7 @@ void ImageSnifs::SpecialRedCosmetics() {
   for (int icol=0;icol<2;icol++) {
 
     int ix=kBadCols[icol]-ccdSec.XFirst();
-    if (ix<0) 
+    if (ix<0 || ix>=Nx()) 
       continue;
     
     //

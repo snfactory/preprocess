@@ -323,15 +323,16 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     saturate[chip]*=gain*0.99; // security parameter 
     // and some more
     char aKey[lg_name+1],aString[lg_name+1];
-    sprintf(aKey,"AMPSEC%d",chip);
-    fChip[chip]->RdDesc("AMPSEC",CHAR,lg_name+1,aString);
-    compound->WrDesc(aKey,CHAR,lg_name+1,aString);
     sprintf(aKey,"CCDSEC%d",chip);
     fChip[chip]->RdDesc("CCDSEC",CHAR,lg_name+1,aString);
     compound->WrDesc(aKey,CHAR,lg_name+1,aString);
-    sprintf(aKey,"DETSEC%d",chip);
-    fChip[chip]->RdDesc("DETSEC",CHAR,lg_name+1,aString);
-    compound->WrDesc(aKey,CHAR,lg_name+1,aString);
+    sprintf(aKey,"AMPSEC%d",chip);
+    if (fChip[chip]->RdIfDesc("AMPSEC",CHAR,lg_name+1,aString)>0) {
+      compound->WrDesc(aKey,CHAR,lg_name+1,aString);
+      sprintf(aKey,"DETSEC%d",chip);
+      fChip[chip]->RdDesc("DETSEC",CHAR,lg_name+1,aString);
+      compound->WrDesc(aKey,CHAR,lg_name+1,aString);
+    }
   }
   
   // ... remains to update DATASEC and remove BIASSEC

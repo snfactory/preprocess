@@ -142,6 +142,11 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
   if (ccdSec.XLength()!=1024*nAmp) {
     print_msg("Preprocessor::BuildRawBiChip detected a Raster image");
     isRaster=0;// =0 in case of a bias. Or we just keep all
+    // the reason is : we always keep the last column, even if this is garbadge
+    // it will be garbadge each time the raster doesn't include the last column
+    // before the overscan
+    // BUT : the garbadge there is the only evidence after every computation 
+    // that the image is a non-continuous image, so we keep it
   }
 
   // build the bichip
@@ -183,15 +188,24 @@ BiChipSnifs* Preprocessor::BuildRawBiChip(char* name, char* outName){
 
     // various other keywords to uniformize
     char aKey[lg_name+1],aString[lg_name+1];
-    sprintf(aKey,"AMPSEC%d",chip);
-    image->RdDesc(aKey,CHAR,lg_name+1,aString);
-    im[chip]->WrDesc("AMPSEC",CHAR,lg_name+1,aString);
     sprintf(aKey,"CCDSEC%d",chip);
-    image->RdDesc(aKey,CHAR,lg_name+1,aString);
-    im[chip]->WrDesc("CCDSEC",CHAR,lg_name+1,aString);
-    sprintf(aKey,"DETSEC%d",chip);
-    image->RdDesc(aKey,CHAR,lg_name+1,aString);
-    im[chip]->WrDesc("DETSEC",CHAR,lg_name+1,aString);
+    if (image->RdIfDesc(aKey,CHAR,lg_name+1,aString)>0){
+      im[chip]->WrDesc("CCDSEC",CHAR,lg_name+1,aString);
+    } else { // old data, we have to get sync
+      image->RdDesc("CCDSEC",CHAR,lg_name+1,aString);
+      Section ccdSec(aString);
+      sprintf(aString,"[%d:%d,%d:%d]",ccdSec.X1()+newDataXLength*chip,ccdSec.X1()+newDataXLength*(chip+1)-1,ccdSec.Y1(),ccdSec.Y2());
+      im[chip]->WrDesc("CCDSEC",CHAR,lg_name+1,aString);      
+    }
+
+    sprintf(aKey,"AMPSEC%d",chip);
+    if (image->RdIfDesc(aKey,CHAR,lg_name+1,aString)>0) {
+      im[chip]->WrDesc("AMPSEC",CHAR,lg_name+1,aString);
+      sprintf(aKey,"DETSEC%d",chip);
+      image->RdDesc(aKey,CHAR,lg_name+1,aString);
+      im[chip]->WrDesc("DETSEC",CHAR,lg_name+1,aString);
+    }
+    
 
     // fill the image
     Section sec;
