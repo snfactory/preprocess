@@ -540,20 +540,22 @@ void  BiChipSnifs::HackFitsKeywords(char* PrimaryName)  {
   int channel=kBlueChannel;
   int nAmp;
 
-  if (fChip[0]->Algo()->GetId() == kOtcom) {
-    fChip[0]->RdDesc("CCDNAMP",INT,1,&nAmp);
-    // assume OTCOM 2amps = RED
-    // OTCOM 4 amps 2 chips = Photomatric
-    // OTCOM 4 amps 4 chan
-    if (nAmp==2)
-      channel = kRedChannel;
-    if (nAmp==4 && NChips()==2)
-      channel = kPhotometric;
-    if (nAmp==4 && NChips()==4)
-      channel = kPhotometric + kGuiding;
-    for (int chip=0;chip<NChips();chip++) {
-      if (fChip[chip]->GetChannel() == kUnknown) {
-        fChip[chip]->SetChannel(channel);
+  if ((channel=fChip[0]->GetChannel()) == kUnknown) {
+    if (fChip[0]->Algo()->GetId() == kOtcom) {
+      fChip[0]->RdDesc("CCDNAMP",INT,1,&nAmp);
+      // assume OTCOM 2amps = RED
+      // OTCOM 4 amps 2 chips = Photomatric
+      // OTCOM 4 amps 4 chan
+      if (nAmp==2)
+        channel = kRedChannel;
+      if (nAmp==4 && NChips()==2)
+        channel = kPhotometric;
+      if (nAmp==4 && NChips()==4)
+        channel = kPhotometric + kGuiding;
+      for (int chip=0;chip<NChips();chip++) {
+        if (fChip[chip]->GetChannel() == kUnknown) {
+          fChip[chip]->SetChannel(channel);
+        }
       }
     }
   }
