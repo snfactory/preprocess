@@ -15,6 +15,7 @@
 
 
 % For a clean PDF file with pdflatex
+% NONONO : it will trigger A compatibility mess ...
 %\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
 \usepackage[T1]{fontenc}
 \usepackage{ae}
@@ -23,7 +24,7 @@
 \usepackage{graphicx}
 %\newcommand{\pdfgraphics}{\ifpdf\DeclareGraphicsExtensions{.pdf,.jpg}\else\fi}
 
-\pdfoutput=0
+%\pdfoutput=0
 
 % --------------------------------------------------------------------
 % Decreases the margins and enlarge the useable page area
