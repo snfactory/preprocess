@@ -33,6 +33,7 @@ dnl        linux* ) C_OPT=-DUNDER ; C_ADDOPT="-fPIC -pipe -finline-functions -Wi
         linux* ) C_OPT=-DUNDER ; C_ADDOPT="-fPIC -pipe";;
         aix* ) C_OPT= ;;
         solaris* ) C_OPT=-DUNDER;;
+        darwin* ) C_OPT=-DUNDER;;
 esac 
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_AWK
@@ -100,9 +101,13 @@ fi
 LIBS="$LIBS -L$ac_ifuciolibs/C_libs/io/obj $ac_ifuciolibs/C_libs/obj/libgen.a  $ac_ifuciolibs/C_libs/wcslib/libwcs.a"
 AC_SUBST(ac_ifuciolibs)
 AC_CHECK_LIB(io,open_frame,
-        [LIBS="$LIBS -lio"
-         C_OPT="$C_OPT -I$ac_ifuciolibs/incl"],
+        [LIBS="$LIBS -lio"],
         [AC_MSG_ERROR(Unable to locate open_frame in $ac_ifuciolibs)],"-lm")
+
+dnl AC_CHECK_LIB(io,open_frame,
+dnl        [LIBS="$LIBS -lio"
+dnl         C_OPT="$C_OPT -I$ac_ifuciolibs/incl"],
+dnl        [AC_MSG_ERROR(Unable to locate open_frame in $ac_ifuciolibs)],"-lm")
 
 dnl checking now for the mathlibs -------------------------------------
 dnl needed marginally for technical reasons
@@ -155,13 +160,14 @@ AC_ARG_WITH(gsl,
          [ac_gsl=])
 
 dnl If the user does not provide one, try to see if somthing acceptable is found
+echo ac_gsl : "$ac_gsl"
 if test -z "$ac_gsl"
 then
     AC_CHECK_LIB(gsl,main)
 else
-    AC_CHECK_LIB(gsl,main,[LIBS="$LIBS -L$ac_gsl/lib -lgsl" ;C_OPT="$C_OPT -I$ac_gsl/include" ],
-    [ AC_MSG_ERROR([No GSL libs in path ... check your --with-gsl])],
-    [-L$ac_gsl/lib])
+    AC_CHECK_LIB(gsl,main,[LIBS="$LIBS `$ac_gsl/bin/gsl-config --libs`" ;C_OPT="$C_OPT `$ac_gsl/bin/gsl-config --cflags`" ],
+    [ AC_MSG_ERROR([No GSL libs in path ... provide one with --with-gsl])],
+    [ `$ac_gsl/bin/gsl-config --libs`])
 fi
 
 dnl AC_SUBST(ac_gsl)
