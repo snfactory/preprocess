@@ -42,7 +42,23 @@ dnl AM_PROG_LEX
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_F77_LIBRARY_LDFLAGS
-                          
+
+dnl 
+case $build_os in
+darwin* ) LDF="$LDF -bind_at_load" ;;
+esac
+
+dnl creating dynamic modules
+AC_SUBST(SH_FLAG)
+AC_SUBST(SH_EXT)
+case $build_os in
+linux* ) SH_FLAG=-shared; SH_EXT=so;;
+aix* ) SH_FLAG=-shared; SH_EXT=so;;
+solaris* ) SH_FLAG=-shared; SH_EXT=so;;
+darwin* ) SH_FLAG="-bundle -flat_namespace -undefined suppress"; SH_EXT=dylib;;
+cygwin* ) SH_FLAG="-shared"; SH_EXT=dll;;
+esac
+                        
 dnl Checks for libraries ==============================
 
 dnl IFU_C_iolibs, >= 6.2 ------------------------------
@@ -141,23 +157,20 @@ AC_ARG_WITH(gsl,
 dnl If the user does not provide one, try to see if somthing acceptable is found
 if test -z "$ac_gsl"
 then
-    cwd=`pwd` 
-    if test `ls  $ac_ifucmathlibs/lib/libgsl.a | wc | awk '{print $1}'` -lt 1
-    then
-        AC_MSG_ERROR([No GSL libs in path ... specify one with --with-gsl])
-    else
-        ac_gsl=`ls  $ac_ifucmathlibs/lib/libgsl.a | sed s%/lib/libgsl.a%% `
-    fi
-    AC_MSG_RESULT([$ac_gsl])
+    AC_CHECK_LIB(gsl,main)
+else
+    AC_CHECK_LIB(gsl,main,[LIBS="$LIBS -L$ac_gsl/lib -lgsl" ;C_OPT="$C_OPT -I$ac_gsl/include" ],
+    [ AC_MSG_ERROR([No GSL libs in path ... check your --with-gsl])],
+    [-L$ac_gsl/lib])
 fi
-AC_SUBST(ac_gsl)
 
-LIBS="$LIBS -L$ac_gsl/lib"
-AC_CHECK_LIB(gsl,gsl_stats_sd_m,
-        [LIBS="$LIBS -lgsl"
-         C_OPT="$C_OPT -I$ac_gsl/include"],
-        [AC_MSG_ERROR(Unable to locate gsl_stats_sd_m in $ac_gsl - try SNIFS custom mathlib installation)],
-        [-L$ac_gsl/lib -lgslcblas -lm])
+dnl AC_SUBST(ac_gsl)
+AC_MSG_RESULT(ok)
+
+dnl AC_CHECK_LIB(gsl,gsl_stats_sd_m,
+dnl         [],
+dnl         [AC_MSG_ERROR(Unable to locate gsl_stats_sd_m in $ac_gsl - try SNIFS custom mathlib installation)],
+dnl        [-L$ac_gsl/lib -lgslcblas -lm])
 
 dnl Checking for ROOT system -----------------------------
 AC_MSG_CHECKING(for ROOT system)
@@ -170,7 +183,7 @@ else
     AC_MSG_RESULT([No \$ROOTSYS])
 fi
 AC_SUBST(PKG_ROOT)
-echo setting PKG_ROOT to $PKG_ROOT
+dnl echo setting PKG_ROOT to $PKG_ROOT
 
 dnl Checking for dvipdf -----------------------------
 AC_CHECK_PROG(DVIPDF, dvipdf, yes, no)
@@ -235,7 +248,7 @@ if test x$ac_profile != xno; then
                 AC_MSG_ERROR([Use --enable-profile with --enable-debug])
         fi
         AC_MSG_WARN([IFU/LCL I/O library has to be gprof-compiled too])
-        LDF="$ac_profile"
+        LDF="$LDF $ac_profile"
         DEBUG="$DEBUG $ac_profile"
         ac_debug="$DEBUG"
 fi

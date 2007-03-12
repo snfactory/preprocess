@@ -27,7 +27,7 @@ STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/libstat.a
 #INTERPLIB = $(C_mathLIBS_PATH)/C_libs/obj/interplib.a
 #LEASTSQLIB = $(C_mathLIBS_PATH)/C_libs/obj/least_sqlib.a
 #POLYLIB = $(C_mathLIBS_PATH)/C_libs/obj/polylib.a
-GSLLIB = @ac_gsl@/lib/libgsl.a
+#GSLLIB = @ac_gsl@/lib/libgsl.a
 
 MATHLIB = $(STATLIB) $(INTERPLIB) $(LEASTSQLIB) $(POLYLIB) $(NAGLIB) $(GSLLIB)
 
@@ -51,7 +51,7 @@ MIDASOBJ =
 INC     = $(C_ioLIBS_PATH)/incl
 WCS_INC = $(C_ioLIBS_PATH)/C_libs/wcslib
 LINC = $(C_mathLIBS_PATH)/incl
-GSLINC = @ac_gsl@/include
+#GSLINC = @ac_gsl@/include
 FITSINC = $(C_ioLIBS_PATH)/C_libs/io/cfitsio
 MIDASINC = $(C_ioLIBS_PATH)/C_libs/io/midas_io
 
@@ -70,7 +70,7 @@ C_ADDOPT = @C_ADDOPT@
 DEBUG = @DEBUG@
 STRIP = @STRIP@
 
-CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(GSLINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) -I$(MIDASINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV -I$(MISC_INC)
+CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(INC) -I$(LINC) -I$(USER_INC) -I$(LOCAL_INC) -I$(FITSINC) -I$(MIDASINC) $(C_OPT) $(FANSI) $(MIDAS_FLAG) $(FITS_FLAG) $(IRAF_FLAG) -DSYSV -I$(MISC_INC)
 FFLAGS = $(F_OPT) -I$(PKG_INC) -I$(INC) -I$(USER_INC) -I$(LOCAL_INC)
 
 C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
@@ -82,7 +82,7 @@ CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
 
 F_COMPILE = $(F77) $(DEBUG) $(FFLAGS) -c $(@F:.o=.f) && mv $(@F) $@
 LDF = -lm @LDF@
-LDSOF = -lm -shared @LDF@
+LDSOF = -lm @SH_FLAG@ @LDF@
 
 # Lex & Yacc ==============================
 LEXOUTPUT = y.tab.o

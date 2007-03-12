@@ -45,6 +45,7 @@ class SignatureCut;
 
 class PrintInfo {
 public:
+  virtual ~PrintInfo() {}
   virtual void FillHelp(char* HelpString)=0;
   virtual void FillLine(char* LineString)=0;
   virtual void FillName(char* NameString)=0;

@@ -247,12 +247,12 @@ double ut_mode(double* val,int n){
   a priori*/  
 
 
-  int * index;
+  size_t * index;
   double med;
   int nmin=0;
   int nmax=n; /*  out of the table */
 
-  index = malloc(n*sizeof(int));
+  index = malloc(n*sizeof(size_t));
   
   /* test */
 
@@ -441,229 +441,233 @@ void ut_primary_header_name(char* full_name, char* primary_name){
 int 
 open_frame_fast(IMAGE2D *frame, char *name, char *mode)		
 {
-	char errtext[132], filename[lg_name+1];
-  	int status, nbaxes, iomode, int_datatype;
-  	int one=1;
-  	float cuts[4];
-	int info[5];
+  char errtext[132], filename[lg_name+1];
+  int status, nbaxes, iomode, int_datatype;
+  float cuts[4];
+  int info[5];
 #ifdef IRAF
-  	int two_dim=2;
-	int len;
+  int two_dim=2;
+  int len;
 #endif
 #ifdef FITS
-    fitsfile *fptr;
-    int nbread;
-	int npix;
-	int group = 0;
+  fitsfile *fptr;
+  int nbread;
+  int npix;
+  int group = 0;
+  double pixref;
 #endif
 
-	memset(frame->ident,' ',lg_ident);
-	frame->ident[lg_ident] = '\0';
-	memset(frame->cunit,' ',lg_unit);
-	frame->cunit[lg_unit] = '\0';
-	memset(frame->history,' ',lg_hist);
-	frame->history[lg_hist] = '\0';
-	frame->external_info = 0;
-	frame->file_type = T_IMA2D;
-	frame->data_format = InputIO.basic_io;
+  memset(frame->ident,' ',lg_ident);
+  frame->ident[lg_ident] = '\0';
+  memset(frame->cunit,' ',lg_unit);
+  frame->cunit[lg_unit] = '\0';
+  memset(frame->history,' ',lg_hist);
+  frame->history[lg_hist] = '\0';
+  frame->external_info = NULL;
+  frame->file_type = T_IMA2D;
+  frame->data_format = InputIO.basic_io;
 
-	strcpy(filename,name);
- 	first_blk(filename); 
-	strcpy(frame->name,filename);
-	append_ima_extension(frame->name,InputIO.basic_io);
+  strcpy(filename,name);
+  first_blk(filename); 
+  strcpy(frame->name,filename);
+  append_ima_extension(frame->name,InputIO.basic_io);
 
-	strcpy(filename,frame->name);
+  strcpy(filename,frame->name);
 
-	if (!exist(filename)) { /* check if fil exists */
-		status = ERR_OPEN;
-		sprintf(errtext,"open_frame_fast: frame %s",filename);
-		Handle_Error(errtext,status);
-		return(status);
-        }
+  if (!exist(filename)) { /* check if fil exists */
+    status = ERR_OPEN;
+    sprintf(errtext,"open_frame: frame %s",filename);
+    Handle_Error(errtext,status);
+    return(status);
+  }
 
-	switch(mode[0]) {
-		case 'I' : 
-			if (mode[1] == 'O')
-				frame->iomode = (int)IO_MODE;
-			else
-				frame->iomode = (int)I_MODE;
-			break;
-		case 'O' : frame->iomode = (int)O_MODE;
-			break;
-		default  : frame->iomode = (int)I_MODE;
-			break;
-	}
+  switch(mode[0]) {
+  case 'I' : 
+    if (mode[1] == 'O')
+      frame->iomode = (int)IO_MODE;
+    else
+      frame->iomode = (int)I_MODE;
+    break;
+  case 'O' : frame->iomode = (int)O_MODE;
+    break;
+  default  : frame->iomode = (int)I_MODE;
+    break;
+  }
 	
-    iomode = get_iomode_code(InputIO.basic_io,frame->iomode);
+  iomode = get_iomode_code(InputIO.basic_io,frame->iomode);
 
-    switch (InputIO.basic_io) {
+  switch (InputIO.basic_io) {
 
 #ifdef MIDAS
-	case MIDAS_FORMAT :
-		status = SCFINF(filename,2,info);  
-		if (status == 0) {
-  			status = SCIGET(filename, info[1], iomode, F_IMA_TYPE, 2, 
-  		    &nbaxes, &(frame->nx), &(frame->startx), &(frame->stepx),
-  		    frame->ident, frame->cunit, (char **)(&(frame->data)), 
-  		    &(frame->imno));
-		    frame->data_type = info[1];
-		    frame->data_type = decode_datatype(InputIO.basic_io,frame->data_type);
+  case MIDAS_FORMAT :
+    status = SCFINF(filename,2,info);  
+    if (status == 0) {
+      status = SCIGET(filename, info[1], iomode, F_IMA_TYPE, 2, 
+                      &nbaxes, &(frame->nx), &(frame->startx), &(frame->stepx),
+                      frame->ident, frame->cunit, (char **)(&(frame->data)), 
+                      &(frame->imno));
+      frame->data_type = info[1];
+      frame->data_type = decode_datatype(InputIO.basic_io,frame->data_type);
 
-		    if(nbaxes!=2) /* We open a spectrum like an image , and that's not good */
-		      status = ERR_OPEN; 
+      if (nbaxes!=2) /* We open a spectrum like an image, and that's not good */
+        status = ERR_OPEN; 
 
-		}
-		break;
+    }
+    break;
 #endif
 #ifdef IRAF
-    case IRAF_FORMAT :
-    case STSDAS_FORMAT :
-		len = strlen(filename);
-        uimopn(filename,&iomode,&(frame->imno),&status,len);
-        if (status != 0) 
-			break;
-        uimgid(&(frame->imno),&int_datatype,&two_dim,&(frame->nx),&status);
-		frame->data_type = decode_datatype(InputIO.basic_io,(short)(int_datatype));
-       	if (status != 0)
-			break;
-		alloc_frame_mem(frame, datatype);
-		switch(frame->data_type) {
-		case SHORT :
-   			uigs2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.s_data,&status);
-			break;
-		case INT :
-		case LONG :
-   			uigs2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.l_data,&status);
-			break;
-		case FLOAT :
-   			uigs2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.f_data,&status);
-			break;
-		case DOUBLE :
-   			uigs2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.d_data,&status);
-			break;
-        }
-		disable_user_warnings();
-	  	RD_desc(frame,"IDENT",CHAR,lg_ident,frame->ident);
-		restore_user_warnings();
-		break;
+  case IRAF_FORMAT :
+  case STSDAS_FORMAT :
+    len = strlen(filename);
+    uimopn(filename,&iomode,&(frame->imno),&status,len);
+    if (status != 0) 
+      break;
+    uimgid(&(frame->imno),&int_datatype,&two_dim,&(frame->nx),&status);
+    frame->data_type = decode_datatype(InputIO.basic_io,(short)(int_datatype));
+    if (status != 0)
+      break;
+    alloc_frame_mem(frame, datatype);
+    switch(frame->data_type) {
+    case SHORT :
+      uigs2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.s_data,&status);
+      break;
+    case INT :
+    case LONG :
+      uigs2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.l_data,&status);
+      break;
+    case FLOAT :
+      uigs2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.f_data,&status);
+      break;
+    case DOUBLE :
+      uigs2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.d_data,&status);
+      break;
+    }
+    disable_user_warnings();
+    RD_desc(frame,"IDENT",CHAR,lg_ident,frame->ident);
+    restore_user_warnings();
+    break;
 #endif
 #ifdef FITS
-	case FITS_A_FORMAT :
-    case FITS_B_FORMAT :
-	status =0;
-	if (fits_open_file(&fptr,filename,iomode,&status)) {
-		status = ERR_ACCESS; break;
-	}
-	frame->external_info = (void *)fptr;
-	if (fits_read_key(fptr, TINT,"NAXIS", &nbaxes,NULL, &status)) {
-		status = ERR_READ; break;
-	}
-	if (nbaxes != 2) {
-		status = ERR_IMA_HEAD; break;
-	}
-        if (fits_read_key(fptr, TINT, "NAXIS1",
-		&(frame->nx), NULL, &status)) {
-		status = ERR_READ; break;
-	}
-        if (fits_read_key(fptr, TINT, "NAXIS2",
-		&(frame->ny), NULL, &status)) {
-		status = ERR_READ; break;
-	}
-	if (status == 0) {
-		fits_read_key(fptr, TINT, "CRPIX1", &one, NULL, &status);
-		if (status) { status = 0; one = 1; }
-		fits_read_key(fptr, TDOUBLE, "CRVAL1", &(frame->startx), NULL, &status);
-		if (status) { status = 0; frame->startx = (double)1; }
-		fits_read_key(fptr, TDOUBLE, "CDELT1", &(frame->stepx), NULL, &status);
-		if (status) { status = 0; frame->stepx = (double)1; }
-	    	frame->startx -= (one-1)*frame->stepx;
-		fits_read_key(fptr, TINT, "CRPIX2", &one, NULL, &status);
-		if (status) { status = 0; one = 1; }
-		fits_read_key(fptr, TDOUBLE, "CRVAL2", &(frame->starty), NULL, &status);
-		if (status) { status = 0; frame->starty = (double)1; }
-		fits_read_key(fptr, TDOUBLE, "CDELT2", &(frame->stepy), NULL, &status);
-		if (status) { status = 0; frame->stepy = (double)1; }
-	    frame->starty -= (one-1)*frame->stepy;
-	}
-	else
-		break;
+  case FITS_A_FORMAT :
+  case FITS_B_FORMAT :
+    status =0;
+    if (fits_open_file(&fptr,filename,iomode,&status)) {
+      status = ERR_ACCESS; break;
+    }
+    frame->external_info = (void *)fptr;
+    if (fits_read_key(fptr, TINT,"NAXIS", &nbaxes,NULL, &status)) {
+      status = ERR_READ; break;
+    }
+    if (nbaxes != 2) {
+      status = ERR_IMA_HEAD; break;
+    }
+    if (fits_read_key(fptr, TINT, "NAXIS1",
+                      &(frame->nx), NULL, &status)) {
+      status = ERR_READ; break;
+    }
+    if (fits_read_key(fptr, TINT, "NAXIS2",
+                      &(frame->ny), NULL, &status)) {
+      status = ERR_READ; break;
+    }
+    if (status == 0) {
+      pixref = 1.0;
+      fits_read_key(fptr, TDOUBLE, "CRPIX1", &pixref, NULL, &status);
+      if (status) { status = 0; pixref = 1; }
+      fits_read_key(fptr, TDOUBLE, "CRVAL1", &(frame->startx), NULL, &status);
+      if (status) { status = 0; frame->startx = (double)1; }
+      fits_read_key(fptr, TDOUBLE, "CDELT1", &(frame->stepx), NULL, &status);
+      if (status) { status = 0; frame->stepx = (double)1; }
+      frame->startx -= (pixref-1)*frame->stepx;
+      pixref = 1.0;
+      fits_read_key(fptr, TDOUBLE, "CRPIX2", &pixref, NULL, &status);
+      if (status) { status = 0; pixref = 1; }
+      fits_read_key(fptr, TDOUBLE, "CRVAL2", &(frame->starty), NULL, &status);
+      if (status) { status = 0; frame->starty = (double)1; }
+      fits_read_key(fptr, TDOUBLE, "CDELT2", &(frame->stepy), NULL, &status);
+      if (status) { status = 0; frame->stepy = (double)1; }
+      frame->starty -= (pixref-1)*frame->stepy;
+    }
+    else
+      break;
 
-	int_datatype = (fptr->Fptr->tableptr)->tdatatype;
-	frame->data_type = decode_datatype(InputIO.basic_io,(short)int_datatype);
-	if (frame->data_type == SHORT) {
-		if (fptr->Fptr->tableptr[1].tscale == 1 && fptr->Fptr->tableptr[1].tzero == 32768)
-			/* unsigned short !!! */
-			frame->data_type = LONG;
-	}
+    int_datatype = (fptr->Fptr->tableptr)->tdatatype;
+    frame->data_type = decode_datatype(InputIO.basic_io,(short)int_datatype);
+    if (frame->data_type == SHORT) {
+      if (fptr->Fptr->tableptr[1].tscale == 1 && fptr->Fptr->tableptr[1].tzero == 32768)
+        /* unsigned short !!! */
+        frame->data_type = LONG;
+    }
 
-	if (alloc_frame_mem(frame, frame->data_type) < 0) {
-		fits_close_file(fptr,&status);
-		status = ERR_ALLOC;
-		break;
-	}
+    if (alloc_frame_mem(frame, frame->data_type) < 0) {
+      fits_close_file(fptr,&status);
+      status = ERR_ALLOC;
+      break;
+    }
 
-	npix = frame->nx*frame->ny;
-	switch (frame->data_type) {
-	case SHORT :
-		if (fits_read_img_sht(fptr,group,1L,npix,(short)0,
-			frame->data.s_data,&nbread,&status)) {
-			status = ERR_READ; break;
-		}
-		break;
-	case LONG :
-	case INT :
-		if (fits_read_img_lng(fptr,group,1L,npix,(int)0,
-			frame->data.l_data,&nbread,&status)) {
-			status = ERR_READ; break;
-		}
-		break;
-	case FLOAT :
-		if (fits_read_img_flt(fptr,group,1L,npix,(float)0,
-			frame->data.f_data,&nbread,&status)) {
-			status = ERR_READ; break;
-		}
-		break;
-	case DOUBLE :
-		if (fits_read_img_dbl(fptr,group,1L,npix,(double)0,
-			frame->data.d_data,&nbread,&status)) {
-			status = ERR_READ; break;
-		}
-		break;
-	}
-		break;
+    npix = frame->nx*frame->ny;
+    switch (frame->data_type) {
+    case SHORT :
+      if (fits_read_img_sht(fptr,group,1L,npix,(short)0,
+                            frame->data.s_data,&nbread,&status)) {
+        status = ERR_READ; break;
+      }
+      break;
+    case LONG :
+    case INT :
+      if (fits_read_img_lng(fptr,group,1L,npix,(int)0,
+                            frame->data.l_data,&nbread,&status)) {
+        status = ERR_READ; break;
+      }
+      break;
+    case FLOAT :
+      if (fits_read_img_flt(fptr,group,1L,npix,(float)0,
+                            frame->data.f_data,&nbread,&status)) {
+        status = ERR_READ; break;
+      }
+      break;
+    case DOUBLE :
+      if (fits_read_img_dbl(fptr,group,1L,npix,(double)0,
+                            frame->data.d_data,&nbread,&status)) {
+        status = ERR_READ; break;
+      }
+      break;
+    }
+    break;
 #endif
-	}
+  }
 
-  	if (status) {
-		sprintf(errtext,"open_frame_fast: frame %s",filename);
-		status = get_tiger_errcode(frame->data_format,status);
-		Handle_Error(errtext,status);
-	}
-  	else {
-		disable_user_warnings();
-	  	status = RD_desc(frame,"LHCUTS",FLOAT,4,cuts);
-		RD_desc(frame,"HISTORY",CHAR,lg_hist,frame->history);
-		restore_user_warnings();
+  if (status) {
+    sprintf(errtext,"open_frame: frame %s",filename);
+    status = get_tiger_errcode(frame->data_format,status);
+    Handle_Error(errtext,status);
+  }
+  else {
+    disable_user_warnings();
+    status = RD_desc(frame,"LHCUTS",FLOAT,4,cuts);
+    RD_desc(frame,"HISTORY",CHAR,lg_hist,frame->history);
+    restore_user_warnings();
 
-  		frame->endx = frame->startx + (frame->nx -1)*frame->stepx;
-  		frame->endy = frame->starty + (frame->ny -1)*frame->stepy;
-                /* image_minmax is a really slow routine, and most of the time useless */
-		if (status <= 0) {
-                  frame->min = -ut_big_value;
-                  frame->max = +ut_big_value;
-                  /*			image_minmax(frame); */
-		}
-		else {
-	  		frame->min = cuts[2];
-	  		frame->max = cuts[3];
-		}
-		status = 0;
-  	}
-  	return(status);
+    frame->endx = frame->startx + (frame->nx -1)*frame->stepx;
+    frame->endy = frame->starty + (frame->ny -1)*frame->stepy;
+    if (status <= 0) {
+      /* image_minmax is a really slow routine, and most of the time useless */
+      frame->min = -ut_big_value;
+      frame->max = +ut_big_value;
+      /*			image_minmax(frame); */
+    }
+    else {
+      frame->min = cuts[2];
+      frame->max = cuts[3];
+    }
+    status = 0;
+    /* parse wcs if contained in file */
+    status = parse_wcs(frame);
+  }
+  return(status);
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -680,134 +684,134 @@ open_frame_fast(IMAGE2D *frame, char *name, char *mode)
 int 
 close_frame_fast(IMAGE2D *frame)			/* close active frame */
 {
-	char   errtext[132], filename[lg_name+1];
-	int    stat, int_datatype;
-        float  cuts[4]; 
+  char  errtext[132], filename[lg_name+1];
+  int   stat, int_datatype;
+  float cuts[4];
 #ifdef IRAF
-	int one=1;
+  int one=1;
 #endif
 #ifdef FITS
-    fitsfile *fptr;
-	int npix;
+  fitsfile *fptr;
+  int npix;
 #endif
 
-	strcpy(filename,frame->name);
+  strcpy(filename,frame->name);
 
-	if (frame->iomode == (int)I_MODE) {
-		switch (frame->data_format) {
+  if (frame->iomode == (int)I_MODE) {
+    switch (frame->data_format) {
 #ifdef MIDAS
-		case MIDAS_FORMAT :
-			stat = SCFCLO(frame->imno);
-			break;
+    case MIDAS_FORMAT :
+      stat = SCFCLO(frame->imno);
+      break;
 #endif
 #ifdef IRAF
-		case IRAF_FORMAT :
-		case STSDAS_FORMAT :
-		uimclo(&(frame->imno),&stat);
-		break;
+    case IRAF_FORMAT :
+    case STSDAS_FORMAT :
+      uimclo(&(frame->imno),&stat);
+      break;
 #endif
 #ifdef FITS
-		case FITS_A_FORMAT :
-    		case FITS_B_FORMAT :
-			stat =0;
-			fptr = (fitsfile *)frame->external_info;
-	    		fits_close_file(fptr,&stat);
-			free_frame_mem(frame);
-			frame->external_info = NULL;
-			break;
-#endif
-		}
-  		if (stat) {
-			sprintf(errtext,"close_frame_fast: frame %s",filename);
-			stat = get_tiger_errcode(frame->data_format,stat);
-			Handle_Error(errtext,stat);
-		}
-	  	return(stat);
-	}
-        /* image_minmax is a really slow routine, and most of the time useless */
-        /*
-	if (frame->data.d_data != NULL) {
-		image_minmax(frame);
-
-		cuts[0]=frame->min; cuts[2]=frame->min;
-		cuts[1]=frame->max; cuts[3]=frame->max;
-		stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
-	}
-        */
-        /* This will untrigger image_minmax in open_frame*/
-        cuts[0]=frame->min; cuts[2]=frame->min;
-        cuts[1]=frame->max; cuts[3]=frame->max;
-        stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
-	WR_history(frame, (Anyfile *)0);
-
-	switch (frame->data_format) {
-#ifdef MIDAS
-	case MIDAS_FORMAT :
-		stat = SCFCLO(frame->imno);
-		break;
-#endif
-#ifdef IRAF
-	case IRAF_FORMAT :
-	case STSDAS_FORMAT :
-		switch(frame->data_type) {
-		case SHORT :
-        	uips2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.s_data,&stat);
-			break;
-		case INT :
-		case LONG :
-        	uips2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.l_data,&stat);
-			break;
-		case FLOAT :
-        	uips2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.f_data,&stat);
-			break;
-		case DOUBLE :
-        	uips2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
-				frame->data.d_data,&stat);
-			break;
-		}
-		if (stat == 0)  
-			uimclo(&(frame->imno),&stat);
-		free_frame_mem(frame);
-	break;
-#endif
-#ifdef FITS
-	case FITS_A_FORMAT :
+    case FITS_A_FORMAT :
     case FITS_B_FORMAT :
-	stat = 0;
-	fptr = (fitsfile *)frame->external_info;
-	if (frame->iomode != (int)I_MODE) {
-		if (frame->data.d_data != NULL) {
-			int_datatype = get_datatype_code(OutputIO.basic_io,frame->data_type);
-			npix = frame->nx*frame->ny;
-			if (fits_write_img(fptr,int_datatype,1L,npix,
-				frame->data.s_data,&stat)) {
-				stat = ERR_WRIT;
-			}
-		}
-	}
-	if (! stat)
-	    fits_close_file(fptr,&stat);
-	free_frame_mem(frame);
-	frame->external_info = NULL;
-	break;
+      stat =0;
+      fptr = (fitsfile *)frame->external_info;
+      fits_close_file(fptr,&stat);
+      free_frame_mem(frame);
+      frame->external_info = NULL;
+      break;
 #endif
-	}
-  	if (stat) {
-		sprintf(errtext,"close_frame_fast: frame %s",filename);
-		stat = get_tiger_errcode(frame->data_format,stat);
-		Handle_Error(errtext,stat);
-	} else {
-		if(TK && (frame->iomode == O_MODE || frame->iomode == IO_MODE))
-		{
-			printf("@ N {%s}\n",filename);
-		}
-	}
+    }
+    if (stat) {
+      sprintf(errtext,"close_frame: frame %s",filename);
+      stat = get_tiger_errcode(frame->data_format,stat);
+      Handle_Error(errtext,stat);
+    }
+    return(stat);
+  }
 
-  	return(stat);
+  /*
+  if (frame->data.d_data != NULL) {
+    image_minmax(frame);
+
+    cuts[0]=(float)frame->min; cuts[2]=(float)frame->min;
+    cuts[1]=(float)frame->max; cuts[3]=(float)frame->max;
+    stat = WR_desc(frame,"LHCUTS",FLOAT,4,cuts);
+  }
+  */
+
+  WR_history(frame, (Anyfile *)0);
+
+  switch (frame->data_format) {
+#ifdef MIDAS
+  case MIDAS_FORMAT :
+    stat = SCFCLO(frame->imno);
+    break;
+#endif
+#ifdef IRAF
+  case IRAF_FORMAT :
+  case STSDAS_FORMAT :
+    switch(frame->data_type) {
+    case SHORT :
+      uips2s(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.s_data,&stat);
+      break;
+    case INT :
+    case LONG :
+      uips2l(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.l_data,&stat);
+      break;
+    case FLOAT :
+      uips2r(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.f_data,&stat);
+      break;
+    case DOUBLE :
+      uips2d(&(frame->imno),&one,&(frame->nx),&one,&(frame->ny),
+             frame->data.d_data,&stat);
+      break;
+    }
+    if (stat == 0)  
+      uimclo(&(frame->imno),&stat);
+    free_frame_mem(frame);
+    break;
+#endif
+#ifdef FITS
+  case FITS_A_FORMAT :
+  case FITS_B_FORMAT :
+    stat = 0;
+    fptr = (fitsfile *)frame->external_info;
+    if (frame->iomode != (int)I_MODE) {
+      if (frame->data.d_data != NULL) {
+        int_datatype = get_datatype_code(OutputIO.basic_io,frame->data_type);
+        npix = frame->nx*frame->ny;
+        if (fits_write_img(fptr,int_datatype,1L,npix,
+                           frame->data.s_data,&stat)) {
+          stat = ERR_WRIT;
+        }
+      }
+    }
+    if (! stat) {
+      fits_close_file(fptr,&stat);
+      stat = wcs_free(frame);
+    }
+    free_frame_mem(frame);
+    frame->external_info = NULL;
+    break;
+#endif
+  }
+  if (stat) {
+    sprintf(errtext,"close_frame: frame %s",filename);
+    stat = get_tiger_errcode(frame->data_format,stat);
+    Handle_Error(errtext,stat);
+  } else {
+    if (TK && (frame->iomode == O_MODE || frame->iomode == IO_MODE))
+      {
+        printf("@ N {%s}\n",filename);
+      }
+  }
+
+  return(stat);
 }
+
 
 /* ----- juldat --------------------------------------------------------- */
 /*C

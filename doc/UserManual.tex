@@ -12,14 +12,18 @@
 % Loading packages
 % --------------------------------------------------------------------
 
+
+
 % For a clean PDF file with pdflatex
-\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
+%\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
 \usepackage[T1]{fontenc}
 \usepackage{ae}
 \usepackage[T1]{url}
 \urlstyle{sf}
 \usepackage{graphicx}
-\newcommand{\pdfgraphics}{\ifpdf\DeclareGraphicsExtensions{.pdf,.jpg}\else\fi}
+%\newcommand{\pdfgraphics}{\ifpdf\DeclareGraphicsExtensions{.pdf,.jpg}\else\fi}
+
+\pdfoutput=0
 
 % --------------------------------------------------------------------
 % Decreases the margins and enlarge the useable page area

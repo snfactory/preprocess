@@ -33,6 +33,8 @@ const int kIoAll = -1; // flag to open all lines in Slice mode
 
 class IoMethod {
   public :
+    virtual ~IoMethod() {}
+  
     int Nx() const { return fFrame->nx;}
     int Ny() const { return fFrame->ny;}
     char* Name() const { return Frame()->name; }
