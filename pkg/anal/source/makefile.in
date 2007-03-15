@@ -5,7 +5,7 @@
 ## Author:        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
 ## Created at:    Tue Mar 25 16:21:56 2003
 ## $Id$
-## Modified by:   Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+## Modified by:   Emmanuel GANGLER <e.gangler@ipnl.in2p3.fr>
 ######################################################################
 
 topdir = @top_srcdir@
@@ -22,6 +22,7 @@ LOCLIBPATH = -L$(L) -lanal
 # Targets
 
 SRC = 	rootify.cxx\
+	impulse_study.cxx\
 	rootify_fft.cxx\
 	rootify_data.cxx\
 	rootify_tree.cxx\

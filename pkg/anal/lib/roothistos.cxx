@@ -13,6 +13,7 @@
 /*--- ROOT includes ---*/
 #include "TH1F.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 #include "TMatrix.h"
 
 /* --------------- Constructor ------------------- */
@@ -357,6 +358,62 @@ void RootAnalyser::VertHighFrequencyProf(double min, double max, int nbin)
   delete prof;
   
 }
+
+/*-------------- impulse response ------------------------------------------- */
+void RootAnalyser::ImpulseProfile(int minx, int maxx, int nbiny, double miny, double maxy)
+{
+
+  char histName[lg_name+1];
+  int nbinx=maxx-minx+1;
+  sprintf(histName,"Impulse%s",fSec->Name());
+  TProfile2D* prof = new TProfile2D(histName,"Impulse response",nbinx,minx-0.5,maxx+0.5,nbiny,miny,maxy);
+  int maxData=20;
+  double data[nbinx][nbiny][maxData];
+  int n[nbinx][nbiny];
+  
+  for(int i=0;i<nbinx;i++)
+    for(int j=0;j<nbiny;j++)
+      n[i][j]=0;
+
+  for (int j=fSec->YFirst(); j<fSec->YLast();j++){
+    for (int i=fSec->XFirst()-miny; i<fSec->XLast()-maxy-1;i++){
+      // 1-D laplacian detection of impulse signals
+      //double laplacian= fImage->RdFrame(i,j)- fImage->RdFrame(i-1,j)/2- fImage->RdFrame(i+1,j)/2;
+      //double lapvar=fImage->Variance()->RdFrame(i,j)- fImage->RdFrame(i-1,j)/4- fImage->RdFrame(i+1,j)/4;
+      if (fImage->RdFrame(i,j)>fImage->RdFrame(i+1,j)*2 && fImage->RdFrame(i,j)>fImage->RdFrame(i-1,j)*2 && fImage->RdFrame(i,j)>10 ){
+        double y=log10(fImage->RdFrame(i,j));
+        for (int ix=minx;ix<maxx+1;ix++) {
+          int binx=prof->GetXaxis()->FindFixBin(ix)-1;
+          int biny=prof->GetYaxis()->FindFixBin(y)-1;
+          if (binx<0 || biny<0 || binx>=nbinx || biny>=nbiny)
+            continue;
+          if (n[binx][biny]==maxData) {
+            double z=ut_median(data[binx][biny],n[binx][biny]);
+            prof->Fill(ix,y,z);
+            n[binx][biny]=0;
+          }
+          data[binx][biny][n[binx][biny]]=fImage->RdFrame(i+ix,j);
+          n[binx][biny]++;
+        }
+      }
+    }
+  }
+  /*
+  for(int i=0;i<nbinx;i++)
+    for(int j=0;j<nbiny;j++)
+      if (n[i][j]>0) {
+        double z=ut_median(data[i][j],n[i][j]);
+        prof->Fill(prof->GetXaxis()->GetBinCenter(i+1),
+                   prof->GetYaxis()->GetBinCenter(j+1),z);
+      }
+  */
+
+  
+  prof->Write();
+  delete prof;
+  
+}
+
 
 
 /*-------------- fft-it ------------------*/
