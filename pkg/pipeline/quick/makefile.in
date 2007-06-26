@@ -23,7 +23,7 @@ OUT : $(EXE)
 # Shell-scripts
 $(E)/% : %.sh
 	install $< $(E)/$*
-	glouBBBB
+
 
 # Python-scripts
 $(E)/% : %.py
