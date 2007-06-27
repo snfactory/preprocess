@@ -87,9 +87,9 @@ for file in $inframes ; do
     Pfile=`echo $file | sed 's%.*/%% ; s%^%P%'`
     echo $Pfile >> Pfiles.cat
     [ $DEBUG ] && echo "preprocess -in $file -out $Pfile"
-    #preprocess -in $file -out $Pfile $noask
+    preprocess -in $file -out $Pfile $noask
 done
 [ $DEBUG ] && echo "stack_image -in Pfiles.cat -out $outbias -nlines $nlines"
-#stack_image -in Pfiles.cat -out $outbias -nlines $nlines $noask
+stack_image -in Pfiles.cat -out $outbias -nlines $nlines $noask
 
 exit 0
