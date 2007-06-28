@@ -68,7 +68,7 @@ while getopts "o:m:fdvh" OPTION ; do
     esac
 done
 
-shift $(echo $OPTIND-1 | bc)
+shift $(($OPTIND-1))
 inframes=$@
 
 if [ -z "$inframes" ] || [ -z $outbias ]; then
