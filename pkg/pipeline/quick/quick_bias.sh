@@ -20,18 +20,24 @@ function usage() {
 Program: quick_bias  Version $version
 
 Available options:
- -i inframes -o outbias [-m maximages] [-f][-d][-h][-v]
+ -o outbias [-m maximages] [-f][-d][-h][-v] bias1.fits bias2.fits [bias*.fits]
 
 where:
-  inframes  : Input files list. 
     outbias : Output bias name.
   maximages : The maximum number of images which may be simultaneously
               present in the memory.
 	      The higher, the better performance - but the higher chance to
 	      overflow the RAM.
-	      default : 7
+	      Note that it is not the max number of input images. This one can 
+              be very high (up to 1000 should go fine).
+	      default : 7 (corresponding to approx 1GB RAM)
      f-flag : Do not ask before overwriting files.
      d-flag : Debug mode
+
+Example:
+
+    quick_bias -o bias_B.fits -f *_24_B.fits
+
 EOF
 }
 
@@ -50,9 +56,8 @@ function die() {
 # Options ==============================
 
 # Parser ..............................
-while getopts "c:i:o:a:b:C:r:D:VwBWfmdvh" OPTION ; do
+while getopts "o:m:fdvh" OPTION ; do
     case "$OPTION" in
-        i) inframes="$OPTARG" ;; # Input frame list
         o) outbias="$OPTARG" ;; # Output datacube
 	m) maximages="$OPTARG" ;; # max space for processing
         f) noask="-noask" ;;    # Do not ask before overwriting files
@@ -63,8 +68,11 @@ while getopts "c:i:o:a:b:C:r:D:VwBWfmdvh" OPTION ; do
     esac
 done
 
+shift $(echo $OPTIND-1 | bc)
+inframes=$@
+
 if [ -z "$inframes" ] || [ -z $outbias ]; then
-    die 1 $LINENO "Arguments of options -i or -o missing"
+    die 1 $LINENO "Arguments of options -o missing or no input files"
 fi
 if [ -e Pfiles.cat ] ; then
     if [ -n "$noask" ] ; then
