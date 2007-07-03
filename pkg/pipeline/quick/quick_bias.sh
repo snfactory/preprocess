@@ -78,7 +78,7 @@ if [ -e Pfiles.cat ] ; then
     if [ -n "$noask" ] ; then
 	rm -f Pfiles.cat
     else 
-	die 1 $LINENO "Pfiles.cat already exists - move it away"
+	die 1 $LINENO "Pfiles.cat already exists - is a concurrent processing runing on this directory?"
     fi
 fi
 ### Translate the number of images in number of lines for 1 image.
@@ -99,5 +99,6 @@ for file in $inframes ; do
 done
 [ $DEBUG ] && echo "stack_image -in Pfiles.cat -out $outbias -nlines $nlines"
 stack_image -in Pfiles.cat -out $outbias -nlines $nlines $noask
+rm -f Pfiles.cat
 
 exit 0

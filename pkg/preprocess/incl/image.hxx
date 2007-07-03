@@ -98,7 +98,7 @@ class ImageSimple {
     //
     void AddPoissonNoise();
     int HandleSaturation(double Level);
-  
+    int CleanWith(ImageSimple * Ref, double SigCut);
 
   // because we need to hack the keywords
     IMAGE2D * Frame() const {return Io()->Frame();}

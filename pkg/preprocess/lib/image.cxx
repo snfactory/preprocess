@@ -703,3 +703,24 @@ int ImageSimple::HandleSaturation(double Level) {
 }
 
 
+/* ----- CleanWith -------------------------------------------------- */
+int ImageSimple::CleanWith(ImageSimple * Ref, double SigCut) {
+  // this method replaces pixels incompatible with the reference image
+  // with the reference image - variance set to infinity.
+  // 
+  // The main purpose is to remove cosmics
+  if (!Variance() || !Ref->Variance())
+    print_error("ImageSimple::CleanWith method needs variances");
+  int nbad=0;
+  for (int j=0;j<Ny();j++)
+    for (int i=0;i<Nx();i++) {
+      if (fabs(RdFrame(i,j)-Ref->RdFrame(i,j)) / sqrt(Variance()->RdFrame(i,j)+Ref->Variance()->RdFrame(i,j)) > SigCut) {
+        nbad++;
+        WrFrame(i,j,Ref->RdFrame(i,j));
+        Variance()->WrFrame(i,j,ut_big_value);
+      }
+    }
+  return nbad;
+}
+
+

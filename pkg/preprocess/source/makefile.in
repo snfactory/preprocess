@@ -24,10 +24,8 @@ LOCLIB = $(O)/libpreprocess.a
 WSRC = bichip_build.cxx\
        preprocess_bias.cxx\
 
-SRC =	 preprocess_bias.cxx\
-	 preprocess_flat.cxx\
-	 preprocess.cxx\
-	 preprocess_overscan.cxx\
+SRC =	 preprocess.cxx\
+	 clean_cosmic.cxx \
 	 ccd_rem_cosmic.cxx\
 	 split_image.cxx\
 	 quick_look.cxx\
@@ -58,6 +56,9 @@ OPTSRC =   substract_overscan.cxx\
 	 test_extension.cxx\
 	 rickify.cxx\
 	 lrerror.cxx\
+	 preprocess_bias.cxx\
+	 preprocess_flat.cxx\
+	 preprocess_overscan.cxx\
 
 # non-maintained executables
 OLDSRC = \

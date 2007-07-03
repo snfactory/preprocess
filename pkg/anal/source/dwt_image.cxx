@@ -12,6 +12,7 @@
 /* =========================================================== */
 
 /* ----- lib includes ------------------------------ */
+#define GSL_DISABLE_DEPRECATED
 #include "gsl/gsl_wavelet.h"
 #include "gsl/gsl_wavelet2d.h"
 
@@ -19,7 +20,7 @@
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
 #include "section.hxx"
-//#include "analyser.hxx"
+#include "analyser.hxx"
 
 
 /* ----- wavelettransform ------------------------------ */
@@ -62,53 +63,6 @@ void waveletinversetransform(double* datain, double* dataout,int n, int level) {
   gsl_wavelet_workspace_free(work);
   
 }
-
-/*---------- To be not lost ------------------------------*/
-#ifdef OLD_CODE
-// This is taken fomr somewhere in the main
-    int y=in->Ny(),maxY=1;
-    // only power of 2 ...
-    while ((y=y>>1)) 
-      maxY=maxY<<1;
-    double *data = new double[maxY];
-
-    // initialize wavelet
-    gsl_wavelet *w;
-    if (level==1)
-      w = gsl_wavelet_alloc (gsl_wavelet_haar_centered, 2);
-    else
-      w = gsl_wavelet_alloc (gsl_wavelet_daubechies_centered, level*2);
-    gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc (maxY);
-
-    // transform image
-    for (int i=0;i<in->Nx();i++) {
-      for (int j=0;j<maxY;j++) {
-        data[j]=in->RdFrame(i,j);
-      }
-      gsl_wavelet_transform_forward (w, data, 1, maxY, work);  
-      if (is_set(argval[3])) {
-        int j=0;
-        int l=3500;
-        int l2=l/2+2048;
-        int l4=l/4+1024;
-        int l8=l/4+2048;
-                for (;j<1024;j++) {
-                    if (fabs(data[j])<250) data[j]=0;
-         }
-        for (;j<maxY;j++) {
-          if (fabs(data[j])<2000) data[j]=0;
-        }
-        gsl_wavelet_transform_inverse (w, data, 1, maxY, work);
-      }
-      
-      for (int j=0;j<maxY;j++) {
-        out->WrFrame(i,j,data[j]);
-      }
-    }
-    delete[] data;
-    gsl_wavelet_free (w);
-    gsl_wavelet_workspace_free(work);
-#endif
 
 int tomaxpow2(int x) {
     int maxX=1;
@@ -180,31 +134,100 @@ void dwt_vertical(ImageSnifs* in, ImageSnifs* out,int level){
     gsl_wavelet_workspace_free(work);
 }
 
-void dwt2d(ImageSnifs* in, ImageSnifs* out,int level){
+void dwt2d(ImageSnifs* in, ImageSnifs* out,int level,double cut){
 // needs a square matrix we don't have...
-// order doesn't matter :-D
-dwt_horizontal(in,out,level);
-dwt_vertical(out,out,level);
+// embed it in a larger square matrix
+  int maxX=tomaxpow2(in->Nx());
+  if (maxX<in->Nx())
+    maxX*=2;
+  int maxY=tomaxpow2(in->Ny());
+  if (maxY<in->Ny())
+    maxY*=2;
+  if (maxX<maxY)
+    maxX=maxY;
+  else
+    maxY=maxX;
+  int X0=(maxX-in->Nx())/2;
+  int Y0=(maxY-in->Ny())/2;
+
+
+  // Build image
+  double *data = new double [maxX*maxY];
+
+    for (int i=0;i<in->Nx();i++) {
+      for (int j=0;j<in->Ny();j++) {
+        data[(i+X0)*maxX + j+Y0]=in->RdFrame(i,j);
+      }
+    }
+    for (int i=0;i<X0;i++) {
+      for (int j=0;j<in->Ny();j++) {
+        data[(X0-i-1)*maxX + j+Y0]=data[(i+X0)*maxX + j+Y0];
+      }
+    }
+    for (int i=in->Nx()+X0;i<maxX;i++) {
+      for (int j=0;j<in->Ny();j++) {
+        data[i*maxX + j+Y0]=data[((in->Nx()+X0)*2-i-1)*maxX + j+Y0];
+      }
+    }
+    for (int i=0;i<maxX;i++) {
+      for (int j=0;j<Y0;j++) {
+        data[i*maxX + Y0-j-1]=data[i*maxX + j+Y0];
+      }
+    }
+    for (int i=0;i<maxX;i++) {
+      for (int j=in->Ny()+Y0;j<maxY;j++) {
+        data[i*maxX + j]=data[i*maxX + (in->Ny()+Y0)*2-j-1];
+      }
+    }
+
+    // initialize wavelet
+    gsl_wavelet *w;
+    if (level==1)
+      w = gsl_wavelet_alloc (gsl_wavelet_haar_centered, 2);
+    else
+      w = gsl_wavelet_alloc (gsl_wavelet_daubechies_centered, level*2);
+    gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc (maxY);
+
+    gsl_wavelet2d_transform_forward (w, data, maxX, maxX,maxY, work);  
+
+    if (cut>0) {
+      int nremoved=0;
+      for (int i=0;i<maxX;i++) 
+        for (int j=0;j<maxY;j++) 
+          if (fabs(data[i*maxX+j])<cut) {
+            nremoved++;
+            data[i*maxX+j]=0;
+          }
+      printf("removed %f%% of data\n",nremoved*1.0/maxX/maxY*100);
+    }
+    
+    gsl_wavelet2d_transform_inverse (w, data, maxX, maxX,maxY, work);  
+    
+
+        //out->DeleteFrame();
+        //out->CreateFrame("image",maxX,maxY);
+    for (int i=0;i<in->Nx();i++)
+      for (int j=0;j<in->Ny();j++) {
+        out->WrFrame(i,j,data[(i+X0)*maxX + (j+Y0)]);
+      }
+
+
+
+    gsl_wavelet_free (w);
+    gsl_wavelet_workspace_free(work);
+    //dwt_horizontal(in,out,level);
+    //dwt_vertical(out,out,level);}
+    
 }
 
-void dwtThreshold(ImageSnifs* out) {
+double dwtThreshold(ImageSnifs* out) {
   Section S(1,out->Nx(),1,out->Ny());
   
-  double level;
-  //if (out->Variance()) {
-  //double rms;
-  // int nout;
-    
-    // wait for the new GSL ...
-
-    //ImageAnalyser ana(out->Variance(),&S);
-    //ana.SigmaClippedInfo(10,&level,&rms,&nout);
-    //level *=3;
-  //}
-  //else 
-    print_warning("dwtThreshold : can't compute the threshold\n");
-  int nout=out->AbsThreshold(level);
-  printf("Removed %d values for level %f\n",nout,level);
+  if (out->Variance()) {
+    ImageAnalyser ana(out->Variance(),&S);
+    return ana.Quantile(0.5);
+  }
+  return 0;
 }
 
 
@@ -216,31 +239,33 @@ int main(int argc, char **argv) {
   char inName[lg_name+1], outName[lg_name+1];
   int level;
 
-  set_arglist("-in none -out none -level 1 -threshold -d2|hori|vert");
+  set_arglist("-in none -out none -level 1 -threshold 0 -d2|hori|vert");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);
   get_argval(2,"%d", &level);
 
+  double cut;
+  get_argval(3,"%lf",&cut);
+
   /* loop on catalog */
   while(inCat.NextFile(inName) && outCat.NextFile(outName)) {
     printf("Opening now %s\n",inName);
     in = new ImageSnifs(inName);
     out = new ImageSnifs(*in,outName,0,1);
+    double variance = dwtThreshold(out);
+    printf("Variance estimated %f \n",variance);
 
     if (!strcmp(arglabel[4],"-d2"))
-      dwt2d(in, out,level);
+      dwt2d(in, out,level,cut*sqrt(variance));
     else if (!strcmp(arglabel[4],"-hori"))
       dwt_horizontal(in, out,level);
     else if (!strcmp(arglabel[4],"-vert"))
       dwt_vertical(in, out,level);
     else 
-      print_error("You must supply one of -2d -hori or -vert option");
+      print_error("You must supply one of -d2 -hori or -vert option");
 
-    if (is_true(argval[3]))
-      dwtThreshold(out);
-      
     delete in;
     delete out;
   }
