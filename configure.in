@@ -160,10 +160,12 @@ AC_ARG_WITH(gsl,
          [ac_gsl=])
 
 dnl If the user does not provide one, try to see if somthing acceptable is found
-echo ac_gsl : "$ac_gsl"
+dnl echo ac_gsl : "$ac_gsl"
 if test -z "$ac_gsl"
 then
-    AC_CHECK_LIB(gsl,main)
+    AC_CHECK_LIB(gsl,main,[LIBS="$LIBS `gsl-config --libs`" ;C_OPT="$C_OPT `gsl-config --cflags`" ],
+    [ AC_MSG_ERROR([No GSL libs in path ... provide one with --with-gsl])],
+    [ `gsl-config --libs`])
 else
     AC_CHECK_LIB(gsl,main,[LIBS="$LIBS `$ac_gsl/bin/gsl-config --libs`" ;C_OPT="$C_OPT `$ac_gsl/bin/gsl-config --cflags`" ],
     [ AC_MSG_ERROR([No GSL libs in path ... provide one with --with-gsl])],

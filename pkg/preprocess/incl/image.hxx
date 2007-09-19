@@ -20,8 +20,16 @@
     - wrappers for methods without i/o
     - basic image manipulation
 
-*/   
+*/
 
+/* ----- library include ----- */
+#include <vector>
+using namespace std;
+
+/* ----- gsl include ----- */
+#include <gsl/gsl_vector.h>
+
+/* ----- local include ----- */
 class Section;
 #include "IFU_io.h"
 #include "iomethod.hxx"
@@ -81,6 +89,7 @@ class ImageSimple {
     int AbsThreshold(double Threshold);
     void Divide(ImageSimple* Denom);
     double MeanValue(Section* Sec,int step=1);
+    double GetSignificance(int nstep=1);
 
     // variance settings
     void SetVarianceFrame(ImageSimple* Var){fVariance = Var;}
@@ -89,13 +98,10 @@ class ImageSimple {
     // Algorithms
 
     // Overscan
-  //    void SubstractOverscan(Section* Sec);
-  //  void ComputeLinesOverscan(Section* Sec,double * values);
     double SectionRms(Section* Sec,double sigcut=0);
+    gsl_vector* FitBy(vector<ImageSimple*> Refs,double cut=3.0);
 
-    // odd-even
-    //void OddEvenCorrect(Section* Sec,double*param, double sigcut=0);
-    //
+
     void AddPoissonNoise();
     int HandleSaturation(double Level);
     int CleanWith(ImageSimple * Ref, double SigCut);

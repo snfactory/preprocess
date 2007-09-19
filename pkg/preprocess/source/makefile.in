@@ -26,6 +26,8 @@ WSRC = bichip_build.cxx\
 
 SRC =	 preprocess.cxx\
 	 clean_cosmic.cxx \
+	 fit_image.cxx\
+	 build_dark.cxx\
 	 ccd_rem_cosmic.cxx\
 	 split_image.cxx\
 	 quick_look.cxx\

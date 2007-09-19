@@ -99,6 +99,34 @@ void ImageFilter::Filter() {
         Filter(i,j,&S);
       }
     }
+
+  case kPixelize :
+    // in pixelize mode, Xsize is the pixel size
+    for (j=0;j<fInput->Ny();j+= fYsize ) {
+      S.SetYFirst(j);
+      S.SetYLast(j + fYsize);
+      if (S.YLast()>fInput->Ny())
+        S.SetYLast(fInput->Ny());
+      for (i=0;i<fInput->Nx();i+=fXsize) {
+        S.SetXFirst(i);
+        S.SetXLast(i + fXsize);
+        if (S.XLast()>fInput->Nx())
+          S.SetXLast(fInput->Nx());
+        
+        print_progress("Filtering",100*(i+j*fInput->Nx())/(fInput->Ny()*fInput->Nx()*1.0),1.0);      
+        Filter(i,j,&S);
+        double outData=fOutput->RdFrame(i,j);
+        double outVar=0;
+        if (fOutput->Variance())
+          outVar+=fOutput->Variance()->RdFrame(i,j);
+        for (int dj=0;dj<fYsize;dj++)
+          for (int di=0;di<fXsize;di++) {
+            fOutput->WrFrame(i+di,j+dj,outData);
+            if (fOutput->Variance())
+              fOutput->Variance()->WrFrame(i+di,j+dj,outVar);
+          }
+      }
+    }
     break;
   } 
 }
@@ -394,7 +422,7 @@ void ImageFilterLaplacian::Filter(int i0, int j0, Section* S) {
 
 /* ----- constructor -------------------------------------------------- */
 ImageFilterRemCosmic::ImageFilterRemCosmic(int Xsize, int Ysize, Bound_t B):ImageFilterLaplacian(Xsize,Ysize,B) {
-  double fRatio=2.0;//2.0 is safe for arcs ... insufficient for R dark
+  fRatio=2.0;//2.0 is safe for arcs ... insufficient for R dark
 
 }
 

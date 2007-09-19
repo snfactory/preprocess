@@ -26,8 +26,10 @@ int main(int argc, char **argv) {
   double *args;
   ImageFilter *F;
 
-  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max|sclip|laplacian -args 0");
+  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max|sclip|laplacian|pix -args 0");
+  // remember : in pix mode, halfwindow is the pixel size
   init_session(argv,argc,&arglabel,&argval);
+
 
   char inName[lg_name+1],outName[lg_name+1];
 
@@ -62,6 +64,16 @@ int main(int argc, char **argv) {
     ImageFilterSigmaClip * FSclip = new ImageFilterSigmaClip(wx,wy,ImageFilter::kShrinks);
     FSclip->SetSigma(args);
     F=FSclip;
+  } else if (!strcmp(arglabel[3],"-pix")) {
+    double args;
+    int nargs = sscanf(argval[4],"%lf",&args);
+    if (nargs<1) {
+      print_error("filter_image : expects -args <double> option");
+      exit_session(1);
+    }
+    ImageFilterSigmaClip * FSclip = new ImageFilterSigmaClip(wx,wy,ImageFilter::kPixelize);
+    FSclip->SetSigma(args);
+    F=FSclip;
   } else if (!strcmp(arglabel[3],"-laplacian")){
      F = new ImageFilterLaplacian();
   } else {
@@ -80,7 +92,7 @@ int main(int argc, char **argv) {
     delete out;
   }
 
-  delete args;
+  //delete args;
 
   exit_session(0);
   

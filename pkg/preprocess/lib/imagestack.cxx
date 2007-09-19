@@ -109,9 +109,10 @@ void ImageStack::Kombine(ImageSimple *ToFill, int FillsVarOut, int UpdateInitial
 
   if (FillsVarOut && ! ToFill->Variance())
     print_error(" ImageStack::Kombine %s needs a variance frame",ToFill->Name() );
-  
 
+  reset_print_progress();
   for (int j=0;j<Ny();j++) {
+    print_progress("Kombining",(j+1.0)*100.0/Ny(),1.0);  
     for (int i=0;i<Nx();i++) {
       for (unsigned int n=0;n<fImageList.size();n++) {
         vals[n] = fImageList[n]->RdFrame(i,j);

@@ -39,6 +39,7 @@ class ImageStackSnifs  {
   
     ImageSnifs* Kombine(char *outName,Kombinator* k);
     void AddImage(ImageSnifs* Image) {Image->SetNLines(fNLinesMem);fImages.push_back(Image);}
+    vector<ImageSnifs *>* GetImages() {return &fImages;}
   
 
   protected :

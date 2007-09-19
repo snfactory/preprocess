@@ -26,7 +26,7 @@ class ImageAnalyser;
 
 class ImageFilter {
   public :
-  enum Bound_t { kNoData, kShrinks, kSymetric};
+  enum Bound_t { kNoData, kShrinks, kSymetric, kPixelize};
   
   virtual ~ImageFilter() {};
 

@@ -56,6 +56,18 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     //    sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2+5/nbin[1]);    
     sprintf(key,"[%d:%d,%d:%d]",4,x2+2,1,y2-1);
     I->WrDesc("DATASEC",CHAR,lg_name+1,key);
+    // ok, now we update CCDSEC as it deserve it too... we do it by brute force
+    I->RdDesc("EXTNAME",CHAR,lg_name+1,key);
+    if (!strcmp(key,"chip00")) {
+      sprintf(key,"[1:1024,1:4096]");      
+      I->WrDesc("CCDSEC",CHAR,lg_name+1,key);
+    } else {
+      sprintf(key,"[2048:1025,1:4096]");      
+      I->WrDesc("CCDSEC",CHAR,lg_name+1,key);
+    }
+        
+        
+
 
   } else { // rasters 
     //if (nbin[0] != 1 || nbin[1] !=1 )

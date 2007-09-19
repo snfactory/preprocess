@@ -54,11 +54,11 @@ class ImageStack  {
 
     int Nx(){return fNx;}
     int Ny(){return fNy;}
+    vector<ImageSimple *> * List() {return &fImageList;}
   
 
   protected :
     // protected because Nx and Ny shall be correctly set
-    vector<ImageSimple *> * List() {return &fImageList;}
 
     vector<ImageSimple *> fImageList; // the stack owns the images is fIsOwner is set.
     Kombinator * fKombinator;
