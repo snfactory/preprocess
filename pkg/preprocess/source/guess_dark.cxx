@@ -78,12 +78,11 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   double cut;
-  char tmpname[lg_name+1],outName[lg_name+1];
-  strcpy(tmpname,"tmp.fits");
+  char *outName, inName[lg_name+1];
 
-  set_arglist("-intmp none -out none -cut 3.0 -darkmaps null -ndepth 1 -nlines 4096");
-  // -intmp : list of real exposures (with cosmics and so on, but biasz removed)
-  //    note that this input will be MODIFIED by the program
+  set_arglist("-in none -out none -cut cut");
+  // -in : list of real exposures (with cosmics and so on, but biasz removed)
+  // -resid : list of residuals [may be equal to input list]
   // -out : the newly produced dark component
   // -cut : number of sigmas to consider an outlier
   // -darkmaps : list of dark maops already produced
@@ -99,64 +98,39 @@ int main(int argc, char **argv) {
   //char inName[lg_name+1],outName[lg_name+1],refName[lg_name+1];
 
   CatOrFile inCat(argval[0]);
-  CatOrFile darkCat(argval[3]);
+  outName=argval[1];
+  cut=atof(argval[2]);
+  // Instanciate a filter
+  ImageFilterSigmaClip * Fsc = new ImageFilterSigmaClip(64,64,ImageFilter::kPixelize);
+  Fsc->SetSigma(cut);
+  ImageFilter* F=Fsc;
 
-  vector<ImageSnifs *> *ins;
-  vector<ImageSimple *> darks;
-  vector<ImageSnifs*>::iterator iter;
-  //while (refCat.NextFile(refName)) {
-  //  Refs.push_back(new ImageSnifs(refName,"I"));
-  //}
- 
-  strcpy(outName,argval[1]);
-  cut = atof(argval[2]);
-  unsigned int ndepth = atoi(argval[4]);
-  int nlines = atoi(argval[5]);
-  
-
-  ImageStackSnifs* darkMaps;
-  if is_set(argval[4]) {
-    darkMaps=new ImageStackSnifs(&darkCat,"I",nlines);
+  // which is the most significant image ??
+  double maxsig=-1;
+  ImageSnifs* ref=0;
+  while (inCat.NextFile(inName)) {
+    ImageSnifs *in=new ImageSnifs(inName,"I");
+    double sig=in->GetSignificance(100);
+    printf("image %s has significance %f\n",in->Name(),sig);
+    if (sig>maxsig){
+      if (ref)
+        delete ref;
+      ref=in;
+      maxsig=sig;
     }
-  else {
-    darkMaps= new ImageStackSnifs();
+    else
+      delete in;
   }
-  for (iter=darkMaps->GetImages()->begin();iter!=darkMaps->GetImages()->end();++iter) {
-    darks.push_back(*iter);
-  }
+  printf("taking image %s as reference\n",ref->Name());
   
-  if (darks.size()!=ndepth) {
-    print_error("test_dark : mismatch between -darkmaps size and ndepth");
-    return 1;
-  }
-  
-  // loading now the input stack
-  ImageStackSnifs* inStack=new ImageStackSnifs(&inCat,"IO",nlines);
-  ins=inStack->GetImages();
+  // it just doesn't work :(
+  ImageSnifs* out=new ImageSnifs(*ref,outName);
+  F->SetInputImage(ref->Image());
+  F->SetOutputImage(out->Image());
+  F->Filter();
 
-  // Now taking the first coefficients
-  ScaleBy(ins,&darks,cut);
-  delete darks.back();
-  darks.pop_back();
-  // build now the map
-  KGauss k(cut);
-  ImageSnifs* outRef=inStack->Kombine(outName,&k);
-  // and bootstrap once
-  darks.push_back(outRef);
-  ScaleBy(ins,&darks,cut);
-  delete darks.back();
-  darks.pop_back();
-  outRef=inStack->Kombine(outName,&k);
-  // and bootstrap 2ce (useless)
-  darks.push_back(outRef);
-  ScaleBy(ins,&darks,cut);
-  delete darks.back();
-  darks.pop_back();
-  outRef=inStack->Kombine(outName,&k);
-
-  // cleanup
-  delete inStack;
-  delete outRef;
+  delete ref;
+  delete out;
   
    
   exit_session(0);
