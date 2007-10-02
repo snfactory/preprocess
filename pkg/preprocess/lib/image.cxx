@@ -471,7 +471,7 @@ double ImageSimple::SectionRms(Section* S,double sigcut) {
   return sqrt(varinc/weight);
 }
 
-/* ----- AddPoissonNoise-------------------------------------------------- */
+/* ----- FitBy -------------------------------------------------- */
 gsl_vector* ImageSimple::FitBy(vector<ImageSimple *> Refs, double cut) {
 
   if (!Variance())

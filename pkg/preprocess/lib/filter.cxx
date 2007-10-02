@@ -71,6 +71,7 @@ void ImageFilter::Filter() {
         Filter(i,j,&S);
       }
     }
+    break;
     
   case kSymetric :
     for (j=0;j<fInput->Ny();j++) {
@@ -99,6 +100,7 @@ void ImageFilter::Filter() {
         Filter(i,j,&S);
       }
     }
+    break;
 
   case kPixelize :
     // in pixelize mode, Xsize is the pixel size
@@ -333,6 +335,71 @@ void ImageFilterMax::Filter(int i, int j, Section* S) {
            fInput->Variance()->RdFrame(ix0,iy0));
   }
 }
+
+/* ##### ImageFilterChi2 ################################################# */
+
+// this one computes the chi2/DL given the assumption the image is flat on the range.
+
+
+/* ----- constructor -------------------------------------------------- */
+ImageFilterChi2::ImageFilterChi2(int Xsize, int Ysize, Bound_t B) {
+  fXsize=Xsize;
+  fYsize=Ysize;
+  fBound = B;
+  fRdNoise2=0;
+}
+
+/* ----- destructor ------------------------------ */
+ImageFilterChi2::~ImageFilterChi2() {
+  if (fRdNoise2)
+    delete[] fRdNoise2;
+}
+
+/* ----- SetInputImage ---------------------------------------- */
+void ImageFilterChi2::SetInputImage(ImageSimple* I){
+  fInput=I;
+  // really dirty here : noise is only the mean of 2 amps :(
+  // speeds-up a lot
+  fInput->RdDesc("CCDNAMP",INT,1,&fNamp);
+  if (fRdNoise2)
+    delete fRdNoise2;
+  fRdNoise2=new double[fNamp];  
+  fInput->RdDesc("RDNOISE",DOUBLE,fNamp,fRdNoise2);
+  for(int i=0;i<fNamp;i++)
+    fRdNoise2[i]*=fRdNoise2[i];
+}
+
+
+/* ----- Filter -------------------------------------------------- */
+void ImageFilterChi2::Filter(int i, int j, Section* S) {
+
+
+  double sum=0;
+  double n=0;
+  for (int iy=S->YFirst();iy<S->YLast();iy++) {
+    for (int ix=S->XFirst();ix<S->XLast();ix++) {
+      sum+=fInput->RdFrame(ix,iy);
+      n++;
+    }
+  }
+  sum/=n;
+  double chi2=0;
+
+  // for the moment : forget we may have got a multiplicative coefficient
+  // after the electron noise
+  for (int iy=S->YFirst();iy<S->YLast();iy++) {
+    for (int ix=S->XFirst();ix<S->XLast();ix++) {
+      chi2+=(fInput->RdFrame(ix,iy)-sum)*(fInput->RdFrame(ix,iy)-sum)/(fRdNoise2[ix/(fInput->Nx()/fNamp)]+sum);
+    } 
+  }
+  fOutput->WrFrame(i,j,chi2/(n-1));
+  //fOutput->WrFrame(i,j,fInput->RdFrame(i,j));
+
+
+  // nothing on variance
+
+}
+
 
 /* ##### ImageFilterLaplacian ################################################# */
 

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   double *args;
   ImageFilter *F;
 
-  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max|sclip|laplacian|pix -args 0");
+  set_arglist("-in none -out none -halfwindow 2,2 -med|hf|max|sclip|laplacian|pix|chi2 -args 0");
   // remember : in pix mode, halfwindow is the pixel size
   init_session(argv,argc,&arglabel,&argval);
 
@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
     F= FHF;
   } else if (!strcmp(arglabel[3],"-med")) {
     F = new ImageFilterMedian(wx,wy,ImageFilter::kShrinks);
+  } else if (!strcmp(arglabel[3],"-chi2")) {
+    F = new ImageFilterChi2(wx,wy,ImageFilter::kShrinks);
   } else if (!strcmp(arglabel[3],"-max")) {
     F = new ImageFilterMax(wx,wy,ImageFilter::kShrinks);
   } else if (!strcmp(arglabel[3],"-sclip")) {

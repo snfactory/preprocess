@@ -117,6 +117,7 @@ protected:
 
 };
 
+
 /* ===== FilterSigmaClip ==================== */
 
 // returns the sigmaclipping
@@ -137,7 +138,29 @@ protected:
 
 };
 
-/* ===== FilterMedian ==================== */
+/* ===== FilterChi2 ==================== */
+
+// returns the maximum in the window
+
+class ImageFilterChi2 : public ImageFilter {
+  public :
+
+  ImageFilterChi2(int Xsize, int Ysize, Bound_t B=kNoData);
+  ~ImageFilterChi2();
+
+  virtual void SetInputImage(ImageSimple* I);
+  virtual void Filter(int X, int Y, Section* S);
+  
+
+protected:
+  ImageAnalyser* fAnal;
+  double *fRdNoise2;
+  int fNamp;
+
+};
+
+
+/* ===== FilterLaplacian ==================== */
 
 // returns the maximum in the window
 
