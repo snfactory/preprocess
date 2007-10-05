@@ -11,7 +11,7 @@ SUBDIRS=pkg doc
 EXTRA_DIST=add_defs
 
 AM_MAKEFLAGS = CC=$(CC) F77=$(F77) F_OPT="$(F_OPT) -ftypeless-boz" LD=$(CC) \
-	ADD_LIBS="-lc @FLIBS@ @LIBS@" RANLIB=$(RANLIB) C_OPT="$(C_OPT)"
+	ADD_LIBS="-lc @LIBS@ @FLIBS@" RANLIB=$(RANLIB) C_OPT="$(C_OPT)"
 
 # needs to be sure makefiles are sync with add_defs/makedefs and configure
 
