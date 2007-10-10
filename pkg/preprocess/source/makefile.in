@@ -27,6 +27,7 @@ WSRC = bichip_build.cxx\
 SRC =	 preprocess.cxx\
 	 clean_cosmic.cxx \
 	 fit_image.cxx\
+	 remove_dark.cxx\
 	 guess_dark.cxx\
 	 build_dark.cxx\
 	 ccd_rem_cosmic.cxx\
@@ -62,6 +63,7 @@ OPTSRC =   substract_overscan.cxx\
 	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
 	 preprocess_overscan.cxx\
+
 
 # non-maintained executables
 OLDSRC = \

@@ -66,12 +66,13 @@ class KGauss : public Kombinator {
   
     void Kombine(vector<double> * Vals, vector<double> * Vars, double * Val, double * Var);
     int NeedsVarIn(){return 1;}
+    void SetBrute(int Brute) {fBrute=Brute;}
   
 
   protected :
     double WeightedMean();
     int RemoveFar(double SigmaCut);
-  
+    int fBrute;
 
   double fSigma;
   

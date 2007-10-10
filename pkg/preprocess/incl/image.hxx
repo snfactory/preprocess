@@ -90,6 +90,7 @@ class ImageSimple {
     void Divide(ImageSimple* Denom);
     double MeanValue(Section* Sec,int step=1);
     double GetSignificance(int nstep=1);
+    void Mask(ImageSimple* in, double cut, int margin, double replace);
 
     // variance settings
     void SetVarianceFrame(ImageSimple* Var){fVariance = Var;}

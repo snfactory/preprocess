@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   double sigma;
   RootAnalyser ana;
 
-  set_arglist("-in none -out none -secs Data[1:2048,1:4096] -sigma 0 -range 0,0");
+  set_arglist("-in none -out none -secs Data[1:2048,1:4096] -sigma 0 -range 0,0 -sel null");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
@@ -42,6 +42,11 @@ int main(int argc, char **argv) {
   get_argval(3,"%lf", &sigma);
   double start,end;
   sscanf(argval[4],"%lf,%lf",&start,&end);
+  ImageSnifs* selection=0;
+  if (is_set(argval[5]) )
+    selection=new ImageSnifs(argval[5],"I");
+  
+  
 
   /* loop on catalog */
   while(inCat.NextFile(inName) && outCat.NextFile(outName)) {
@@ -57,11 +62,12 @@ int main(int argc, char **argv) {
 
       // FillHistoLine(in,sec); // cumbersome... use only with small secs
       
-      ana.HorizontalProfile(sigma);
-      ana.VerticalProfile(sigma);
+      ana.HorizontalProfile(sigma,selection);
+      ana.HorizontalMode(selection);
+      ana.VerticalProfile(sigma,selection);
       //ana.OddEvenVerticalProfile(sigma);
       //ana.OverscanError(sigma);
-      ana.HistoData(start,end);
+      ana.HistoData(start,end,4000,selection);
       ana.MatrixData ();
       ana.HighFrequency();
       //ana.ADCBits(16);

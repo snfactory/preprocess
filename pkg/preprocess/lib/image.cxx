@@ -438,6 +438,21 @@ double ImageSimple::GetSignificance(int step) {
 }
 
 
+/* ----- Mask --------------------------------------------------- */
+void ImageSimple::Mask(ImageSimple* in, double cut, int margin, double replace) {
+  // sets to 1 all pixels in whic the "in" value is grater than "cut", and apply a margin
+  // around the masked pixel
+  for (int j=0;j<in->Ny();j++)
+    for (int i=0;i<in->Nx();i++)
+      if (in->RdFrame(i,j)>cut) 
+        for (int j2=MAX(j-margin,0);j2<MIN(j+margin+1,in->Ny());j2++)
+          for (int i2=MAX(i-margin,0);i2<MIN(i+margin+1,in->Nx());i2++)
+            WrFrame(i2,j2,replace);
+          
+}
+
+
+
 /* ===== Methods ====================================================== */
 
 

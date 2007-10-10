@@ -280,6 +280,54 @@ double ut_mode(double* val,int n){
   return med;
 }
 
+/*-------------------- ut_mean ----------------------*/
+double ut_mode2(double* val,int n){
+  /* This function returns the highest probability density a set of
+  datas. This only works reliabely if there is only 1 maximum, 
+  and in the limit where the data is sufficiently sampled. 
+  No error computation is performed ...*/
+  /* The search is dyadic and iterative, each step looking for the part
+  which contains most of the data with respect to the highest value. 
+  The time is O(NlnN) (+ the time to run indexx)*/ 
+  /* This is a fast and inaccurate algorithm. For a general algorithm, see the
+  Parzenwindow method - the drawback is that it depends on a window size
+  a priori*/  
+
+
+  size_t * index;
+  double half;
+  int nmin=0;
+  int nmax=n; /*  out of the table */
+
+  index = malloc(n*sizeof(size_t));
+  
+  /* test */
+
+  gsl_sort_index(index,val,1,n);
+
+  
+  do { 
+    int i;
+    /* half window computation */
+    half=(val[index[nmin]]+val[index[nmax-1]])/2;
+    for (i=nmin;i<nmax;i++) {
+      if (val[index[i]]>half) 
+        break;
+    }
+    if (i==nmax)
+      return half;
+    else if (i<nmin+(nmax-nmin)/2) 
+      nmin=i;
+    else if (i>nmin+(nmax-nmin)/2 || ((nmax-nmin)%2) )
+      nmax=i;
+    else {
+      nmin++;
+      nmax--;
+    }
+  } while (nmax-nmin>2);
+  return half;
+}
+
 /*-------------------- ut_autocovariance ----------------------*/
 void ut_autocovariance(double* data, double* autocorr, int n) {
 /* data is of dim n, autocorr of dim n */

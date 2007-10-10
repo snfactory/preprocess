@@ -118,6 +118,7 @@ int KSpread::RemoveFar(double SigmaCut) {
 /* ----- KGaussPoisson  -------------------------------------------------- */
 KGauss::KGauss(double MaxSigmaOutlier) {
   fSigma = MaxSigmaOutlier;
+  fBrute=0;
 }
 
 /* ===== method ======================================= */
@@ -173,6 +174,9 @@ int KGauss::RemoveFar(double SigmaCut) {
     if (sigma > MaxSigma && sigma > SigmaCut) {
       iRm = i;
       MaxSigma = sigma;
+      }      
+    if (fBrute && sigma>SigmaCut) {
+      (*fVars)[i] = ut_big_value;
     }
   }
   if (iRm>=0) {

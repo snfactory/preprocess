@@ -23,6 +23,8 @@ double ut_mean_var_sigmas_known(double* values, int n, double* mean, double* var
 
 double ut_mode(double* values, int n);
 
+double ut_mode2(double* values, int n);
+
 void ut_autocovariance(double* data, double* autocorr, int n);
 
 void ut_trunc_sigma_known(double** values, int* n_init, double sigma, double sigcut);

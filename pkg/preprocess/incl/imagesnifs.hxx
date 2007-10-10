@@ -140,6 +140,8 @@ class ImageSnifs :public ImageSimple {
     // Sections
     Section * DataSec();
     Section * BiasSec();
+    // Other utilities
+    double RdNoise();
   
     
 

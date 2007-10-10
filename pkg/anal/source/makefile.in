@@ -56,7 +56,7 @@ $(EXE) : $(E)/% : $(O)/%.o $(IOLIB) $(preprocess_LIB)
 
 # Executables linked with ROOT package
 $(EXECC) : $(E)/% : $(O)/%.o  $(LOCLIB) $(IOLIB) $(preprocess_LIB)
-	$(CXXLD) $(LDF) -o $@ $< $(LOCLIBPATH) $(preprocess_LIB) $(IOLIB) $(ADD_LIBS) $(ROOTLIBS) $(MATHLIB) -lg2c
+	$(CXXLD) $(LDF) -o $@ $< $(LOCLIBPATH) $(preprocess_LIB) $(IOLIB) $(MATHLIB) $(ADD_LIBS) $(ROOTLIBS) -lg2c
 	$(STRIP) $@
 
 clear:

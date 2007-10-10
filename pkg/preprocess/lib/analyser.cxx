@@ -276,6 +276,7 @@ void ImageAnalyser::SigmaClippedInfoVarKnown(double SigmaCut,double * Mean, doub
     vars.push_back(fVar[i]);
   }
   KGauss K=KGauss(SigmaCut);
+  K.SetBrute(1);
   K.Kombine(&vals,&vars,Mean,&retVal);
   
   *Rms = sqrt(retVal);

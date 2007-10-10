@@ -161,6 +161,20 @@ Section* ImageSnifs::BiasSec(){
   return sec;
 }
 
+/* ----- RdNoise  ------------------------------ */
+double ImageSnifs::RdNoise(){
+  int nAmp;
+  RdDesc("CCDNAMP",INT,1,&nAmp);
+  double *noise=new double[nAmp];
+  RdDesc("RDNOISE",DOUBLE,nAmp,noise);
+  double rdNoise=0;
+  for(int i=0;i<nAmp;i++) {
+    rdNoise += noise[i];
+  }
+  delete[] noise;
+  return rdNoise/nAmp;
+}
+
 
 /* ----- HasOverscan  ------------------------------ */
 int ImageSnifs::HasOverscan(){
@@ -955,52 +969,6 @@ void ImageSnifs::CreateVarianceFrame(char* name) {
   var->SetTo(0);
   SetVarianceFrame(var);
 }
-
-#ifdef OLD
-/* ----- AddOverscanVariance ------------------------------ */
-void ImageSnifs::AddOverscanVariance() {
-
-  int ovscNoise;
-  if (ParanoMode()) {
-    if (Variance()->RdIfDesc("OVSCNOIS",INT, 1, &ovscNoise) > 0 
-     && ovscNoise ) {
-       print_error(" ImageSnifs::AddOverscanVariance already done in %s",Name());
-      return;
-      }
-  }
-
-  // Fills with analysis of RMS strip
-  Section * Sec = Algo()->SafeOverscanStrip(this);
-  // no outlier
-  double rms = Image()->OverscanRms(Sec,0);
-  WrDesc("RDNOISE",DOUBLE,1,&rms);
-  Variance()->Add(rms*rms);
-  delete Sec;
-
-}
-
-/* ----- Assembled2Dark ------------------------------ */
-void ImageSnifs::Assembled2Dark() {
-  AddPoissonNoise();
-}
-
-/* ----- Assembled2Flat ------------------------------ */
-void ImageSnifs::Assembled2Flat(ImageSnifs * Dark) {
-  Assembled2Dark();
-  if (Dark) 
-    SubstractDark( Dark );
-  BuildFlat();
-}
-
-/* ----- Assembled2Preprocessed ------------------------------ */
-void ImageSnifs::Assembled2Preprocessed(ImageSnifs * Dark,ImageSnifs* Flat) {
-  Assembled2Dark();
-  if (Dark) 
-    SubstractDark(Dark);
-  if (Flat)
-    ApplyFlat(Flat);
-}
-#endif
 
 
 /* ----- CompareIntDesc ------------------------------ */

@@ -41,16 +41,18 @@ class RootAnalyser : public ImageAnalyser {
 
   void FillHistoLine();
 
-  void HorizontalProfile(float sigma=0);
+  void HorizontalProfile(float sigma=0, ImageSnifs* selection=0);
 
-  void VerticalProfile(float sigma=0);
+  void HorizontalMode(ImageSnifs* selection=0);
+
+  void VerticalProfile(float sigma=0, ImageSnifs* selection=0);
 
   void OddEvenVerticalProfile(float sigma=0);
 
   void OverscanError(float sigma=0);
 
-  void HistoData(double start=0,double end=0,int nbins=4000);
-  TH1F* HistoDataBuild(char * histName ,int nbins,double start=0, double end=0);
+  void HistoData(double start=0,double end=0,int nbins=4000,ImageSnifs* selection=0);
+  TH1F* HistoDataBuild(char * histName ,int nbins,double start=0, double end=0,ImageSnifs* selection=0);
 
   void MatrixData();
 

@@ -1,9 +1,12 @@
 
+#include <vector>
+
 #include "gsl/gsl_statistics.h"
 
 #include "image.hxx"
 #include "section.hxx"
 #include "utils.h"
+#include "kombinator.hxx"
 #include "roothistos.hxx"
 
 /*--- gsl routines ---*/
@@ -51,31 +54,51 @@ void RootAnalyser::FillHistoLine() {
 }
 
 /* ----- HorizontalProfile ------------------------- */
-void RootAnalyser::HorizontalProfile(float sigma) {
+void RootAnalyser::HorizontalProfile(float sigma, ImageSnifs* selection) {
   
   char histName[lg_name+1];
   sprintf(histName,"HoriPrfl%s",fSec->Name());
-  TProfile * prof = new TProfile(histName,"Horizontal Profile",fSec->XLength(),fSec->X1()-0.5,fSec->X2()+0.5);
+  TH1D*  prof = new TH1D(histName,"Horizontal Profile",fSec->XLength(),fSec->X1()-0.5,fSec->X2()+0.5);
   
   int i,j,remain;
   double *over, *overptr;
   int nover = fSec->YLength();
-
   over = new double[nover];
+  
+    
+  vector<double> vals;
+  vector<double> vars;
+  KGauss K=KGauss(sigma);
+  K.SetBrute(1);
+  double mean,var,rms;
 
   for (i=fSec->XFirst();i<fSec->XLast();i++) {
-    for (j=fSec->YFirst();j<fSec->YLast();j++) 
-      over[j-fSec->YFirst()] = fImage->RdFrame(i,j);
-
-    /* purify the overscan from spurious */
-    overptr=over;
-    remain = nover;
-    if (sigma>0) 
-      ut_trunc_sigma_unknown(&overptr,&remain,sigma);
-    
-    for (j=0;j<remain;j++) {
-      prof->Fill(i+1,overptr[j]);
+    if (fImage->Variance() && sigma>0) {
+      vals.clear();
+      vars.clear();
+      for (j=fSec->YFirst();j<fSec->YLast();j++) 
+        if ( ! selection || selection->RdFrame(i,j)==1) {
+          vals.push_back(fImage->RdFrame(i,j));
+          vars.push_back(fImage->Variance()->RdFrame(i,j));
+        }
+      
+      K.Kombine(&vals,&vars,&mean,&var);
+      rms=sqrt(var);
+    } else {
+      int iover=0;
+      for (j=fSec->YFirst();j<fSec->YLast();j++) 
+        if ( ! selection || selection->RdFrame(i,j)==1) {
+          over[iover++] = fImage->RdFrame(i,j);
+        }
+      overptr=over;
+      remain = iover;
+      if (sigma>0) 
+        ut_trunc_sigma_unknown(&overptr,&remain,sigma);
+      mean=gsl_stats_mean(overptr,1,remain);
+      rms=gsl_stats_sd_m(overptr,1,remain,mean);
     }
+    prof->SetBinContent(i+1-fSec->XFirst(),mean);
+    prof->SetBinError(i+1-fSec->XFirst(),rms); 
   }
   HistoSetMinMax(prof);
   prof->Write();
@@ -84,8 +107,39 @@ void RootAnalyser::HorizontalProfile(float sigma) {
   
 }
 
+/* ----- HorizontalProfile ------------------------- */
+void RootAnalyser::HorizontalMode( ImageSnifs* selection) {
+  
+  char histName[lg_name+1];
+  sprintf(histName,"HoriMode%s",fSec->Name());
+  TH1D * hmode = new TH1D(histName,"Horizontal Profile",fSec->XLength(),fSec->X1()-0.5,fSec->X2()+0.5);
+  
+  int i,j;
+  double *over;
+  int nover = fSec->YLength();
+
+  over = new double[nover];
+
+  for (i=fSec->XFirst();i<fSec->XLast();i++) {
+    int iover=0;
+    for (j=fSec->YFirst();j<fSec->YLast();j++) 
+      if ( ! selection || selection->RdFrame(i,j)==1)
+        over[iover++] = fImage->RdFrame(i,j);
+
+    if (iover>0)
+    /* purify the overscan from spurious */
+    hmode->SetBinContent(i-fSec->XFirst()+1,ut_mode2(over,iover));
+
+  }
+  HistoSetMinMax(hmode);
+  hmode->Write();
+  delete hmode;
+  delete[]over;
+  
+}
+
 /* ----- VerticalProfile ------------------------- */
-void RootAnalyser::VerticalProfile(float sigma){
+void RootAnalyser::VerticalProfile(float sigma,ImageSnifs* selection){
   
   char histName[lg_name+1];
   sprintf(histName,"VertPrfl%s",fSec->Name());
@@ -97,11 +151,13 @@ void RootAnalyser::VerticalProfile(float sigma){
   over = new double[nover];
 
   for (j=fSec->YFirst();j<fSec->YLast();j++) {
+    int iover=0;
     for (i=fSec->XFirst();i<fSec->XLast();i++) 
-      over[i-fSec->XFirst()] = fImage->RdFrame(i,j);
+      if ( ! selection || selection->RdFrame(i,j)==1)
+        over[iover++] = fImage->RdFrame(i,j);
 
     /* purify the overscan from spurious */
-    remain=nover;
+    remain=iover;
     overptr=over;
     if (sigma>0) 
      ut_trunc_sigma_unknown(&overptr,&remain,sigma);
@@ -207,23 +263,30 @@ void RootAnalyser::OverscanError(float sigma){
 }
 
 /*-------------- HistoData ---------------------------- */
-void RootAnalyser::HistoData(double start, double end,int nbins){
+void RootAnalyser::HistoData(double start, double end,int nbins, ImageSnifs* selection){
 
   char histName[lg_name+1];
   sprintf(histName,"Histo%s",fSec->Name());
-  TH1F * histo = HistoDataBuild(histName,nbins,start,end);
+  TH1F * histo = HistoDataBuild(histName,nbins,start,end,selection);
 
   histo->Write();
   delete histo;
 }
 
 /*-------------- HistoDataBuild ---------------------------- */
-TH1F* RootAnalyser::HistoDataBuild(char* histName, int nbins,double start, double end){
+TH1F* RootAnalyser::HistoDataBuild(char* histName, int nbins,double start, double end,ImageSnifs* selection){
 
-  double min,max,center;
+  double min=ut_big_value,max=-ut_big_value,center;
   if (start==end) {
-    fImage->MinMax(fSec,&min, &max);
-    center = (min+max)/2;
+  for (int iy = fSec->YFirst(); iy<fSec->YLast();iy++)
+    for (int ix = fSec->XFirst(); ix<fSec->XLast();ix++)
+      if ( ! selection || selection->RdFrame(ix,iy)==1) {
+        if (fImage->RdFrame(ix,iy)<min)
+          min=fImage->RdFrame(ix,iy);
+        if (fImage->RdFrame(ix,iy)>max)
+          max=fImage->RdFrame(ix,iy);
+        center = (min+max)/2;
+      }
     max = center + (max-center)*1.01;
     min = center - (max-center)*1.01;
   } else {
@@ -236,7 +299,8 @@ TH1F* RootAnalyser::HistoDataBuild(char* histName, int nbins,double start, doubl
 
   for (int iy = fSec->YFirst(); iy<fSec->YLast();iy++)
     for (int ix = fSec->XFirst(); ix<fSec->XLast();ix++)
-      histo->Fill(fImage->RdFrame(ix,iy));
+      if ( ! selection || selection->RdFrame(ix,iy)==1)
+        histo->Fill(fImage->RdFrame(ix,iy));
     
   return histo;
 }
