@@ -1,3 +1,8 @@
+2007-10-26  yannick.copin  <yannick.copin@laposte.net>
+
+	* pkg/pipeline/quick/quick_bias.sh: new option '-C' to use an
+	input catalog.
+
 2004-11-09  Pierre Antilogus  <P.Antilogus@in2p3.fr>
 
 	* add_defs/makedefs.in (STATLIB): statlib.a is now libstat.a
