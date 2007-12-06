@@ -97,13 +97,13 @@ nlines=$(echo "4096*$maximages/($nframes+1)" | bc)
 # Create preprocess output catalog
 outcat=Pqb_$$.cat
 [ $DEBUG ] && echo "Creating output catalog $outcat"
-cat $incat | sed -e 's/^\([^#]\)/P\1/' > $outcat
+cat $incat | sed -e '1! s%.*/%P%' > $outcat
 
 ### Actual processing here
 
 [ $DEBUG ] && echo "preprocess -in $incat -out $outcat"
 for infile in `sed '1 d' $incat`; do
-    outfile=echo $infile | sed -e 's/^\([^#]\)/P\1/'
+    outfile=echo $infile | sed -e '1! s%.*/%P%'
     preprocess -in $infile -out $outfile $noask
 done
 
