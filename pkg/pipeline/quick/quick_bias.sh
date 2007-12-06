@@ -102,7 +102,10 @@ cat $incat | sed -e 's/^\([^#]\)/P\1/' > $outcat
 ### Actual processing here
 
 [ $DEBUG ] && echo "preprocess -in $incat -out $outcat"
-preprocess -in $incat -out $outcat $noask
+for infile in `sed '1 d' $incat`; do
+    outfile=echo $infile | sed -e 's/^\([^#]\)/P\1/'
+    preprocess -in $infile -out $outfile $noask
+done
 
 [ $DEBUG ] && echo "stack_image -in $outcat -out $outbias -nlines $nlines"
 stack_image -in $outcat -out $outbias -nlines $nlines $noask
