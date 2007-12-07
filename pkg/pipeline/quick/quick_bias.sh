@@ -104,7 +104,7 @@ cat $incat | sed -e '1! s%.*/%P%' > $outcat
 ### Actual processing here
 
 for infile in `sed '1 d' $incat`; do
-    outfile=`echo $infile | sed -e 's%.*/%P%'`
+    outfile=P`echo $infile | sed -e 's%.*/%%'`
     [ $DEBUG ] && echo "preprocess -in $infile -out $outfile $noask"
     preprocess -in $infile -out $outfile $noask 
 done
