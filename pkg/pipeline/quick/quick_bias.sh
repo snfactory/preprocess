@@ -55,7 +55,7 @@ function die() {
 # Options ==============================
 
 # Parser ..............................
-while getopts "o:m:C:fdvh" OPTION ; do
+while getopts "o:m:C:fdvhq" OPTION ; do
     case "$OPTION" in
         o) outbias="$OPTARG" ;; # Output datacube
 	m) maximages="$OPTARG" ;; # max space for processing
