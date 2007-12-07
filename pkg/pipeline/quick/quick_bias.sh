@@ -20,7 +20,7 @@ function usage() {
 Program: quick_bias  Version $version
 
 Available options:
- -o outbias [-C incat] [-m maximages] [-f][-d][-h][-v] [bias1.fits [bias2.fits ...]]
+ -o outbias [-C incat] [-m maximages] [-f][-d][-h][-v][-q] [bias1.fits [bias2.fits ...]]
 
 where:
     outbias : Output bias name.
@@ -33,6 +33,7 @@ where:
 	      default : 7 (corresponding to approx 1GB RAM)
      f-flag : Do not ask before overwriting files.
      d-flag : Debug mode
+     q-flag : Quiet mode
 
 Examples:
     quick_bias -o bias_B.fits -f *_24_B.fits
@@ -61,6 +62,7 @@ while getopts "o:m:C:fdvh" OPTION ; do
 	C) catalog="$OPTARG" ;;   # Input catalog
         f) noask="-noask" ;;    # Do not ask before overwriting files
 	d) DEBUG="-d";echo "*** DEBUG mode ***";;
+        q) quiet="-quiet" ;; #non-verbose mode
         v) echo "$version" ; exit 0 ;;
         h) usage; exit 0 ;;
         ?) usage; exit 1 ;;
@@ -101,14 +103,14 @@ cat $incat | sed -e '1! s%.*/%P%' > $outcat
 
 ### Actual processing here
 
-[ $DEBUG ] && echo "preprocess -in $incat -out $outcat"
 for infile in `sed '1 d' $incat`; do
     outfile=`echo $infile | sed -e 's%.*/%P%'`
-    preprocess -in $infile -out $outfile $noask
+    [ $DEBUG ] && echo "preprocess -in $infile -out $outfile $noask"
+    preprocess -in $infile -out $outfile $noask 
 done
 
-[ $DEBUG ] && echo "stack_image -in $outcat -out $outbias -nlines $nlines"
-stack_image -in $outcat -out $outbias -nlines $nlines $noask
+[ $DEBUG ] && echo "stack_image -in $outcat -out $outbias -nlines $nlines $quiet"
+stack_image -in $outcat -out $outbias -nlines $nlines $noask $quiet
 
 # Cleaning
 if [ $DEBUG ]; then
