@@ -228,18 +228,109 @@ gsl_vector* FitLines(ImageSimple* in, int win, double** model, double cut) {
     gsl_linalg_cholesky_solve (XX,XY,A);
     
     //for (unsigned int n=0;n<size;n++)
-    print_msg("Coefficient %f",gsl_vector_get(A,0));
+    if (DEBUG)
+      print_msg("Coefficient %f",gsl_vector_get(A,0));
     // removing far
     nbad=0;
-    int ibad=-1,jbad=-1, maxbad=-ut_big_value;
+    int ibad=-1,jbad=-1;
+    double maxbad=-ut_big_value;
     for (int j=0;j<in->Ny();j+=win)
       for (int i=0;i<in->Nx();i+=win) {
         double variance = in->Variance()->RdFrame(i,j);
         double delta=in->RdFrame(i,j);
         delta -= gsl_vector_get(A,0)*model[0][i];
         delta -= gsl_vector_get(A,j/win+1)*model[1][i];
+        // on purpose we forget vector 1 contibution ...
         if (delta > cut*sqrt(variance) && in->RdFrame(i,j)-gsl_vector_get(A,0)*model[0][i]>maxbad) {
           maxbad=in->RdFrame(i,j)-gsl_vector_get(A,0)*model[0][i];
+          ibad=i;
+          jbad=j;
+          nbad++;
+        }
+    }
+    if (nbad>0) {
+      in->Variance()->WrFrame(ibad,jbad,ut_big_value);
+    }
+
+    //print_msg("removed %d pixels",nbad);
+  }
+  while(nbad>0);
+  gsl_matrix_free(XX);
+  gsl_vector_free(XY);
+  
+  return A;
+
+}
+
+
+gsl_vector* FitImage(ImageSimple* in, int win, ImageSimple *model, double cut) {
+
+  // Y = XA
+  // in this model, the lines are free, but with pattern 1
+  // only the pattern 0 is common to all lines
+  if (!in->Variance())
+    print_error("FitLine no variance in frame");
+
+  int matsize=1+in->Ny()/win;
+  // 0 is the model coefficient, 1 is the constant coefficient
+
+  // allocate some space
+  gsl_matrix * XX = gsl_matrix_alloc(matsize,matsize);
+  gsl_vector * XY = gsl_vector_alloc(matsize);
+  gsl_vector * A = gsl_vector_alloc(matsize);
+  // Y=XA
+  vector<ImageSimple*>::iterator iter, iter2;
+
+  int nbad,lcount=0;
+  do {
+    gsl_matrix_set_zero(XX);
+    gsl_vector_set_zero(XY);
+
+    for (int j=0;j<in->Ny();j+=win) {
+      for (int i=0;i<in->Nx();i+=win) {
+        double var = in->Variance()->RdFrame(i,j);
+        if (var>sqrt(ut_big_value))
+          var=ut_big_value;
+        else
+          var=1;
+        (*gsl_vector_ptr(XY,0))+=model->RdFrame(i,j)*in->RdFrame(i,j)/var;
+        (*gsl_vector_ptr(XY,1+j/win))+=1.0*in->RdFrame(i,j)/var;
+        
+        // now the XX only (0/x correlations)
+        (*gsl_matrix_ptr(XX,0,0))+=model->RdFrame(i,j)*model->RdFrame(i,j)/var;
+        (*gsl_matrix_ptr(XX,0,1+j/win))+=model->RdFrame(i,j)*1.0/var;
+        (*gsl_matrix_ptr(XX,1+j/win,1+j/win))+=1.0/var;
+      }
+    }
+    for (int n1=0;n1<matsize;n1++) {
+      for (int n2=n1+1;n2<matsize;n2++) {
+        gsl_matrix_set(XX,n2,n1,gsl_matrix_get(XX,n1,n2));
+      } 
+    }
+    
+    gsl_linalg_cholesky_decomp (XX);
+    gsl_linalg_cholesky_solve (XX,XY,A);
+    
+    //for (unsigned int n=0;n<size;n++)
+    if (DEBUG) {
+      if (!lcount%10)
+        print_msg("Coefficient %f",gsl_vector_get(A,0));
+      lcount++;
+    }
+    
+    
+    // removing far
+    nbad=0;
+    int ibad=-1,jbad=-1;
+    double maxbad=-ut_big_value;
+    for (int j=0;j<in->Ny();j+=win)
+      for (int i=0;i<in->Nx();i+=win) {
+        double variance = in->Variance()->RdFrame(i,j);
+        double delta=in->RdFrame(i,j);
+        delta -= gsl_vector_get(A,0)*model->RdFrame(i,j);
+        delta -= gsl_vector_get(A,1+j/win)*1.0;
+        if (delta > cut*sqrt(variance) && delta>maxbad) {
+          maxbad=delta;
           ibad=i;
           jbad=j;
           nbad++;
@@ -266,16 +357,23 @@ gsl_vector* FitLines(ImageSimple* in, int win, double** model, double cut) {
 int main(int argc, char **argv) {
 
   char **argval, **arglabel;
-  char inName[lg_name+1],outName[lg_name+1];
+  char inName[lg_name+1],outName[lg_name+1],tmpName[lg_name+1];
+  sprintf(tmpName,"tmp.fits");
 
-  set_arglist("-in none -out none -win 128");
+  set_arglist("-in none -out none -win 128 -dark null");
   init_session(argv,argc,&arglabel,&argval);
 
   //char inName[lg_name+1],outName[lg_name+1],refName[lg_name+1];
 
+  ImageSnifs* darkRef=0,*filtredDark=0;
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);
   int win=atoi(argval[2]);
+  if (is_set(argval[3])) {
+    darkRef=new ImageSnifs(argval[3],"I");
+    filtredDark=new ImageSnifs(*darkRef,tmpName,0);
+  }
+  
 
   //ImageSnifs* mask=new ImageSnifs(argval[2],"I");
 
@@ -333,21 +431,49 @@ int main(int argc, char **argv) {
     }
     */
 
-    A=FitLines(out,win,line,3.0);
-    printf("params %f ",gsl_vector_get(A,0));
-    for (int j=0;j<out->Ny()/win;j++) 
-      printf(" %f ",gsl_vector_get(A,j+1));
-    printf("\n");
+    if (darkRef) {
+      F->SetInputImage(darkRef);
+      F->SetOutputImage(filtredDark);
+      ((ImageFilter*)F)->Filter();
+      A=FitImage(out,win,filtredDark,3.0);
+      if (DEBUG) {
+        printf("params %f ",gsl_vector_get(A,0));
+        for (int j=0;j<out->Ny()/win;j++) 
+          printf(" %f ",gsl_vector_get(A,j+1));
+        printf("\n");
+      }      
 
-    for (int j=0;j<out->Ny();j++) {
-      for (int i=0;i<out->Nx();i++) {
-        //        out->Variance()->WrFrame(i,j,out->Variance()->RdFrame(i-i%win,j-j%win));
-        out->WrFrame(i,j,in->RdFrame(i,j)-gsl_vector_get(A,0)*line[0][i]);
-        out->Variance()->WrFrame(i,j,in->Variance()->RdFrame(i,j));
+      for (int j=0;j<out->Ny();j++) {
+        for (int i=0;i<out->Nx();i++) {
+          //out->Variance()->WrFrame(i,j,out->Variance()->RdFrame(i-i%win,j-j%win));
+          out->WrFrame(i,j,in->RdFrame(i,j)-gsl_vector_get(A,0)*darkRef->RdFrame(i,j));
+          out->Variance()->WrFrame(i,j,in->Variance()->RdFrame(i,j));
+        }
+      }
+    } else {
+
+      A=FitLines(out,win,line,3.0);
+      if (DEBUG) {
+        printf("params %f ",gsl_vector_get(A,0));
+        for (int j=0;j<out->Ny()/win;j++) 
+          printf(" %f ",gsl_vector_get(A,j+1));
+        printf("\n");
+      }
+      
+
+      for (int j=0;j<out->Ny();j++) {
+        for (int i=0;i<out->Nx();i++) {
+          //        out->Variance()->WrFrame(i,j,out->Variance()->RdFrame(i-i%win,j-j%win));
+          out->WrFrame(i,j,in->RdFrame(i,j)-gsl_vector_get(A,0)*line[0][i]);
+          out->Variance()->WrFrame(i,j,in->Variance()->RdFrame(i,j));
+        }
       }
     }
-    //delete A;
-  
+    
+
+
+    out->WrDesc("DARKSTEP",DOUBLE,1,gsl_vector_ptr(A,0));
+    //delete A;    
 
     /*
     ana.SetImage(out);
@@ -387,6 +513,11 @@ int main(int argc, char **argv) {
 
 
   }
+  if (darkRef) {
+    delete darkRef;
+    delete filtredDark;
+  }
+  
   
    
   exit_session(0);

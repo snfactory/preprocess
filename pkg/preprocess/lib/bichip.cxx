@@ -284,7 +284,7 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   // Puts the image data from chips
   //
   char keyName[lg_name+1];
-  double gain,rdnoise[NChips()],saturate[NChips()],satur,ovscmax,oeparam[2];
+  double gain,rdnoise[NChips()],saturate[NChips()],satur,ovscmax,oeparam[2],ovscmed[NChips()];
   for (int chip=0;chip<NChips();chip++) {
 
   // Note that R channel is flipped (180deg rotation) ... it is economic to do it here
@@ -315,6 +315,8 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     // propagates the RdNoises
     fChip[chip]->RdDesc("RDNOISE",DOUBLE,1,rdnoise+chip);
     rdnoise[chip]*=gain;
+    // propagates ovsc level
+    fChip[chip]->RdDesc("OVSCMED",DOUBLE,1,ovscmed+chip);
     // propagate the saturation level
     fChip[chip]->RdDesc("SATURATE",DOUBLE,1,&satur);
     fChip[chip]->RdDesc("OVSCMAX",DOUBLE,1,&ovscmax);
@@ -367,15 +369,18 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   
 
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
+  compound->WrDesc("OVSCMED",DOUBLE,NChips(),ovscmed);
   compound->WrDesc("SATURAT",DOUBLE,NChips(),saturate);
   // deletes non-relevant parameters, as values are different for the 2 chips
   compound->DeleteDesc("RDNOISE");
+  compound->DeleteDesc("OVSCMED");
   compound->DeleteDesc("GAIN");
   compound->DeleteDesc("SATURATE");
   compound->DeleteDesc("AMPSEC");
   compound->DeleteDesc("DETSEC");
   if (variance){
       variance->DeleteDesc("RDNOISE");
+      variance->DeleteDesc("OVSCMED");
       variance->DeleteDesc("GAIN");
       variance->DeleteDesc("SATURATE");
       variance->DeleteDesc("AMPSEC");

@@ -588,6 +588,10 @@ void OverscanSnifs::SubstractOffset() {
   if (Image()->GetFClass() == RAW_BIAS)
     Image()->SetFClass(BIAS_FRAME);
   
+  // for the posterity : write the OVSC median value
+  double ovscMed=ut_median(ov,fBiasSec->YLength());
+  fImage->WrDesc("OVSCMED",DOUBLE,1,&ovscMed);
+
   // last : get the max value of the substracted offset
   double max=0;
   for (int i=0;i<fBiasSec->YLength();i++) {
