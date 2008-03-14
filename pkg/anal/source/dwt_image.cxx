@@ -134,7 +134,7 @@ void dwt_vertical(ImageSnifs* in, ImageSnifs* out,int level){
     gsl_wavelet_workspace_free(work);
 }
 
-void dwt2d(ImageSnifs* in, ImageSnifs* out,int level,double cut){
+void dwt2d(ImageSnifs* in, ImageSnifs* out,int level,double cut, int* select){
 // needs a square matrix we don't have...
 // embed it in a larger square matrix
   int maxX=tomaxpow2(in->Nx());
@@ -201,7 +201,24 @@ void dwt2d(ImageSnifs* in, ImageSnifs* out,int level,double cut){
       printf("removed %f%% of data\n",nremoved*1.0/maxX/maxY*100);
     }
     
-    gsl_wavelet2d_transform_inverse (w, data, maxX, maxX,maxY, work);  
+    if (select[0]>0) {
+      for (int i=select[0];i<maxX;i++) 
+        for (int j=0;j<maxY;j++) 
+          data[i*maxX+j]=0;
+    }
+    if (select[1]>0) {    
+      for (int i=0;i<maxX;i++) 
+        for (int j=select[1];j<maxY;j++) 
+          data[i*maxX+j]=0;
+    }
+    
+
+    if (cut >=0)
+      gsl_wavelet2d_transform_inverse (w, data, maxX, maxX,maxY, work);  
+    else {
+      X0=0;
+      Y0=0;
+    }
     
 
         //out->DeleteFrame();
@@ -238,8 +255,11 @@ int main(int argc, char **argv) {
   ImageSnifs* in,*out;
   char inName[lg_name+1], outName[lg_name+1];
   int level;
+  int select[2];
 
-  set_arglist("-in none -out none -level 1 -threshold 0 -d2|hori|vert");
+  set_arglist("-in none -out none -level 1 -threshold 0 -d2|hori|vert -select 0,0");
+  // note : thrshold<0 -> no inverse transform
+
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
@@ -248,6 +268,8 @@ int main(int argc, char **argv) {
 
   double cut;
   get_argval(3,"%lf",&cut);
+  sscanf(argval[5],"%d,%d",select,select+1);
+
 
   /* loop on catalog */
   while(inCat.NextFile(inName) && outCat.NextFile(outName)) {
@@ -258,7 +280,7 @@ int main(int argc, char **argv) {
     printf("Variance estimated %f \n",variance);
 
     if (!strcmp(arglabel[4],"-d2"))
-      dwt2d(in, out,level,cut*sqrt(variance));
+      dwt2d(in, out,level,cut*sqrt(variance),select);
     else if (!strcmp(arglabel[4],"-hori"))
       dwt_horizontal(in, out,level);
     else if (!strcmp(arglabel[4],"-vert"))

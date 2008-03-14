@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
       /* Fill the desired histos */
       for (int j=sec->YFirst(); j<sec->YLast();j++){
         for (int i=sec->XFirst()-miny; i<sec->XLast()-maxy-1;i++){
+          // selection of events
           if (in->RdFrame(i,j)>in->RdFrame(i+1,j)*2 && in->RdFrame(i,j)>in->RdFrame(i-1,j)*2 && in->RdFrame(i,j)>10 ){
             double y=log10(in->RdFrame(i,j));
             for (int ix=minx;ix<maxx+1;ix++) {

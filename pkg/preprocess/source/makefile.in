@@ -31,9 +31,9 @@ SRC =	 preprocess.cxx\
 	 fit_dark.cxx\
 	 guess_dark.cxx\
 	 build_dark.cxx\
+         quick_median.cxx\
 	 ccd_rem_cosmic.cxx\
 	 split_image.cxx\
-	 quick_look.cxx\
 	 fft_image.cxx\
 	 copy_image.cxx\
 	 copy_image_slice.cxx\
@@ -43,6 +43,7 @@ SRC =	 preprocess.cxx\
          filter_image.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
+
 
 
 OPTSRC =   substract_overscan.cxx\
@@ -64,6 +65,7 @@ OPTSRC =   substract_overscan.cxx\
 	 preprocess_bias.cxx\
 	 preprocess_flat.cxx\
 	 preprocess_overscan.cxx\
+	 quick_look.cxx\
 
 
 # non-maintained executables
