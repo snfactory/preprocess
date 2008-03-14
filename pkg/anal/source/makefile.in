@@ -22,7 +22,6 @@ LOCLIBPATH = -L$(L) -lanal
 # Targets
 
 SRC = 	rootify.cxx\
-	impulse_study_2.cxx\
 	impulse_study.cxx\
 	rootify_fft.cxx\
 	rootify_data.cxx\
