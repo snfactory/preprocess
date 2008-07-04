@@ -302,7 +302,7 @@ BiChipSnifs * Preprocessor::PreprocessOverscan(char* name, char* outName){
 }
 
 /* ----- PreprocessAssemble ------------------------------------------------ */
-ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSnifs* bias){
+ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName){
 
   // simply returns the debiased bichip
   // first builds teh debiassed bichip
@@ -323,36 +323,39 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName, ImageSn
   out->HandleCosmetics();
   // Special request from Yannick
   out->CheatCosmetics();
-  if (bias) out->SubstractBias(bias);
   return out;
   
 }
 
+/* ----- PreprocessFlat ------------------------------------------------ */
+ImageSnifs * Preprocessor::PreprocessDark(char* name, char* outName,ImageSnifs* bias, DarkModel *biasModel, DarkModel *darkModel){
 
-/* ----- PreprocessDark ------------------------------------------------ */
-ImageSnifs * Preprocessor::PreprocessDark(char* name, char* outName,ImageSnifs* bias){
-  // simply returns the debiased bichip
-  
-  ImageSnifs *out = PreprocessAssemble(name,outName,bias);
-  out->AddPoissonNoise();
+  ImageSnifs* out = Preprocess(name,outName,bias,0,0,biasModel,darkModel);
+  out->BuildDark();
   return out;
 }
 
 /* ----- PreprocessFlat ------------------------------------------------ */
 ImageSnifs * Preprocessor::PreprocessFlat(char* name, char* outName,ImageSnifs* bias, ImageSnifs* dark){
 
-  ImageSnifs* out = PreprocessDark(name,outName,bias);
-  if (dark) 
-    out->SubstractDark( dark );
+  ImageSnifs* out = Preprocess(name,outName,bias,dark);
   out->BuildFlat();
   return out;
 }
 
 /* ----- Preprocess ------------------------------------------------ */
-ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) {
-  ImageSnifs* out = PreprocessDark(name, outName,bias);
+ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,ImageSnifs *dark,ImageSnifs* flat,DarkModel * biasModel, DarkModel* darkModel) {
+
+  ImageSnifs* out = PreprocessAssemble(name, outName);
+  if (bias) 
+    out->SubstractBias(bias);
+  out->AddPoissonNoise();
+  if (biasModel)
+    out->SubstractBiasModel(biasModel);
   if (dark) 
     out->SubstractDark( dark);
+  if (darkModel)
+    out->SubstractDarkModel(darkModel);
   if (flat) 
     out->ApplyFlat(flat);
   else if (!FastMode())

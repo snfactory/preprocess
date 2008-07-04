@@ -1,2 +1,1 @@
-
-SUBDIRS = quick
+SUBDIRS = quick data

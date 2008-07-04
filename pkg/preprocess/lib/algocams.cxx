@@ -65,9 +65,6 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
       sprintf(key,"[2048:1025,1:4096]");      
       I->WrDesc("CCDSEC",CHAR,lg_name+1,key);
     }
-        
-        
-
 
   } else { // rasters 
     //if (nbin[0] != 1 || nbin[1] !=1 )
@@ -114,6 +111,13 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     sscanf(keyVal,"%d:%d:%lf",&hour,&minute,&second);
     jd = juldat(year,month,day,hour + minute/60.0 + second/3600.0);
     I->WrDesc("JD",DOUBLE,1,&jd);
+  }
+
+  // The TEMP should be updated in case the DB doesn't do it
+  double temp;
+  if (I->RdIfDesc("DETTEMP",DOUBLE,1,&temp) <=0) {
+    I->RdDesc("DETTEM",DOUBLE,1,&temp);
+    I->WrDesc("DETTEMP",DOUBLE,1,&temp);
   }
 }
 
@@ -219,6 +223,12 @@ void AlgoOtcom::HackFitsKeywords(ImageSnifs* I) {
     I->WrDesc("CCDBIN",INT,2,&nbin);
   }
 
+  // The DETTEMP may not be there ...
+  double temp;
+  if (I->RdIfDesc("DETTEMP",DOUBLE,1,&temp) <=0) {
+    I->RdDesc("CCDTEMP",DOUBLE,1,&temp);
+    I->WrDesc("DETTEMP",DOUBLE,1,&temp);
+  }
 }
 
 /* ----- SafeOverscanStrip -------------------------------------------------- */

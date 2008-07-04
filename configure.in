@@ -274,6 +274,7 @@ AC_OUTPUT(add_defs/makedefs \
           pkg/anal/source/makefile \
           pkg/pipeline/Makefile \
           pkg/pipeline/quick/makefile \
+          pkg/pipeline/data/makefile \
           doc/makefile )
 
 dnl Final configuration ==============================

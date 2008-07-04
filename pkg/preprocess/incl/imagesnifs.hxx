@@ -25,6 +25,7 @@
 /* ----- local includes and definitions ----- */
 #include "image.hxx"
 class AlgoCams;
+class DarkModel;
 
 /* ===== CHANNEL ======================================== */
 /* the right comparison shall not be channel = kBlue
@@ -90,11 +91,14 @@ class ImageSnifs :public ImageSimple {
     void OddEvenCorrect();
 
     void UpdateFClass();
+    void SubstractBiasModel(DarkModel* Model);
     void SubstractBias(ImageSnifs* Bias);
+    void SubstractDarkModel(DarkModel* Model);
     void SubstractDark(ImageSnifs* Dark);
     void ApplyFlat(ImageSnifs* Flat);
 
     void BuildFlat();
+    void BuildDark();
     void AddPoissonNoise();
     void HandleSaturation();
     void HandleCosmetics();

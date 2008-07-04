@@ -16,6 +16,7 @@
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
 #include "preprocessor.hxx"
+#include "darkmodel.hxx"
 
 /* ----- main ---------------------------------------- */
 
@@ -23,7 +24,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -bias null -dark null -flat null -fast -all");
+  set_arglist("-in none -out none -bias null -dark null -flat null -fast -all -bm null -dm null");
   init_session(argv,argc,&arglabel,&argval);
 
   char inName[lg_name+1],outName[lg_name+1];
@@ -47,6 +48,13 @@ int main(int argc, char **argv) {
     P.SetFastMode(1);
   if (is_true(argval[6]))
     P.SetAllImage(1);
+
+  DarkModel *biasModel=0;
+  DarkModel *darkModel=0;
+  if (is_set(argval[7]))
+    biasModel = new DarkModel(argval[7]);
+  if (is_set(argval[8]))
+    biasModel = new DarkModel(argval[8]);
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     

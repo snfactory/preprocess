@@ -28,6 +28,7 @@ SRC =	 preprocess.cxx\
 	 clean_cosmic.cxx \
 	 fit_image.cxx\
 	 remove_dark.cxx\
+	 remove_bias_model.cxx\
 	 fit_dark.cxx\
 	 guess_dark.cxx\
 	 build_dark.cxx\

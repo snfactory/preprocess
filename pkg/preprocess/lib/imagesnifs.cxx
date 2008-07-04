@@ -22,6 +22,7 @@
 #include "algocams.hxx"
 #include "snifs_const.h"
 #include "analyser.hxx"
+#include "darkmodel.hxx"
 
 //static const char kChannelName[4][lg_name+1]={"Blue channel","Red channel","Photometry","Guiding"} ;
 
@@ -229,11 +230,39 @@ ImageSnifs* ImageSnifs::BuildSubImage(Section* Sec,char *Name){
   return sub;
 }
 
+/* -----  SubstractBiasModel ------------------------------------------------- */
+void ImageSnifs::SubstractBiasModel(DarkModel *Model) {
+  double timeon,temp;
+
+  RdDesc("DETTEMP",DOUBLE,1,&temp); 
+
+  char timeOnStr[lg_name+1];
+  RdDesc("TIMEON",CHAR,lg_name+1,timeOnStr); // CAVEAT : TIMEON not defined for all data
+  if (strcmp(timeOnStr,"None"))
+    RdDesc("TIMEON",DOUBLE,1,&timeon); // CAVEAT : TIMEON not defined for all data.
+  else
+    timeon=-1;
+
+  Section ** Secs=Model->GetSections();
+  for (int isec=0;isec<Model->GetNsec();isec++){
+    double toremove;
+    if (timeon>0)
+      toremove=Model->BiasSub(temp,timeon,isec);
+    else
+      toremove=Model->GetI0(isec)+Model->GetI2(isec)*Model->TempTerm(temp);
+    for ( int j=Secs[isec]->YFirst() ; j<Secs[isec]->YLast() ; j++) 
+      for ( int i=Secs[isec]->XFirst(); i<Secs[isec]->XLast() ; i++ ) { 
+	double val = RdFrame(i,j)-toremove;
+	WrFrame(i,j,val);
+      }
+  }
+}
 
 /* -----  SubstractBias ------------------------------------------------- */
 void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
   // substracts a bias image
-  int biasDone,overscanDone,biasFrame;
+  int overscanDone,biasFrame,biasDone;
+  char biasName[lg_name+1];
 
   if (ParanoMode()) {
     // check fclasses
@@ -244,11 +273,10 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
     }
 
     // check bias was not already substracted
-    if ( RdIfDesc("BIASDONE",INT, 1, &biasDone) >= 0 
-         && biasDone ){
-      print_error("ImageSnifs::SubstractBias already substracted for %s",Name());
-      return;
-    }
+    if ( RdIfDesc("BIASDONE",INT, 1, &biasDone) >= 0 ) {
+	print_error("ImageSnifs::SubstractBias already substracted for %s",Name(),biasDone);
+	return;
+      }
 
     // check overscan was already substracted
     RdDesc("OVSCDONE",INT, 1, &overscanDone);
@@ -267,6 +295,9 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
   // do the real job
   Image()->Add(Bias->Image(),-1);
 
+  strncpy(biasName,Bias->Name(),lg_name);
+  biasName[lg_name]='\0';
+  WrDesc("BIASNAME",CHAR,lg_name+1,biasName);
   biasDone=1;
   WrDesc("BIASDONE",INT,1,&biasDone);
 
@@ -280,7 +311,7 @@ void ImageSnifs::SubstractBias(ImageSnifs* Bias) {
 }
 
 
-/* -----  SubstractBias ------------------------------------------------- */
+/* -----  UpdateFClass ------------------------------------------------- */
 void ImageSnifs::UpdateFClass() {
   if (GetFClass()==RAW_DARK_FRAME)
     SetFClass(PRE_DARK_FRAME);
@@ -294,6 +325,35 @@ void ImageSnifs::UpdateFClass() {
     SetFClass(PRE_OBJ_FRAME);
   if (GetFClass()==RAW_DOM_FRAME)
     SetFClass(PRE_DOM_FRAME);
+}
+
+/* -----  SubstractDarkModel ------------------------------------------------- */
+void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
+  double timeon,temp,texp;
+
+  RdDesc("DETTEMP",DOUBLE,1,&temp); 
+  RdDesc("DARKTIME",DOUBLE,1,&texp); 
+
+  char timeOnStr[lg_name+1];
+  RdDesc("TIMEON",CHAR,lg_name+1,timeOnStr); // CAVEAT : TIMEON not defined for all data
+  if (strcmp(timeOnStr,"None"))
+    RdDesc("TIMEON",DOUBLE,1,&timeon); // CAVEAT : TIMEON not defined for all data.
+  else
+    timeon=-1;
+
+  Section ** Secs=Model->GetSections();
+  for (int isec=0;isec<Model->GetNsec();isec++){
+    double toremove;
+    if (timeon>0)
+      toremove=Model->DarkSub(temp,timeon,texp,isec);
+    else
+      toremove=(Model->GetI0(isec)+Model->GetI2(isec)*Model->TempTerm(temp))*texp;
+    for ( int j=Secs[isec]->YFirst() ; j<Secs[isec]->YLast() ; j++) 
+      for ( int i=Secs[isec]->XFirst(); i<Secs[isec]->XLast() ; i++ ) { 
+	double val = RdFrame(i,j)-toremove;
+	WrFrame(i,j,val);
+      }
+  }
 }
 
 /* -----  SubstractDark ------------------------------------------------- */
@@ -332,8 +392,8 @@ void ImageSnifs::SubstractDark(ImageSnifs* Dark) {
   }
 
   // do the real job
-  RdDesc("EXPTIME",DOUBLE,1,&exptime);
-  Dark->RdDesc("EXPTIME",DOUBLE,1,&darktime);
+  RdDesc("DARKTIME",DOUBLE,1,&exptime);
+  Dark->RdDesc("DARKTIME",DOUBLE,1,&darktime);
   Image()->Add(Dark->Image(),-exptime/darktime);
 
   darkDone=1;
@@ -389,6 +449,41 @@ void ImageSnifs::ApplyFlat(ImageSnifs* Flat) {
   WrDesc("FLATDONE",INT,1,&flatDone);
   int eleCalib=0;
   WrDesc("ELECALIB",INT,1,&eleCalib);
+}
+
+/* -----  BuildDark     ------------------------------------------------- */
+
+void ImageSnifs::BuildDark() {
+  // transforms the image into a flat frame
+  // transforms the image into a flat frame
+  int biasDone,darkFrame;
+
+  if (ParanoMode()) {
+    // check fclasses
+    char obstype[lg_name+1];
+    RdDesc("OBSTYPE",CHAR,lg_name+1,obstype);
+    if ( strcmp(obstype,"DARK")) {
+       print_error("ImageSnifs::BuildDark : %s is not a dark frame",Name());
+      return;
+    }
+
+    // check bias was substracted
+    RdDesc("BIASDONE",INT, 1, &biasDone);
+    if ( !biasDone ){
+      print_error("ImageSnifs::BuildFlat : Bias was not substracted yet for %s",Name());
+      return;
+    }
+  }
+
+  double texp;
+  RdDesc("DARKTIME",CHAR,lg_name+1,&texp);
+  Image()->Scale(1/texp);
+  texp=1.;
+  WrDesc("DARKTIME",CHAR,lg_name+1,&texp);
+
+  darkFrame=1;
+  WrDesc("DARKFRAM",INT,1,&darkFrame);
+
 }
 
 /* -----  BuildFlat     ------------------------------------------------- */

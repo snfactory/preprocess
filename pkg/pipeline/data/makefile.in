@@ -1,0 +1,37 @@
+######################################################################
+## Filename:      makefile.in
+## Version:       $Revision$
+## Description:   
+## Author:        $Author$
+## Date:          $Date$
+######################################################################
+
+topdir = @top_srcdir@
+include $(topdir)/add_defs/makedefs
+include $(topdir)/add_defs/makedefs.local
+
+# ============================================================
+
+# Targets
+
+FILES = biasmodel_B.txt
+
+DATA = $(topdir)/user/data
+
+# ============================================================
+
+OUT : dirdata $(DATA)/time-stamp
+
+dirdata :
+	@if [ ! -d $(DATA) ]; then \
+		echo "Creating data directory $(DATA)"; \
+		mkdir -p $(DATA); \
+	fi
+
+# Install w/ r--r--r-- permissions
+$(DATA)/time-stamp : $(FILES) 
+	touch $(DATA)/time-stamp
+	install -m 444 $? $(DATA)
+
+clean: 
+	rm -f $(DATA)/time-stamp
