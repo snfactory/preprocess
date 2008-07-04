@@ -54,12 +54,12 @@ int main(int argc, char **argv) {
   if (is_set(argval[7]))
     biasModel = new DarkModel(argval[7]);
   if (is_set(argval[8]))
-    biasModel = new DarkModel(argval[8]);
+    darkModel = new DarkModel(argval[8]);
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     
     print_msg("Processing %s",inName);
-    ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat);
+    ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat,biasModel,darkModel);
     delete out;
   }
 
