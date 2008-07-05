@@ -54,14 +54,11 @@ int main(int argc, char **argv) {
 
   if (is_set(argval[3])) 
     out->WrDesc("TIMEON",CHAR,lg_name+1,argval[3]);
-  else {
-    char* noneStr="None";
-    out->WrDesc("TIMEON",CHAR,lg_name+1,noneStr);
-  }
-    out->SubstractBiasModel(&Model);
 
-    delete in;
-    delete out;
+  out->SubstractBiasModel(&Model);
+
+  delete in;
+  delete out;
 
 
   }

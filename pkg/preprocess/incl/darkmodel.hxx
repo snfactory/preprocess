@@ -52,7 +52,6 @@ protected :
   Section ** fSections;
   int fNsec;
   double * fI0, *fI1, *fBeta, *fI2;
-  char fName[lg_name+1];
 
 };
 
