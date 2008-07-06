@@ -14,7 +14,8 @@ include $(topdir)/add_defs/makedefs.local
 
 # Targets
 
-FILES = biasmodel_B.txt
+FILES = biasmodel_B.txt\
+        darkmodel_B.txt
 
 DATA = $(topdir)/user/data
 
