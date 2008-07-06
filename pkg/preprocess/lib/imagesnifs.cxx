@@ -476,10 +476,10 @@ void ImageSnifs::BuildDark() {
   }
 
   double texp;
-  RdDesc("DARKTIME",DOUBLE,lg_name+1,&texp);
+  RdDesc("DARKTIME",DOUBLE,1,&texp);
   Image()->Scale(1/texp);
   texp=1.;
-  WrDesc("DARKTIME",CHAR,lg_name+1,&texp);
+  WrDesc("DARKTIME",DOUBLE,1,&texp);
 
   darkFrame=1;
   WrDesc("DARKFRAM",INT,1,&darkFrame);
