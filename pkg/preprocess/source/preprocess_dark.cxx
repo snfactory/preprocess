@@ -1,63 +1,68 @@
+/* === Doxygen Comment ======================================= */
+/*! 
+ * \file          preprocess_dark.cxx
+ * \copyright     (c) 2004 SNIFS Collaboration
+ * \date          Wed Aug  6 17:44:35 2003
+ * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>
+ * \version       0.0
+ * \brief         
+ *                
+ * $Id$
+ **/
+/* =========================================================== */
 
-//#include "bichip.hxx"
-#include "imagestacksnifs.hxx"
+/* ----- local include ----- */
+#include "bichip.hxx"
+#include "imagesnifs.hxx"
 #include "catorfile.hxx"
-#include "kombinator.hxx"
 #include "preprocessor.hxx"
+#include "darkmodel.hxx"
+
+/* ----- main ---------------------------------------- */
 
 int main(int argc, char **argv) {
 
   char **argval, **arglabel;
-  int nlines;
   
-  set_arglist("-in none -out none -stackout null -bias null -sigma 4.0 -nlines 5000 -all");
+  set_arglist("-in none -out none -bias null -fast -all -bm null -dm null");
   init_session(argv,argc,&arglabel,&argval);
-
-  CatOrFile catIn(argval[0]);
-  CatOrFile catOut(argval[1]);
-
-  ImageSnifs * bias=0;  
-  // Load once auxilliary files
-  if (is_set(argval[3]))
-    bias = new ImageSnifs(argval[3]);
-
-  get_argval(5,"%d",&nlines);
-  
-  Preprocessor P;
-  if (is_true(argval[6]))
-    P.SetAllImage(1);
 
   char inName[lg_name+1],outName[lg_name+1];
 
-  if (is_set(argval[2])) {
-    ImageStackSnifs * tmp = new ImageStackSnifs(nlines);
-
-    P.SetIoMethod(kIoSlice);
-    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
-      print_msg("Opening %s",inName);
-      ImageSnifs * outFile = P.PreprocessDark(inName,outName,bias);
-      tmp->AddImage(outFile);
-    }
-
-    double sigma;
-    get_argval(4,"%lf", &sigma);
-    Kombinator * k = new KGaussPoisson(sigma);
-    ImageSnifs *out = tmp->Kombine(argval[2],k);
-    delete k;
-    delete out;
-    delete tmp;
-
-  } else { // no need to store temporary information
-
-    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
-      print_msg("Opening %s",inName);
-      ImageSnifs * out = P.PreprocessDark(inName,outName,bias);
-      delete out;  
-    }
-  }
+  CatOrFile inCat(argval[0]);
+  CatOrFile outCat(argval[1]);
   
-  if (bias) 
-    delete bias;
+  ImageSnifs * bias=0;
+  ImageSnifs *dark=0, *flat=0;
+
+  // Load once auxilliary files
+  if (is_set(argval[2]))
+    bias = new ImageSnifs(argval[2]);
+
+  Preprocessor P;
+  if (is_true(argval[3]))
+    P.SetFastMode(1);
+  if (is_true(argval[4]))
+    P.SetAllImage(1);
+
+  DarkModel *biasModel=0;
+  DarkModel *darkModel=0;
+  if (is_set(argval[5]))
+    biasModel = new DarkModel(argval[7]);
+  if (is_set(argval[6]))
+    darkModel = new DarkModel(argval[8]);
+
+  while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
+    
+    print_msg("Processing %s",inName);
+    ImageSnifs *out = P.PreprocessDark(inName,outName,bias,biasModel,darkModel);
+    delete out;
+  }
+
+  if (flat) delete flat;
+  if (dark) delete dark;
+  if (bias) delete bias;
 
   exit_session(0);
+  
 }
