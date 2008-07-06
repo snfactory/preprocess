@@ -48,9 +48,9 @@ int main(int argc, char **argv) {
   DarkModel *biasModel=0;
   DarkModel *darkModel=0;
   if (is_set(argval[5]))
-    biasModel = new DarkModel(argval[7]);
+    biasModel = new DarkModel(argval[5]);
   if (is_set(argval[6]))
-    darkModel = new DarkModel(argval[8]);
+    darkModel = new DarkModel(argval[6]);
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     
