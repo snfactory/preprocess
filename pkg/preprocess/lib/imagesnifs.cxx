@@ -340,6 +340,10 @@ void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
     RdDesc("TIMEON",DOUBLE,1,&timeon); // CAVEAT : TIMEON not defined for all data.
   else
     timeon=-1;
+  if (timeon<texp) {
+    print_error("%s has a bad time on",Name());
+    timeon=-1;
+  }
 
   Section ** Secs=Model->GetSections();
   for (int isec=0;isec<Model->GetNsec();isec++){
