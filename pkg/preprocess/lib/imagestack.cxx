@@ -105,7 +105,11 @@ void ImageStack::Kombine(ImageSimple *ToFill, int FillsVarOut, int UpdateInitial
   } else {
     UpdateInitialVar=0;
   }
-  
+  // check images are all of the same size
+  for (unsigned int n=1;n<fImageList.size();n++) {
+    if (fImageList[n]->Nx() != Nx() ||  fImageList[n]->Ny() != Ny())
+      print_error("ImageStack::Kombine %s and %s not of the same size",fImageList[0]->Name(),fImageList[n]->Name());
+  }
 
   if (FillsVarOut && ! ToFill->Variance())
     print_error(" ImageStack::Kombine %s needs a variance frame",ToFill->Name() );
