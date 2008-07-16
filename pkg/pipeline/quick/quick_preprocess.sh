@@ -38,9 +38,11 @@ where:
        bias : Use specified bias map
   darkmodel : use the specified dark model
        dark : use the specified dark map
-     timeon : list of the times on. The format is 'file time' per line with no header
+     timeon : list of the times on. The format is 'file time' per line 
+              with no header
               look in the preproc function if you want to get it right
-     c-flag : local copy of input files. Useful if input files are protected
+     C-flag : local copy of input files. Useful if input files are write 
+              protected.
      f-flag : no confirmation asked
      D-flag : debug mode
      h-flag : displays help and exits
@@ -87,25 +89,32 @@ function preproc() {
     fi
 
     # Plug the timeon if needed
-    for file in cmp3in.cat ; do
-	timedesc=`rd_desc -in $file -desc TIMEON $quiet`
-	darktime=`rd_desc -in $file -desc DARKTIME $quiet`
+    for file in $(sed "1d" tmp3in.cat ); do
+	timedesc=`rd_desc -in $file -desc TIMEON -quiet`
+	darktime=`rd_desc -in $file -desc DARKTIME -quiet`
+	[ $DEBUG ] && echo "file $file timeon file $timeon time for this file $timedesc darktime $darktime"
 	if [ $timeon ] ; then
 	    timeonval=`grep $file $timeon | sed s/.* //`
-	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc )
-	elif [ -z $timedesc ] ; then
-	    timeonval=`try_db33 $file | sed s/.* //`
-	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc )
+	    if [ $DEBUG ] ; then
+		echo wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
+	    fi
+	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
+	elif [ -z "$timedesc" ] ; then
+	    timeonval=`try_db33 $file | sed 's/.* //'`
+	    if [ $DEBUG ] ; then
+		echo "wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet"
+	    fi
+	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
 	fi
     done
 
     # build the output catalog if needed
     if [ -z $outcat ] ; then
-	sed 's%.*/%% ; /.fits/s/^/P/ ' $tmp3in.cat > $tmptmpoutcat
+	sed 's%.*/%% ; /.fits/s/^/P/ ' tmp3in.cat > $tmptmpoutcat
     fi
 
     if [ $DEBUG ] ; then 
-	echo preproc -in $tmp3in.cat -out $tmptmpoutcat $option $quiet $noask
+	echo preprocess -in tmp3in.cat -out $tmptmpoutcat $option $quiet $noask
 
     fi
     preprocess -in $tmp3in.cat -out $tmptmpoutcat $option $quiet $noask
@@ -127,7 +136,7 @@ function is_raster() {
 # Options ==============================
 
 # Parser ..............................
-while getopts "c:i:o:b:B:d:D:T:cfdvh" OPTION ; do
+while getopts "c:i:o:b:B:d:D:T:Cfgvh" OPTION ; do
     case "$OPTION" in
         c) channel="$OPTARG" ;; # Input channel
         i) incat="$OPTARG" ;; # Input frame
@@ -135,11 +144,11 @@ while getopts "c:i:o:b:B:d:D:T:cfdvh" OPTION ; do
         b) biasmodel="$OPTARG" ;;  # Bias model
         B) biasmap="$OPTARG" ;;    # Bias map
 	d) darkmodel="$OPTARG" ;;    # Dark model
-        D) darlmap="$OPTARG" ;; # Dark map
+        D) darkmap="$OPTARG" ;; # Dark map
         T) timeon="$OPTARG" ;; # The list of time on
-        c) cpinput="yes" ;;    # Cp input files in the cwd before processing
+        C) cpinput="yes" ;;    # Cp input files in the cwd before processing
         f) noask="-noask" ;;    # Do not ask before overwriting files
-        d) DEBUG="-d"; echo "*** DEBUG mode ***" ;; 
+        g) DEBUG="-d"; echo "*** DEBUG mode ***" ;; 
         v) echo "$version" ; exit 0 ;;
         h) usage; exit 0 ;;
         ?) usage; exit 1 ;;
@@ -177,7 +186,6 @@ fi
 datadir="$(dirname $0)/../data"
 [ -d $datadir ] || \
     die 1 $LINENO "Cannot find reference calibration directory $datadir"
-if [$]
 
 # check length of catalogs : very basic matching .fits is a file .cat is a catalog
 case $incat in
@@ -193,7 +201,8 @@ if [ $iscat ] ; then
 else
     length=1
 fi
-if [ $outcat -a $iscat ] ; then
+
+if [  "$iscat" -a "$outcat" ] ; then
     if [ $(wc -l $incat | sed 's/ .*//') -ne $(wc -l $outcat | sed 's/ .*//') ] ; then
 	die 1 $LINENO "input catalog and output catalog are not of the same length"
     fi
@@ -224,35 +233,35 @@ echo "Input channel: $channel"
 
 # in a catalog, all files should be of the same channel and raster
 israster=`is_raster $inframe`
+
 if [ $iscat ] ; then
     for file in `sed "1d" $incat` ; do
 	if [ $(expr "$file" : ".*_${channel}.fits" ) -eq 0 ] ; then
 	    die 1 $LINENO "file $file is not of channel $channel"
 	fi
-	if [ $(is_raster $file) != israster ]
+	if [ `is_raster $file` != $israster ] ; then
 	    die 1 $LINENO "file $file is not of raster type $raster"
 	fi
     done
 fi
 
 # Default values  ==============================
-if [ -z $biasmodel -a israster -eq 0 ] ; then
-    biasmodel=${biasm}_${channel}.txt
+if [ "( -z $biasmodel ) -a ( $israster -eq 0 )" ] ; then
+    biasmodel=$datadir/${biasm}_${channel}.txt
 fi
-if [ -z $biasmap -a israster -eq 0 ] ; then
-    biasmap=${bias}_${channel}.fits
+if [ "( -z $biasmap ) -a ( $israster -eq 0 )" ] ; then
+    biasmap=$datadir/${bias}_${channel}.fits
 fi
-if [ -z $darkmodel -a israster -eq 0 ] ; then
-    darkmodel=${darkm}_${channel}.txt
+if [ "(-z $darkmodel ) -a ( $israster -eq 0 ) " ] ; then
+    darkmodel=$datadir/${darkm}_${channel}.txt
 fi
-if [ -z $darkmap -a israster -eq 0 ] ; then
-    darkmap=${dark}_${channel}.fits
+if [ "( -z $darkmap ) -a ( $israster -eq 0 )" ] ; then
+    darkmap=$datadir/${dark}_${channel}.fits
 fi
-if [ $israster -eq 0 -a $channel != "P" ] ; then
-    option=" -bm $biasmodel -bias $biasmap -dm $darkmodel -darl $darkmap"
+if [ "( $israster -eq 0 ) -a ( $channel != "P" )" ] ; then
+    option=" -bm $biasmodel -bias $biasmap -dm $darkmodel -dark $darkmap"
 fi
 echo "option is $option"
-
 
 # Catalog splitting (if needed) ==============================
 
@@ -274,7 +283,7 @@ else
 fi
 
 # preprocessing the catalog
-while [ `wc -l $tmpincat | sed s/ .*//` -gt 20 ] ; do
+while [ `wc -l $tmpincat | sed "s/ .*//"` -gt 20 ] ; do
     head -n 21 $tmpincat > $tmptmpincat
     if [ $outcat ] ; then
 	head -n 21 $tmpoutcat > $tmptmpoutat
@@ -288,9 +297,9 @@ while [ `wc -l $tmpincat | sed s/ .*//` -gt 20 ] ; do
     fi
 done
 
-cp $tmpincat > $tmptmpincat
+cp $tmpincat $tmptmpincat
 if [ $outcat ] ; then
-    cp $tmpoutcat > $tmptmpoutat
+    cp $tmpoutcap  $tmptmpoutat
 fi
 preproc 
 
