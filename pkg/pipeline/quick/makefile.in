@@ -14,7 +14,8 @@ include $(topdir)/add_defs/makedefs.local
 
 # Targets
 
-EXE = $(E)/quick_bias
+EXE = $(E)/quick_bias \
+      $(E)/quick_preprocess
 
 # ============================================================
 
