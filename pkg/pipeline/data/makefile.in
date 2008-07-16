@@ -18,6 +18,10 @@ FILES = biasmodel_B.txt\
         darkmodel_B.txt\
         biasmodel_R.txt\
         darkmodel_R.txt\
+        bias_B.fits\
+        dark_B.fits\
+        bias_R.fits\
+        dark_R.fits
 
 DATA = $(topdir)/user/data
 
