@@ -31,8 +31,7 @@ Available options:
 where:
     channel : Channel (R or B).
               Default: automatic detection.
-      incat : Input frame or catalog. If the catalog is too long, it will be splitted
-              into smaller catalogs
+      incat : Input frame or catalog.
     outcat  : Output frame or catalog default is to propduce a P file
   biasmodel : use the specified bias model
        bias : Use specified bias map
