@@ -25,24 +25,27 @@ Program: quick_preprocess Version $version
 
 Available options:
 [-c channel] -i incat [-o outcat] [-b biasmodel] [-B biasmap]
-   [-d darkmodel] [-D darkmap] [-T timeon] [c]
+   [-d darkmodel] [-D darkmap]  [-t timeon ] [-T timeonfile] [-C] [-F]
    [-f] [-D] [-h] [-v]
 
 where:
     channel : Channel (R or B).
               Default: automatic detection.
-    inframe : Input frame or catalog. If the catalog is too long, it will be splitted
+      incat : Input frame or catalog. If the catalog is too long, it will be splitted
               into smaller catalogs
-    outcube : Output frame or catalog default is to propduce a P file
+    outcat  : Output frame or catalog default is to propduce a P file
   biasmodel : use the specified bias model
        bias : Use specified bias map
   darkmodel : use the specified dark model
        dark : use the specified dark map
-     timeon : list of the times on. The format is 'file time' per line 
+     timeon : the time since on value to be used for a single file
+              for multi-file processing, use timeonfile
+ timeonfile : list of the times on. The format is 'file time' per line 
               with no header
               look in the preproc function if you want to get it right
      C-flag : local copy of input files. Useful if input files are write 
               protected.
+     F-flag : full processing of P channel.
      f-flag : no confirmation asked
      D-flag : debug mode
      h-flag : displays help and exits
@@ -53,13 +56,17 @@ Long preprocessing, with all substractions possible
 
 Remarks:
 - The automatic detection of the input channel is still very dumb: if inframe
-  is of the form *_B.fits (resp. *_R.fits), it corresponds to Blue (resp. Red)
-  channel.
+  is of the form *_X.fits , it corresponds to X channel.
 - If the input catalog is too long, it will be splitted in smaller parts
-- WARNING: the TIMEON qualifier has to be stored by someone inside the exposure.
-  If the T option is provided, it is used
+- The file names paths shall not contain a '.' (this is a general IFU 
+  limitation)
+- WARNING: the TIMEON qualifier has to be stored by someone inside the 
+  exposure.
+  If the T or t option are provided, it is used
   Else if the qualifier exists, it is assumed to be correct. 
   Else the DB will be used to retreive it.
+- The time on file may be longer than the actual catalog. it just has to 
+  contain the file
 EOF
 echo '$Id$'
 }
@@ -93,19 +100,24 @@ function preproc() {
 	timedesc=`rd_desc -in $file -desc TIMEON -quiet`
 	darktime=`rd_desc -in $file -desc DARKTIME -quiet`
 	[ $DEBUG ] && echo "file $file timeon file $timeon time for this file $timedesc darktime $darktime"
-	if [ $timeon ] ; then
-	    timeonval=`grep $file $timeon | sed s/.* //`
-	    if [ $DEBUG ] ; then
-		echo wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
+	if [ $timeon ]  || [ $timeonval ]; then
+	    if [ -z $timeonval ] ; then
+		timeonval=`grep $file $timeon | sed 's/.* //'`
 	    fi
-	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
+	    if [ $DEBUG ] ; then
+		echo wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) -quiet
+	    fi
+	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) -quiet || die 1 $LINENO "not possible to write the timeon descriptor to $file"
 	elif [ -z "$timedesc" ] ; then
 	    timeonval=`try_db33 $file | sed 's/.* //'`
 	    if [ $DEBUG ] ; then
-		echo "wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet"
+		echo "wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) -quiet" 
 	    fi
-	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) $quiet
+	    wr_desc -in $file -desc TIMEON -val $(echo $darktime + $timeonval | bc ) -quiet || die 1 $LINENO "not possible to write the timeon descriptor to $file"
+	else 
+	    [ $DEBUG ] && echo "already a time on $timedesc nothing done"
 	fi
+	timeonval=""
     done
 
     # build the output catalog if needed
@@ -114,10 +126,10 @@ function preproc() {
     fi
 
     if [ $DEBUG ] ; then 
-	echo preprocess -in tmp3in.cat -out $tmptmpoutcat $option $quiet $noask
+	echo preprocess -in tmp3in.cat -out $tmptmpoutcat $option $quiet $noask $full
 
     fi
-    preprocess -in $tmp3in.cat -out $tmptmpoutcat $option $quiet $noask
+    preprocess -in tmp3in.cat -out $tmptmpoutcat $option $quiet $noask $full
 }
 
 # ============================================================
@@ -126,7 +138,7 @@ function preproc() {
 function is_raster() {
     local raster
     # Check if it's a raster
-    raster=$(echo "$(stat -L -c %s $1) < 3*10^7" | bc) # Less than 30Mb
+    raster=$(echo "$(stat -L -c %s $1) < 1.6*10^7" | bc) # Less than 16Mb
     echo $raster
 }
 
@@ -136,7 +148,7 @@ function is_raster() {
 # Options ==============================
 
 # Parser ..............................
-while getopts "c:i:o:b:B:d:D:T:Cfgvh" OPTION ; do
+while getopts "c:i:o:b:B:d:D:T:t:CFfgvh" OPTION ; do
     case "$OPTION" in
         c) channel="$OPTARG" ;; # Input channel
         i) incat="$OPTARG" ;; # Input frame
@@ -145,9 +157,11 @@ while getopts "c:i:o:b:B:d:D:T:Cfgvh" OPTION ; do
         B) biasmap="$OPTARG" ;;    # Bias map
 	d) darkmodel="$OPTARG" ;;    # Dark model
         D) darkmap="$OPTARG" ;; # Dark map
+        t) timeonval="$OPTARG" ;; # The unique time on
         T) timeon="$OPTARG" ;; # The list of time on
         C) cpinput="yes" ;;    # Cp input files in the cwd before processing
         f) noask="-noask" ;;    # Do not ask before overwriting files
+        F) full="-all" ;;    # Process the 4 amps of P channel
         g) DEBUG="-d"; echo "*** DEBUG mode ***" ;; 
         v) echo "$version" ; exit 0 ;;
         h) usage; exit 0 ;;
@@ -162,10 +176,10 @@ if [ -z $incat ] ; then
     die 1 $LINENO "Arguments of options -i is missing"
 fi
 if [ ! -r $incat ] ; then
-    die 1 $LINENO "Cannot read input files $inframe "
+    die 1 $LINENO "Cannot read input files $incat "
 fi
 if [ $outcat ] && [ ! -r $outcat ]; then
-    die 1 $LINENO "Cannot read 2nd arc file $inarc2"
+    die 1 $LINENO "Cannot read output file $outcat"
 fi
 if [ $biasmap ] && [ ! -r $biasmap ]; then
     die 1 $LINENO "Cannot read bias file $bias"
@@ -179,9 +193,13 @@ fi
 if [ $darkmodel ] && [ ! -r $darkmodel ]; then
     die 1 $LINENO "Cannot read dark model $darkmodel"
 fi
-if [ $timeon ] && [ ! -r $timeon ]; then
-    die 1 $LINENO "Cannot read timeon file $darkmodel"
+if [ $timeon ] && [ $timeonval ]; then
+    die 1 $LINENO "Cannot use both -t and -T options"
 fi
+if [ $timeon ] && [ ! -r $timeon ]; then
+    die 1 $LINENO "Cannot read timeon file $timeon"
+fi
+
 
 datadir="$(dirname $0)/../data"
 [ -d $datadir ] || \
@@ -205,11 +223,6 @@ fi
 if [  "$iscat" -a "$outcat" ] ; then
     if [ $(wc -l $incat | sed 's/ .*//') -ne $(wc -l $outcat | sed 's/ .*//') ] ; then
 	die 1 $LINENO "input catalog and output catalog are not of the same length"
-    fi
-fi
-if [ $timeon ] ; then
-    if [ $(wc -l $timeon | sed 's/ .*//') -ne $length ] ; then
-	die 1 $LINENO "input catalog and time on file are not of the same length"
     fi
 fi
 
@@ -240,26 +253,33 @@ if [ $iscat ] ; then
 	    die 1 $LINENO "file $file is not of channel $channel"
 	fi
 	if [ `is_raster $file` != $israster ] ; then
-	    die 1 $LINENO "file $file is not of raster type $raster"
+	    die 1 $LINENO "file $file is not of same raster as $inframe"
 	fi
     done
 fi
 
 # Default values  ==============================
-if [ "( -z $biasmodel ) -a ( $israster -eq 0 )" ] ; then
-    biasmodel=$datadir/${biasm}_${channel}.txt
-fi
-if [ "( -z $biasmap ) -a ( $israster -eq 0 )" ] ; then
-    biasmap=$datadir/${bias}_${channel}.fits
-fi
-if [ "(-z $darkmodel ) -a ( $israster -eq 0 ) " ] ; then
-    darkmodel=$datadir/${darkm}_${channel}.txt
-fi
-if [ "( -z $darkmap ) -a ( $israster -eq 0 )" ] ; then
-    darkmap=$datadir/${dark}_${channel}.fits
-fi
-if [ "( $israster -eq 0 ) -a ( $channel != "P" )" ] ; then
-    option=" -bm $biasmodel -bias $biasmap -dm $darkmodel -dark $darkmap"
+[ $DEBUG ] && echo channel is $channel raster is $israster frame is $inframe
+if [ $israster -eq 0  ] && [ $channel != "P" ] ; then
+    if [ "( -z $biasmodel ) -a ( $israster -eq 0 )" ] ; then
+	biasmodel=${biasm}_${channel}.txt
+	ln -s $datadir/$biasmodel ./
+    fi
+    if [ "( -z $biasmap ) -a ( $israster -eq 0 )" ] ; then
+	biasmap=${bias}_${channel}.fits
+	ln -s $datadir/$biasmap ./
+    fi
+    if [ "(-z $darkmodel ) -a ( $israster -eq 0 ) " ] ; then
+	darkmodel=${darkm}_${channel}.txt
+	ln -s $datadir/$darkmodel ./
+    fi
+    if [ "( -z $darkmap ) -a ( $israster -eq 0 )" ] ; then
+	darkmap=${dark}_${channel}.fits
+	ln -s $datadir/$darkmap ./
+    fi
+    if [ "( $israster -eq 0 ) -a ( $channel != "P" )" ] ; then
+	option=" -bm $biasmodel -bias $biasmap -dm $darkmodel -dark $darkmap"
+    fi
 fi
 echo "option is $option"
 
@@ -290,10 +310,10 @@ while [ `wc -l $tmpincat | sed "s/ .*//"` -gt 20 ] ; do
     fi
     preproc 
     sed "2,21d" $tmpincat > $tmptmpincat
-    mv $tmptmpincat > $tmpincat
+    mv $tmptmpincat $tmpincat
     if [ $outcat ] ; then
 	sed "2,21d" $tmpoutcat > $tmptmpoutcat
-	mv $tmptmpoutcat > $tmpoutcat
+	mv $tmptmpoutcat $tmpoutcat
     fi
 done
 
