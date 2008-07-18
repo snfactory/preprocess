@@ -31,7 +31,8 @@ Available options:
 where:
     channel : Channel (R or B).
               Default: automatic detection.
-      incat : Input frame or catalog.
+      incat : Input frame or catalog. If the catalog is too long, it will be splitted
+              into smaller catalogs
     outcat  : Output frame or catalog default is to propduce a P file
   biasmodel : use the specified bias model
        bias : Use specified bias map
@@ -290,6 +291,7 @@ tmptmpoutcat=tmptmpout.cat
 
 if [ $outcat ] ; then
     tmpoutcat=tmpout.cat
+    cp $outcat $tmpoutcat
 fi
 
 if [ -z $iscat ] ; then
@@ -305,7 +307,7 @@ fi
 while [ `wc -l $tmpincat | sed "s/ .*//"` -gt 20 ] ; do
     head -n 21 $tmpincat > $tmptmpincat
     if [ $outcat ] ; then
-	head -n 21 $tmpoutcat > $tmptmpoutat
+	head -n 21 $tmpoutcat > $tmptmpoutcat
     fi
     preproc 
     sed "2,21d" $tmpincat > $tmptmpincat
@@ -318,7 +320,7 @@ done
 
 cp $tmpincat $tmptmpincat
 if [ $outcat ] ; then
-    cp $tmpoutcap  $tmptmpoutat
+    cp $tmpoutcap  $tmptmpoutcat
 fi
 preproc 
 
