@@ -439,8 +439,16 @@ int ut_is_bichip_detcom(char* filename){
     sprintf(testName,"%s.fits[chip00]",filename);
   if (exist(testName))
     return 1;
-  else 
-    return 0;
+  else {
+    if (strstr(filename,".fits"))
+      sprintf(testName,"%s[CHIP00]",filename);
+    else
+      sprintf(testName,"%s.fits[CHIP00]",filename);
+    if (exist(testName))
+      return 1;
+    else 
+      return 0;
+  }
 }
 
 
