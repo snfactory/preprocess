@@ -341,7 +341,7 @@ void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
   else
     timeon=-1;
   if (timeon<texp) {
-    print_error("%s has a bad time on",Name());
+    print_warning("%s has a bad time on",Name());
     timeon=-1;
   }
 
