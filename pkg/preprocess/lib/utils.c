@@ -17,6 +17,10 @@ This files contains some generic utilities
 #ifdef FITS
 #include "fitsio.h"
 #endif
+
+/* Removing MIDAS by hand - not really clean, but should allow to compile with an IFU with --disable-midas enabled*/
+#undef MIDAS
+
 #ifdef MIDAS
 #include "midas_defs.h"
 #include "tbldef.h"
