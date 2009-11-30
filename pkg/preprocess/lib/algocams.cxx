@@ -93,8 +93,8 @@ void AlgoDetcom::HackFitsKeywords(ImageSnifs* I) {
     //    I->SetFClass(DONT_KNOW);
   }
 
-  int channel;
-  if (I->RdIfDesc("CHANNEL",INT,1,&channel) <=0) {
+  char channel[lg_name+1];
+  if (I->RdIfDesc("CHANNEL",CHAR,lg_name+1,channel) <=0) {
     // assume DETCOM = BLUE
     I->SetChannel(kBlueChannel);
   }
@@ -146,8 +146,8 @@ void AlgoSnfDetcom::HackFitsKeywords(ImageSnifs* I) {
 
   // First : hack for normal raster
 
-  int channel;
-  if (I->RdIfDesc("CHANNEL",INT,1,&channel) <=0) {
+  char channel[lg_name+1];
+  if (I->RdIfDesc("CHANNEL",CHAR,lg_name+1,channel) <=0) {
     // assume DETCOM = BLUE
     I->SetChannel(kBlueChannel);
   }
