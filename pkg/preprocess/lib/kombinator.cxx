@@ -296,3 +296,35 @@ int KGaussPoisson::RemoveFar(double SigmaCut) {
   }
   return 0;
 }
+
+
+/* #####  KMedian ################################################# */
+
+
+/* ===== constructor/destructor ======================================= */
+
+/* ----- KMedian  -------------------------------------------------- */
+KMedian::KMedian() {
+}
+
+/* ===== method ======================================= */
+
+/* ----- Kombine  -------------------------------------------------- */
+void KMedian::Kombine(vector<double> * Vals, vector<double> * Vars, double * Val, double * Var) {
+  /* The Kombine assumes the Vals are calibrated in electrons, 
+     and the Vars contain errors */
+  
+  double *vals = new double[Vals->size()];
+  double sumw=0;
+  for (unsigned int i=0;i<fVals->size(); i++) {
+    vals[i]=(*Vals)[i];
+    sumw += 1/(*Vars)[i];
+  }
+  
+  *Val = ut_median(vals,fVals->size());
+  // rough estimate of variance
+  *Var = 1./sumw*1.571;
+  delete[] vals;
+}
+  
+

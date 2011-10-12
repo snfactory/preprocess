@@ -93,6 +93,7 @@ class ImageSnifs :public ImageSimple {
     void UpdateFClass();
     void SubstractBiasModel(DarkModel* Model);
     void SubstractBias(ImageSnifs* Bias);
+    void ComputeDarkModelSubstractions(DarkModel *Model, double* Toremove);
     void SubstractDarkModel(DarkModel* Model);
     void SubstractDark(ImageSnifs* Dark);
     void ApplyFlat(ImageSnifs* Flat);

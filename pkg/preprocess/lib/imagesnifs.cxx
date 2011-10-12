@@ -328,7 +328,7 @@ void ImageSnifs::UpdateFClass() {
 }
 
 /* -----  SubstractDarkModel ------------------------------------------------- */
-void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
+void ImageSnifs::ComputeDarkModelSubstractions(DarkModel *Model, double* Toremove) {
   double timeon,temp,texp;
 
   RdDesc("DETTEMP",DOUBLE,1,&temp); 
@@ -345,19 +345,28 @@ void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
     timeon=-1;
   }
 
+  for (int isec=0;isec<Model->GetNsec();isec++){
+    if (timeon>0)
+      Toremove[isec]=Model->DarkSub(temp,timeon,texp,isec);
+    else
+      Toremove[isec]=(Model->GetI0(isec)+Model->GetI2(isec)*Model->TempTerm(temp))*texp;
+  }
+}
+
+/* -----  SubstractDarkModel ------------------------------------------------- */
+void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
+  double* toremove = new double[Model->GetNsec()];
+  ComputeDarkModelSubstractions(Model, toremove);
+
   Section ** Secs=Model->GetSections();
   for (int isec=0;isec<Model->GetNsec();isec++){
-    double toremove;
-    if (timeon>0)
-      toremove=Model->DarkSub(temp,timeon,texp,isec);
-    else
-      toremove=(Model->GetI0(isec)+Model->GetI2(isec)*Model->TempTerm(temp))*texp;
     for ( int j=Secs[isec]->YFirst() ; j<Secs[isec]->YLast() ; j++) 
       for ( int i=Secs[isec]->XFirst(); i<Secs[isec]->XLast() ; i++ ) { 
-	double val = RdFrame(i,j)-toremove;
+	double val = RdFrame(i,j)-toremove[isec];
 	WrFrame(i,j,val);
       }
   }
+  delete[] toremove;
 }
 
 /* -----  SubstractDark ------------------------------------------------- */

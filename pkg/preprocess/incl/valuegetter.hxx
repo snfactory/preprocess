@@ -21,6 +21,7 @@
 class ImageSimple;
 class ImageAnalyser;
 class Section;
+class DarkModel;
 
 /* ===== ValueGetter ======================================== */
 
@@ -42,6 +43,21 @@ class ValueAnalyserMean : public ValueGetter {
   protected :
     ImageAnalyser* fAnalyser;
   
+};
+
+/* ===== ValueDark ======================================== */
+
+class ValueDark : public ValueGetter {
+  public :
+
+    ValueDark(DarkModel* darkModel);
+    virtual ~ValueDark();
+    virtual double GetValue(ImageSimple* image);
+
+  protected :
+    ImageAnalyser* fAnalyser;
+    DarkModel* fDarkModel;
+
 };
 
 

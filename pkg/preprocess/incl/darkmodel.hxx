@@ -37,7 +37,7 @@ public :
   double GetI1(int i) {return fI1[i];}
   double GetBeta(int i) {return fBeta[i];}
   double GetI2(int i) {return fI2[i];}
-  double GetNsec() {return fNsec;}
+  int GetNsec() {return fNsec;}
   Section** GetSections() {return fSections;}
 
   double DarkSub(double Temp, double Timeon, double Texp,int i);

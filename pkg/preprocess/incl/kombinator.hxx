@@ -108,5 +108,26 @@ class KGaussPoisson : public Kombinator {
   
 };
 
+/* ===== MEDIAN KOMBINATOR ======================================== */
 
+/* For this class, the median is used to get rid of bad values */
+
+class KMedian : public Kombinator {
+  public : 
+    KMedian();
+  //    ~KGauss() {}
+  
+    void Kombine(vector<double> * Vals, vector<double> * Vars, double * Val, double * Var);
+    int NeedsVarIn(){return 0;}
+
+  protected :
+    double WeightedMean();
+    int RemoveFar(double SigmaCut);
+
+  double fSigma;
+  
+  vector<double> * fVals, * fVars, fWVars;
+  double fVal, fVar;
+  
+};
 #endif
