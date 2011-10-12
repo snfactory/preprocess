@@ -126,8 +126,8 @@ class KMedian : public Kombinator {
 
   double fSigma;
   
-  vector<double> * fVals, * fVars, fWVars;
-  double fVal, fVar;
+  //vector<double> * fVals, * fVars, fWVars;
+  //double fVal, fVar;
   
 };
 #endif
