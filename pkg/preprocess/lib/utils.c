@@ -57,9 +57,10 @@ double ut_median(double* values, int n)
      but it is fucking the flies ! */
   /* i saw also something usable in mathlib : the names might conflict !*/
   if (n%2) 
-    return (values[n/2-1]+values[n/2])/2;
+    return values[n/2]; 
   else 
-    return values[n/2];
+    return (values[n/2-1]+values[n/2])/2;
+
   
 }
 
