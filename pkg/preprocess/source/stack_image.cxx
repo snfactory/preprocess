@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -method Gauss|Spread|Median");
+  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -method Average|Gauss|Spread|Median");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile catIn(argval[0]);
@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
   Kombinator * k;
   if (argval[4][0]=='S')
     k = new KSpread(sigma,1);
+  else if (argval[4][0]=='A')
+    k = new KSpread(sigma,0);
   else if (argval[4][0]=='M')
     k= new KMedian();
   else
