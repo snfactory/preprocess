@@ -30,7 +30,7 @@ SectionList::SectionList(const char* Descr) {
   fList = new Section*[fNSec+1];
   psec = Descr;
   for (int isec=0;isec<fNSec;isec++) {
-    char bufName[lg_name+1], bufSec[lg_name+1],*pbuf;
+    char bufName[lg_hist+1], bufSec[lg_hist+1],*pbuf;
     strcpy(bufName,psec);
     *(strchr(bufName,']')+1)='\0'; // cut the word at the end
     strcpy(bufSec,bufName);
