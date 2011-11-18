@@ -23,7 +23,9 @@ using namespace std;
 class CatOrFile;
 class Kombinator;
 class KombinatorFit;
+class KombinatorFitND;
 class ValueGetter;
+class ValuesGetter;
 
 #include "imagesnifs.hxx"
 #include "bichip.hxx"
@@ -38,6 +40,7 @@ class ImageStackSnifs  {
     ~ImageStackSnifs();
   
     ImageSnifs* Kombine(char *outName,Kombinator* k);
+    ImageStackSnifs* KombineFitND(char* OutName,  KombinatorFitND * K, ValuesGetter * VG);
     void AddImage(ImageSnifs* Image) {Image->SetNLines(fNLinesMem);fImages.push_back(Image);}
     vector<ImageSnifs *>* GetImages() {return &fImages;}
   

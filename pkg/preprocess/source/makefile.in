@@ -28,7 +28,7 @@ SRC =	 preprocess.cxx\
 	 clean_cosmic.cxx \
 	 fit_image.cxx\
 	 remove_dark.cxx\
-	 remove_bias_model.cxx\
+	 remove_bias_dark.cxx\
 	 fit_dark.cxx\
 	 guess_dark.cxx\
 	 build_dark.cxx\
@@ -44,7 +44,8 @@ SRC =	 preprocess.cxx\
          filter_image.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
-
+	 dark_fit.cxx\
+	
 
 
 OPTSRC =   substract_overscan.cxx\

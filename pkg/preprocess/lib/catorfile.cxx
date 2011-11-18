@@ -21,9 +21,14 @@
 
 /* ----- CatOrFile ------------------------------------------- */
 CatOrFile::CatOrFile(const char* Name) {
-  strcpy(fName,Name);
-  fCat = (strstr(fName,".cat") != NULL);
-  fFirst=1;
+  if (Name==NULL) {
+    fCat = 0;
+    fFirst = 0;
+  } else {
+    strcpy(fName,Name);
+    fCat = (strstr(fName,".cat") != NULL);
+    fFirst=1;
+  }
 }
 
 /* ===== method ============================== */

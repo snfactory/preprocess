@@ -192,3 +192,64 @@ void ImageStack::KombineFit(ImageSimple **ToFill, int FillsVarOut, int UpdateIni
     }
   }
 }
+
+/* ----- KombineFitND  -------------------------------------------------- */
+void ImageStack::KombineFitND(ImageStack *outImages, ImageStack *outvarImages) {
+  vector<ImageSimple*>::const_iterator iter;
+  gsl_vector* vals = gsl_vector_alloc(fImageList.size());
+  gsl_vector* vars = gsl_vector_alloc(fImageList.size());
+  int nparams=GetKombinatorFitND()->NParam();
+  gsl_matrix* X = gsl_matrix_alloc(fImageList.size(),nparams);
+  gsl_vector* Xvals = gsl_vector_alloc(nparams);
+  gsl_vector* retVal = gsl_vector_alloc(nparams);
+  gsl_matrix* retCovar = gsl_matrix_alloc(nparams,nparams);
+
+  // check it is OK
+  if (GetKombinatorFitND()->NeedsVarIn()) {
+    for (iter = fImageList.begin();iter !=fImageList.end();iter++) {
+      if (!(*iter)->Variance()) {
+        print_error(" ImageStack::Kombine %s needs a variance",(*iter)->Name() );
+      }
+    }
+  } 
+
+  // check images are all of the same size
+  for (unsigned int n=1;n<fImageList.size();n++) {
+    if (fImageList[n]->Nx() != Nx() ||  fImageList[n]->Ny() != Ny())
+      print_error("ImageStack::Kombine %s and %s not of the same size",fImageList[0]->Name(),fImageList[n]->Name());
+  }
+
+  reset_print_progress();
+  for (int j=0;j<Ny();j++) {
+    if (VERBOSE)
+      print_progress("Kombining",(j+1.0)*100.0/Ny(),1.0);  
+    for (int i=0;i<Nx();i++) {
+      for (unsigned int n=0;n<fImageList.size();n++) {
+	gsl_vector_set(vals,n,fImageList[n]->RdFrame(i,j));
+        if (GetKombinatorFitND()->NeedsVarIn()) {
+          gsl_vector_set(vars,n,fImageList[n]->Variance()->RdFrame(i,j));
+	}
+	GetValues(fImageList[n],Xvals);
+	gsl_matrix_set_row(X,n,Xvals);
+      }
+
+      GetKombinatorFitND()->KombineFit( X , vals,vars, retVal, retCovar);
+
+      for (int n=0;n<nparams;n++)
+	(*outImages->List())[n]->WrFrame(i,j,gsl_vector_get(retVal,n));
+      int count=0;
+      for (int ni=0;ni<nparams;ni++) {
+	for (int nj=ni;nj<nparams;nj++) {
+	  (*outvarImages->List())[count]->WrFrame(i,j,gsl_matrix_get(retCovar,ni,nj));
+	  count++;
+	}
+      }
+    }
+  }
+  gsl_vector_free(vals);
+  gsl_vector_free(vars);
+  gsl_matrix_free(X);
+  gsl_vector_free(Xvals);
+  gsl_vector_free(retVal);
+  gsl_matrix_free(retCovar);
+}

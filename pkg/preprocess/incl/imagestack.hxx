@@ -23,6 +23,7 @@ class ImageSimple;
 class CatOrFile;
 class Kombinator;
 class KombinatorFit;
+class KombinatorFitND;
 
 #include <vector>
 using namespace std;
@@ -47,10 +48,17 @@ class ImageStack  {
     void SetKombinatorFit(KombinatorFit * Kombinator) {fKombinatorFit = Kombinator;}
     KombinatorFit * GetKombinatorFit() {return fKombinatorFit;}
     void KombineFit(ImageSimple **ToFill, int FillsVarOut=1, int UpdateInitialVar=0);
+    // N-dimensional Kombinator fit
+    void SetKombinatorFitND(KombinatorFitND * Kombinator) {fKombinatorFitND = Kombinator;}
+    KombinatorFitND * GetKombinatorFitND() {return fKombinatorFitND;}
+    void KombineFitND(ImageStack *outList, ImageStack *outvarImages);
     // and the trickiest getvalue (part of kombinatorfit)
     double GetValue(ImageSimple* image) 
-       {return fValueGetter->GetValue(image);};
+       {return fValueGetter->GetValue(image);}
+    void GetValues(ImageSimple* image,gsl_vector* retValues) 
+       {return fValuesGetter->GetValues(image,retValues);}
     void SetValueGetter(ValueGetter * Getter) {fValueGetter = Getter;}
+    void SetValuesGetter(ValuesGetter * Getter) {fValuesGetter = Getter;}
 
     int Nx(){return fNx;}
     int Ny(){return fNy;}
@@ -63,7 +71,9 @@ class ImageStack  {
     vector<ImageSimple *> fImageList; // the stack owns the images is fIsOwner is set.
     Kombinator * fKombinator;
     KombinatorFit * fKombinatorFit;
+    KombinatorFitND * fKombinatorFitND;
     ValueGetter * fValueGetter;
+    ValuesGetter * fValuesGetter;
 
     int fIsOwner;
     int fNx;

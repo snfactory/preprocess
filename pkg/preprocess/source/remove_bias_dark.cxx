@@ -11,27 +11,18 @@
  **/
 /* =========================================================== */
 
+/* This applies teh bias and dark removal to an already preprocessed file
+no checks are preformed if the preprocessed file is already bias- or dark-bubtracted*/
+
 /* ----- std includes ----- */
 #include <stdlib.h>
 #include <vector>
 using namespace std;
 
 /* ----- local include ----- */
-//#include <gsl/gsl_vector.h>
-//#include <gsl/gsl_matrix.h>
-//#include <gsl/gsl_linalg.h>
-
-
-/* ----- local include ----- */
 #include "imagesnifs.hxx"
-//#include "imagestacksnifs.hxx"
-//#include "filter.hxx"
 #include "catorfile.hxx"
 #include "darkmodel.hxx"
-//#include "kombinator.hxx"
-//#include "analyser.hxx"
-//#include "section.hxx"
-//#include "utils.h"
 
 /* ----- main ---------------------------------------- */
 
@@ -40,12 +31,24 @@ int main(int argc, char **argv) {
   char **argval, **arglabel;
   char inName[lg_name+1],outName[lg_name+1];
 
-  set_arglist("-in none -out none -model none -timeon null");
+  set_arglist("-in none -out none -bm null -dm null -bias null -timeon null");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
   CatOrFile outCat(argval[1]);
-  DarkModel Model(argval[2]);
+
+  DarkModel *biasModel=0;
+  DarkModel *darkModel=0;
+  if (is_set(argval[2]))
+    biasModel = new DarkModel(argval[2]);
+  if (is_set(argval[3]))
+    darkModel = new DarkModel(argval[3]);
+
+  ImageSnifs *bias=0;
+  ImageSnifs *dark=0;
+  if (is_set(argval[4]))
+    bias = new ImageSnifs(argval[4]);
+
 
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
@@ -55,7 +58,14 @@ int main(int argc, char **argv) {
     if (is_set(argval[3])) 
       out->WrDesc("TIMEON",CHAR,lg_name+1,argval[3]);
 
-    out->SubstractBiasModel(&Model);
+    if (biasModel)
+      out->SubstractBiasModel(biasModel);
+    if (bias) 
+      out->SubstractBias(bias);
+    if (darkModel)
+      out->SubstractDarkModel(darkModel);
+    if (dark) 
+      out->SubstractDark(dark);
 
     delete in;
     delete out;

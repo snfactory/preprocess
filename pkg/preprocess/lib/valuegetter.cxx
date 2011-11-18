@@ -88,3 +88,42 @@ double ValueDark::GetValue(ImageSimple* Image){
   return toremove;
   }
 }
+
+/* ##### ValuesGetterDarkFitter ################################################# */
+
+/* ===== constructor/destructor ======================================= */
+
+/* ----- constructor  ----------------------------------*/
+ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model){
+  if (Model->GetNsec() != 1)
+    print_error("ValuesGetterDarkFitter : needs a 1-section model");
+  fDarkModel = Model;
+  
+}
+
+/* ===== methods ======================================= */
+
+/* ----- GetValue ----------------------------------*/
+void ValuesGetterDarkFitter::GetValues(ImageSimple* Image, gsl_vector* retValues){
+  // returns the dark current estimation
+  ImageSnifs* image = (ImageSnifs*) Image;
+
+  double timeon,temp,texp;
+
+  image->RdDesc("DETTEMP",DOUBLE,1,&temp); 
+  image->RdDesc("DARKTIME",DOUBLE,1,&texp); 
+
+  char timeOnStr[lg_name+1];
+  image->RdDesc("TIMEON",CHAR,lg_name+1,timeOnStr); // CAVEAT : TIMEON not defined for all data
+  if (strcmp(timeOnStr,"None"))
+    image->RdDesc("TIMEON",DOUBLE,1,&timeon); // CAVEAT : TIMEON not defined for all data.
+  else
+    timeon=-1;
+  if (timeon<texp) {
+    print_error("%s has a bad time on",image->Name());
+  }
+
+  gsl_vector_set(retValues,0,fDarkModel->GetI0(0));
+  gsl_vector_set(retValues,1,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0));
+  gsl_vector_set(retValues,2,fDarkModel->GetI2(0)*fDarkModel->TempTerm(temp));
+}

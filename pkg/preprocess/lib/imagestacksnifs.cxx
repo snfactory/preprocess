@@ -101,6 +101,52 @@ ImageSnifs* ImageStackSnifs::Kombine(char* OutName,  Kombinator * K) {
   return out;
 }
 
+/* ----- KombineFitND ---------------------------------------- */
+ImageStackSnifs* ImageStackSnifs::KombineFitND(char* OutName,  KombinatorFitND * K, ValuesGetter * VG) {
+
+  ImageStackSnifs * outStack = new ImageStackSnifs(fNLinesMem);
+  char hduOutName[lg_name+1];
+  for (int i=0;i<K->NParam();i++) {
+    sprintf(hduOutName,"%s[image%03d]",OutName,i);
+    ImageSnifs * out = new ImageSnifs(*fImages[0],hduOutName,FLOAT,0,kIoSlice,fNLinesMem);
+    outStack->AddImage(out);
+  }
+  int count=0;
+  for (int i=0;i<K->NParam();i++) {
+    for (int j=i;j<K->NParam();j++) {
+      sprintf(hduOutName,"%s[variance%03d]",OutName,count);
+      count++;
+      ImageSnifs * out = new ImageSnifs(*fImages[0],hduOutName,FLOAT,0,kIoSlice,fNLinesMem);
+      outStack->AddImage(out);
+    }
+  }
+
+  vector<ImageSimple * > imList, outList, outvarList;
+  for (unsigned int i=0;i<fImages.size();i++) {
+    imList.push_back(fImages[i]);
+  }
+  for (int i=0;i<K->NParam();i++) {
+    outList.push_back((*outStack->GetImages())[i]);
+  }
+  for (int i=0;i<K->NParam()*(K->NParam()+1)/2;i++) {
+    outvarList.push_back((*outStack->GetImages())[i+K->NParam()]);
+  }
+    
+  ImageStack images(imList);
+  ImageStack outImages(outList);
+  ImageStack outvarImages(outvarList);
+
+  images.SetKombinatorFitND(K);
+  images.SetValuesGetter(VG);
+  images.KombineFitND(&outImages,&outvarImages);
+
+  imList.clear();
+  outList.clear();
+  outvarList.clear();
+
+  return outStack;
+}
+
 
 
 /* #####  BiChipStackSnifs ################################################# */
@@ -261,15 +307,3 @@ void BiChipStackSnifs::KombineFit(BiChipSnifs ** Out, char** OutName, Kombinator
   return;
 }
 
-#ifdef OLD
-/* ----- MakeBiasFrame ---------------------------------------- */
-BiChipSnifs* BiChipStackSnifs::MakeBiasFrame(CatOrFile * tmpOut, char* BiasName, double SigCut) {
-  
-  BiChipStackSnifs* tmp = PreprocessBias(tmpOut,fNLinesMem);
-  KGauss gauss(SigCut);
-  BiChipSnifs* out = tmp->Kombine(BiasName,&gauss);
-  delete tmp;
-  return out;
-  
-}
-#endif

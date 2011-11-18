@@ -61,4 +61,31 @@ class ValueDark : public ValueGetter {
 };
 
 
+/* ##### Get multiple values ################################################# */
+
+/* ===== ValuesGetter ======================================== */
+
+class ValuesGetter  {
+  public :
+  virtual ~ValuesGetter() {};
+  virtual void GetValues(ImageSimple* image, gsl_vector* retValues)=0;
+  virtual int NParams()=0;
+};
+
+/* ===== ValuesGetterDarkFitter ======================================== */
+
+class ValuesGetterDarkFitter : public ValuesGetter {
+  // Dark fitter needs 0=1 1=timeonterm 2 =timeonterm^2 3=tempterm
+  public :
+  ValuesGetterDarkFitter(DarkModel* Model);
+  virtual ~ValuesGetterDarkFitter() {};
+  virtual void GetValues(ImageSimple* image, gsl_vector* retValues);
+  virtual int NParams() {return 3;};
+
+  protected:
+  // for the moment, only the 1st section of the model is considered
+  DarkModel* fDarkModel;
+};
+
+
 #endif
