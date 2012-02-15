@@ -22,9 +22,9 @@
 
 #include <vector>
 using namespace std;
-#include "gsl/gsl_vector.h";
-#include "gsl/gsl_matrix.h";
-#include "gsl/gsl_multifit.h";
+#include "gsl/gsl_vector.h"
+#include "gsl/gsl_matrix.h"
+#include "gsl/gsl_multifit.h"
 
 /* ===== KOMBINATOR ======================================== */
 
@@ -107,11 +107,11 @@ class KombinatorFitND  {
 
 class KFLinear : public KombinatorFitND {
   public : 
-  KFLinear(double MaxSigmaOutlier, int NParams, int AutoRescale=0);
+  KFLinear(double MaxSigmaOutlier, int NParams, int AutoRescale=0, int WeightsOnlyForSelection=0, int Dark=0);
     ~KFLinear();
   
     void KombineFit(gsl_matrix * X, gsl_vector * Vals, gsl_vector * Vars, gsl_vector * Val, gsl_matrix * CovMat);
-    int NeedsVarIn(){return 1-fAutoRescale;}
+    int NeedsVarIn(){return 1-fAutoRescale+fWeightsOnlyForSelection;}
     int FillsVarOut(){return 1;}
     int NParam() {return fNParams;}
 
@@ -123,11 +123,12 @@ class KFLinear : public KombinatorFitND {
     double fSigma;
     int fNParams;
     gsl_matrix *fX, *fCovar;
-    gsl_vector *fVals,*fWeights, *fVal;
+    gsl_vector *fVals,*fVars, *fWeights, *fVal;
     double fChi2;  
+    int fNdf ;
     gsl_multifit_linear_workspace * fWspace;
   
-    int fAutoRescale;
+  int fAutoRescale, fWeightsOnlyForSelection, fDark;
 		    
 
 };

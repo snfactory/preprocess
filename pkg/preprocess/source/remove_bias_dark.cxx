@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     ImageSnifs *in = new ImageSnifs(inName,"I");
     ImageSnifs *out = new ImageSnifs(*in,outName,0,1);
 
-    if (is_set(argval[3])) 
+    if (is_set(argval[5])) 
       out->WrDesc("TIMEON",CHAR,lg_name+1,argval[3]);
 
     if (biasModel)

@@ -1,6 +1,6 @@
 /* === Doxygen Comment ======================================= */
 /*! 
- * \file          remove_dark.cxx
+ * \file          fit_dark.cxx
  * \copyright     (c) 2007 SNIFS Collaboration
  * \date          Wed Aug  6 17:44:35 2003
  * \author        Emmanuel Gangler <e.gangler@ipnl.in2p3.fr>

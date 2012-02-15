@@ -123,7 +123,7 @@ void ValuesGetterDarkFitter::GetValues(ImageSimple* Image, gsl_vector* retValues
     print_error("%s has a bad time on",image->Name());
   }
 
-  gsl_vector_set(retValues,0,fDarkModel->GetI0(0));
+  gsl_vector_set(retValues,0,fDarkModel->GetI0(0)*texp);
   gsl_vector_set(retValues,1,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0));
-  gsl_vector_set(retValues,2,fDarkModel->GetI2(0)*fDarkModel->TempTerm(temp));
+  gsl_vector_set(retValues,2,fDarkModel->GetI2(0)*fDarkModel->TempTerm(temp)*texp);
 }

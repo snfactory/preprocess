@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   DarkModel darkModel(argval[4]);
 
   ValuesGetter * vg = new ValuesGetterDarkFitter(&darkModel);
-  KombinatorFitND * k = new KFLinear(sigma,vg->NParams());
+  KombinatorFitND * k = new KFLinear(sigma,vg->NParams(),0,0,1);
 
   ImageStackSnifs* out = in->KombineFitND(argval[1],k,vg);
   delete out;
