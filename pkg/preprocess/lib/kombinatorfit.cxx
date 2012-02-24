@@ -16,11 +16,11 @@
 #include <math.h>
 //#include "IFU_io.h"
 #include "utils.h" // ut_big_value
-#define HAVE_INLINE
+//#define HAVE_INLINE // Weems to be buggy with gsl 1.13
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_matrix.h"
 #include "gsl/gsl_sort_vector.h"
-#include "gsl/gsl_permutation.h"
+//#include "gsl/gsl_permutation.h"
 
 
 /* #####  KFGain ################################################# */
