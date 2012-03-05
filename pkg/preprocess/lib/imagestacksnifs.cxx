@@ -60,7 +60,7 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode,  int NLines){
       imRef = image;
     } else 
       if (!imRef->CanBeStackedWith(image)) {
-        print_error("ImageStackSnifs::ImageStackSnifs %s is incompatible with $s",image->Name(),imRef->Name());
+        print_error("ImageStackSnifs::ImageStackSnifs %s is incompatible with %s",image->Name(),imRef->Name());
         return;
       }
     nDone++;  
