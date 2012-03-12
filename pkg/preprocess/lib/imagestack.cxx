@@ -219,7 +219,14 @@ void ImageStack::KombineFitND(ImageStack *outImages, ImageStack *outvarImages) {
       print_error("ImageStack::Kombine %s and %s not of the same size",fImageList[0]->Name(),fImageList[n]->Name());
   }
 
+  // assumes the value doesn't depend on i,j ...
+  for (unsigned int n=0;n<fImageList.size();n++) {
+    GetValues(fImageList[n],Xvals);
+    gsl_matrix_set_row(X,n,Xvals);
+  }
+
   reset_print_progress();
+  GetKombinatorFitND()->WorkspaceAlloc(fImageList.size());
   for (int j=0;j<Ny();j++) {
     if (VERBOSE)
       print_progress("Kombining",(j+1.0)*100.0/Ny(),1.0);  
@@ -229,8 +236,6 @@ void ImageStack::KombineFitND(ImageStack *outImages, ImageStack *outvarImages) {
         if (GetKombinatorFitND()->NeedsVarIn()) {
           gsl_vector_set(vars,n,fImageList[n]->Variance()->RdFrame(i,j));
 	}
-	GetValues(fImageList[n],Xvals);
-	gsl_matrix_set_row(X,n,Xvals);
       }
 
       GetKombinatorFitND()->KombineFit( X , vals,vars, retVal, retCovar);

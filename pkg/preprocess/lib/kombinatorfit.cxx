@@ -16,11 +16,9 @@
 #include <math.h>
 //#include "IFU_io.h"
 #include "utils.h" // ut_big_value
-//#define HAVE_INLINE // Weems to be buggy with gsl 1.13
-#include "gsl/gsl_vector.h"
-#include "gsl/gsl_matrix.h"
+//#define HAVE_INLINE // Seems to be buggy with gsl 1.14
 #include "gsl/gsl_sort_vector.h"
-//#include "gsl/gsl_permutation.h"
+
 
 
 /* #####  KFGain ################################################# */
@@ -129,14 +127,44 @@ KFLinear::KFLinear(double MaxSigmaOutlier, int NParams, int AutoRescale, int Wei
   else
     fAutoRescale=AutoRescale;
   fDark=Dark; // special flag for the dark reduciton problem
+
+  fWeights=0;
+  fTmpSort=0;
+  fVarX=0;
+  fWspace = 0;
+
 }
 
 /* ----- KFLinear  -------------------------------------------------- */
 KFLinear::~KFLinear() {
+  WorkspaceFree();
   gsl_vector_free(fVal);
   gsl_matrix_free(fCovar);
 }
 
+/* ----- AllocWorkspace  -------------------------------------------------- */
+void KFLinear::WorkspaceAlloc(int N) {
+  if (fWeights != 0 )
+    WorkspaceFree();
+  fWeights = gsl_vector_calloc(N);
+  fTmpSort = gsl_vector_calloc(N);
+  fVarX = gsl_vector_alloc(N);
+  fWspace = gsl_multifit_linear_alloc(N,fNParams);
+}
+
+/* ----- FreeWorkspace  -------------------------------------------------- */
+void KFLinear::WorkspaceFree() {
+  if (fWeights == 0)
+    return;
+  gsl_vector_free(fWeights);
+  fWeights=0;
+  gsl_vector_free(fTmpSort);
+  fTmpSort=0;
+  gsl_vector_free(fVarX);
+  fVarX=0;
+  gsl_multifit_linear_free(fWspace);
+  fWspace = 0;
+}
 
 /* ===== method ======================================= */
 
@@ -146,43 +174,40 @@ void KFLinear::KombineFit(gsl_matrix * X,gsl_vector * Vals, gsl_vector * Vars, g
   fX = X; // X should be a matrix fVals->size x fNParams
   fVals = Vals;
   fVars = Vars;
-  fWeights = gsl_vector_calloc(fVals->size);
 
-  gsl_vector *tmpSort, *varX;
   if (fDark) {
     // First compute the median of predicted errors, used to rescale the information
-    tmpSort = gsl_vector_alloc(fVars->size);
-    gsl_vector_memcpy(tmpSort,fVars);
-    gsl_sort_vector(tmpSort);
+
+    gsl_vector_memcpy(fTmpSort,fVars);
+    gsl_sort_vector(fTmpSort);
     double medianVars;
     if (fVars->size%2)
-      medianVars=gsl_vector_get(tmpSort,fVars->size/2);
+      medianVars=gsl_vector_get(fTmpSort,fVars->size/2);
     else
-      medianVars=(gsl_vector_get(tmpSort,fVars->size/2-1)+gsl_vector_get(tmpSort,fVars->size/2)/2);
+      medianVars=(gsl_vector_get(fTmpSort,fVars->size/2-1)+gsl_vector_get(fTmpSort,fVars->size/2)/2);
     // now the median of expected variance
-    varX = gsl_vector_alloc(fVars->size);
+
     for (unsigned int i=0;i<fVals->size; i++) {
       double sumx=0;
       for (int j=0;j<fNParams; j++)
 	sumx+=gsl_matrix_get(fX,i,j);
       // Dark signal is expected to be sum(Xi)+ron
-      gsl_vector_set(varX,i,sumx+9.0);
+      gsl_vector_set(fVarX,i,sumx+9.0);
     }
-    gsl_vector_memcpy(tmpSort,varX);
-    gsl_sort_vector(tmpSort);
+    gsl_vector_memcpy(fTmpSort,fVarX);
+    gsl_sort_vector(fTmpSort);
     double medianX;
     if (fVars->size%2)
-      medianX=gsl_vector_get(tmpSort,fVars->size/2);
+      medianX=gsl_vector_get(fTmpSort,fVars->size/2);
     else
-      medianX=(gsl_vector_get(tmpSort,fVars->size/2-1)+gsl_vector_get(tmpSort,fVars->size/2)/2);
-
+      medianX=(gsl_vector_get(fTmpSort,fVars->size/2-1)+gsl_vector_get(fTmpSort,fVars->size/2)/2);
 
     for (unsigned int i=0;i<fVals->size; i++)
-      gsl_vector_set(fVars,i,gsl_vector_get(varX,i)*medianVars/medianX);
+      gsl_vector_set(fVars,i,gsl_vector_get(fVarX,i)*medianVars/medianX);
 
   }
-  // need now to store weights since some of them will be killed by early outlier catching
 
+  // need now to store weights since some of them may be killed by early outlier catching... This was experimental, forget about it !
   if (fAutoRescale)
     for (unsigned int i=0;i<fVals->size; i++)
        gsl_vector_set(fWeights,i,1.);
@@ -191,43 +216,28 @@ void KFLinear::KombineFit(gsl_matrix * X,gsl_vector * Vals, gsl_vector * Vars, g
        gsl_vector_set(fWeights,i,1./gsl_vector_get(Vars,i));
   fNdf = fVals->size - fVal->size;
 
-  if (fDark){
-    // OK, now we have the scale... Use it to detect outliers = sigma from what is expected.
-#ifdef DEV
-    for (unsigned int i=0;i<fVals->size; i++) {
-      // asymetric cut
-      gsl_vector_set(tmpSort,i, (gsl_vector_get(fVals,i) - gsl_vector_get(varX,i)-9.0) / sqrt(gsl_vector_get(varX,i)) );
-    }
-    gsl_permutation * p = gsl_permutation_alloc(fVars->size);
-    gsl_sort_vector_index(p,tmpSort);
-    // and now the outlier killing ! 
+  //fP = gsl_permutation_calloc(fVals->size);
+#ifdef BOFBOF
+  if (fDark==2){
+    // Experimental : try to check first in order of signal value for outliers
     // Cosmic rate evaluated around 1%(in pixels) for 1H exp.
-    // we allow only single cosmic removal - provided there are enough degree of freedom
-    int ncosmic=1;
-    for (unsigned int i=fVals->size-1;i>fVal->size and i>=fVals->size-1-ncosmic; i++) 
-      if (gsl_vector_get(tmpSort,gsl_permutation_get(p,i))>fSigma) {
-	gsl_vector_set(fWeights,gsl_permutation_get(p,i),0.0);
-	fNdf -=1 ;
-      }
-
-    gsl_permutation_free(p);
-#endif
-    gsl_vector_free(varX);
-    gsl_vector_free(tmpSort);
+    for (unsigned int i=0;i<fVals->size; i++)
+      gsl_vector_set(fTmpSort,i,fabs(gsl_vector_get(fVals,i)))
+    gsl_sort_vector_index(fP,fTmpSort);
   }
+#endif
 
-  fWspace = gsl_multifit_linear_alloc(fVals->size,fNParams);
+
   fChi2=Fit();
   // throw-away
   while (RemoveFar()) {
     fChi2=Fit();
   }
-  
+  //gsl_permutation_free(fP);  
 	   
   gsl_vector_memcpy(Val,fVal);
   gsl_matrix_memcpy(Covar,fCovar);
-  gsl_vector_free(fWeights);
-  gsl_multifit_linear_free(fWspace);
+
 }
 
 /* ----- Fit  -------------------------------------------------- */
@@ -254,16 +264,20 @@ int KFLinear::RemoveFar() {
   int nRm=-1;
   double MaxSigma=0;
   fNdf-=1; // this the hypothesis to be tested on all fits here
+  double chi2=-1; // test to know if a fit was performed at all
 
   for ( unsigned int n=0;n<fVals->size;n++) {
     // excluded already
     if (gsl_vector_get(fWeights,n)==0.0)
       continue;
+    if (fDark==2 and fabs(gsl_vector_get(fVals,n)/gsl_vector_get(fVars,n))< fSigma)
+      // very unlikely that data compatible with 0 would be in fact a cosmic
+      continue;
     
     // compute values with current value substracted
     double wsave=gsl_vector_get(fWeights,n);
     gsl_vector_set(fWeights,n,0.0);
-    double chi2=Fit();
+    chi2=Fit();
     double scale=1.;
     if (fAutoRescale)
       scale=chi2/fNdf;
@@ -292,7 +306,8 @@ int KFLinear::RemoveFar() {
   }
   // Restore data
   fNdf += 1;
-  Fit();
+  if (chi2 != -1)
+    Fit(); // not really optimal... better save fVal and fCovar
   return 0;
 }
 

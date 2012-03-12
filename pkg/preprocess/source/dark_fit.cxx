@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -darkmodel none");
+  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -darkmodel none -dflag 1");
   init_session(argv,argc,&arglabel,&argval);
 
 
@@ -25,8 +25,11 @@ int main(int argc, char **argv) {
 
   DarkModel darkModel(argval[4]);
 
+  int dflag;
+  get_argval(5,"%d",&dflag);
+
   ValuesGetter * vg = new ValuesGetterDarkFitter(&darkModel);
-  KombinatorFitND * k = new KFLinear(sigma,vg->NParams(),0,0,1);
+  KombinatorFitND * k = new KFLinear(sigma,vg->NParams(),0,0,dflag);
 
   ImageStackSnifs* out = in->KombineFitND(argval[1],k,vg);
   delete out;

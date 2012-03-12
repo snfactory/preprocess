@@ -25,6 +25,7 @@ using namespace std;
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_matrix.h"
 #include "gsl/gsl_multifit.h"
+#include "gsl/gsl_permutation.h"
 
 /* ===== KOMBINATOR ======================================== */
 
@@ -86,6 +87,9 @@ class KombinatorFitND  {
   // n being the rank of Vals vector and m the number of input variables
   // in order to use native stuff, we use gsl_ vector format...
     virtual void KombineFit(gsl_matrix *X, gsl_vector *Vals, gsl_vector *Vars, gsl_vector * Val, gsl_matrix * CovMat)=0;
+    virtual void WorkspaceAlloc(int N)=0;
+    virtual void WorkspaceFree()=0;
+
 
     virtual int NParam()=0;  // number of parameters for the fit
 
@@ -110,6 +114,10 @@ class KFLinear : public KombinatorFitND {
   KFLinear(double MaxSigmaOutlier, int NParams, int AutoRescale=0, int WeightsOnlyForSelection=0, int Dark=0);
     ~KFLinear();
   
+  void WorkspaceAlloc(int N);
+  void WorkspaceFree();
+
+
     void KombineFit(gsl_matrix * X, gsl_vector * Vals, gsl_vector * Vars, gsl_vector * Val, gsl_matrix * CovMat);
     int NeedsVarIn(){return 1-fAutoRescale+fWeightsOnlyForSelection;}
     int FillsVarOut(){return 1;}
@@ -126,10 +134,12 @@ class KFLinear : public KombinatorFitND {
     gsl_vector *fVals,*fVars, *fWeights, *fVal;
     double fChi2;  
     int fNdf ;
+
+    gsl_vector *fTmpSort, *fVarX;
     gsl_multifit_linear_workspace * fWspace;
+    gsl_permutation * fP;
   
-  int fAutoRescale, fWeightsOnlyForSelection, fDark;
-		    
+    int fAutoRescale, fWeightsOnlyForSelection, fDark;
 
 };
 
