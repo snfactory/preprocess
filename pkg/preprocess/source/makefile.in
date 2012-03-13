@@ -45,7 +45,7 @@ SRC =	 preprocess.cxx\
 	 add_image.cxx\
 	 image_flip.cxx\
 	 dark_fit.cxx\
-	
+	 stack_dark.cxx
 
 
 OPTSRC =   substract_overscan.cxx\

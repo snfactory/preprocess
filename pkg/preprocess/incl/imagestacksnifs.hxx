@@ -37,6 +37,7 @@ class ImageStackSnifs  {
 
     ImageStackSnifs(int NLines=1){fNLinesMem = NLines;}
     ImageStackSnifs(CatOrFile * Cat, char * Mode="I", int NLines = 5000);
+    ImageStackSnifs(ImageSnifs* image, char* Name, char * Mode="I", int NLines) ;
     ~ImageStackSnifs();
   
     ImageSnifs* Kombine(char *outName,Kombinator* k);
@@ -50,6 +51,8 @@ class ImageStackSnifs  {
     int fNLinesMem;
 
 };
+
+
 
 /* ===== BiChipStackSnifs ======================================== */
 
@@ -71,6 +74,28 @@ class BiChipStackSnifs  {
   protected :
     vector<BiChipSnifs *> fBiChips;
     // number of resident lines in memory when the whole image is not needed
+    int fNLinesMem;
+
+};
+
+/* ===== ImageStackStack ======================================== */
+
+class ImageStackStack  {
+  public :
+
+  //ImageStackSnifs(int NLines=1){fNLinesMem = NLines;}
+    ImageStackStack(CatOrFile * Cat, char * Mode="I", int NLines = 5000);
+  //ImageStackSnifs(char* Name, char * Mode="I", int NLines) ;
+    ~ImageStackStack();
+  
+  //ImageSnifs* Kombine(char *outName,Kombinator* k);
+  ImageStackSnifs Kombine(char* OutName);
+  //void AddImage(ImageSnifs* Image) {Image->SetNLines(fNLinesMem);fImages.push_back(Image);}
+  //vector<ImageSnifs *>* GetImages() {return &fImages;}
+  
+
+  protected :
+    vector<ImageStackSnifs *> fStacks;
     int fNLinesMem;
 
 };
