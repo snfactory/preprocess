@@ -20,6 +20,9 @@ The input catalog is supposed to be of homogeneous
 
 /* #####  ImageStackSnifs ################################################# */
 
+#include "gsl/gsl_linalg.h"
+#include "gsl/gsl_blas.h"
+
 #include "utils.h"
 #include "catorfile.hxx"
 #include "imagesnifs.hxx"
@@ -33,15 +36,15 @@ The input catalog is supposed to be of homogeneous
 /* ===== constructor/destructor ======================================= */
 
 /* ----- imagestacksnifs  -------------------------------------------------- */
-imagestacksnifs::imagestacksnifs(catorfile* cat, char * mode,  int nlines){
+ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode,  int NLines){
   /* first loads the headers - to check the homogeneity of the catalog */
   /* the ioslice is used, this means the numer of loaded lines has to be 
    reworked for image-based processing */
-  fnlinesmem = nlines;
+  fNLinesMem = NLines;
 
-  char filename[lg_name+1];
-  if (!cat->nextfile(filename)) {
-    print_error("imagestacksnifs::imagestacksnifs : unable to read %s",Cat->Name());
+  char fileName[lg_name+1];
+  if (!Cat->NextFile(fileName)) {
+    print_error("ImageStackSnifs::ImageStackSnifs : unable to read %s",Cat->Name());
     return;
   } 
 
@@ -78,14 +81,16 @@ ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, char * Mode, int
   fNLinesMem = NLines; 
 
   char hduName[lg_name+1];
-  for (int i=0 ; ; i++) {
+  ImageSnifs * out;
+  int i;
+  for (i=0 ; ; i++) {
     sprintf(hduName,"%s[image%03d]",Name,i);
     if (exist(hduName)) {
-      if (image)
-	ImageSnifs * out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
+      if (Image)
+	out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
       else
-	ImageSnifs * out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
-      fImages->push_back(out);
+	out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
+      fImages.push_back(out);
     }
     else
       break;
@@ -97,14 +102,14 @@ ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, char * Mode, int
   int nImages=i; // the really relevant number
   
 
-  for (int i=0 ; ; i++) {
+  for (i=0 ; ; i++) {
     sprintf(hduName,"%s[variance%03d]",Name,i);
     if (exist(hduName)) {
-      if (image)
-	ImageSnifs * out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
+      if (Image)
+	out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
       else
-	ImageSnifs * out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
-      fImages->push_back(out);
+	out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
+      fImages.push_back(out);
     }
     else
       break;
@@ -168,17 +173,17 @@ ImageStackSnifs* ImageStackSnifs::KombineFitND(char* OutName,  KombinatorFitND *
     }
   }
 #endif
-  ImageStackSnifs * outStack = new ImageStackSnifs(fImages[0],OutName,"",fNlinesMem);
+  ImageStackSnifs * outStack = new ImageStackSnifs(fImages[0],OutName,"",fNLinesMem);
 
   vector<ImageSimple * > imList, outList, outvarList;
   for (unsigned int i=0;i<fImages.size();i++) {
     imList.push_back(fImages[i]);
   }
   for (int i=0;i<K->NParam();i++) {
-    outList.push_back((*outStack->GetImages())[i]);
+    outList.push_back(outStack->GetImages()[i]);
   }
   for (int i=0;i<K->NParam()*(K->NParam()+1)/2;i++) {
-    outvarList.push_back((*outStack->GetImages())[i+K->NParam()]);
+    outvarList.push_back(outStack->GetImages()[i+K->NParam()]);
   }
     
   ImageStack images(imList);
@@ -361,20 +366,20 @@ void BiChipStackSnifs::KombineFit(BiChipSnifs ** Out, char** OutName, Kombinator
 /* ===== constructor/destructor ======================================= */
 
 /* ----- imagestackstack  -------------------------------------------------- */
-ImageStackStack::ImageStackStack(catorfile* Cat, char * Mode,  int NLines){
+ImageStackStack::ImageStackStack(CatOrFile* Cat, char * Mode,  int NLines){
   /* first loads the headers - to check the homogeneity of the catalog */
   /* the ioslice is used, this means the numer of loaded lines has to be 
    reworked for image-based processing */
-  fNlinesMem = NLines;
+  fNLinesMem = NLines;
 
-  char filename[lg_name+1];
-  if (!cat->nextfile(filename)) {
+  char fileName[lg_name+1];
+  if (!Cat->NextFile(fileName)) {
     print_error("imagestacksnifs::imagestacksnifs : unable to read %s",Cat->Name());
     return;
   } 
 
   int nDone=0;
-  ImageSnifs * stackRef=0;
+  //ImageSnifs * stackRef=0;
   do {
     //if (ut_is_bichip_detcom(fileName)) {
     //print_error("ImageStackSnifs::ImageStackSnifs can not read bichips %s",fileName);
@@ -382,7 +387,7 @@ ImageStackStack::ImageStackStack(catorfile* Cat, char * Mode,  int NLines){
     //}
 
     // loads the stack/image
-    ImageStackSnifs * stack = new ImageStackSnifs(fileName,Mode,kIoSlice,fNLinesMem);
+    ImageStackSnifs * stack = new ImageStackSnifs(0,fileName,Mode,fNLinesMem);
     fStacks.push_back(stack);
     //if (!nDone) {
     //imRef = image;
@@ -400,7 +405,7 @@ ImageStackStack::ImageStackStack(catorfile* Cat, char * Mode,  int NLines){
 /* ----- ~ImageStackSnifs  -------------------------------------------------- */
 
 ImageStackStack::~ImageStackStack(){
-  vector<ImageStacksSnifs*>::iterator iter;
+  vector<ImageStackSnifs*>::iterator iter;
   for (iter = fStacks.begin();iter != fStacks.end();++iter){
     delete *iter;
   }
@@ -412,36 +417,36 @@ ImageStackStack::~ImageStackStack(){
 /* ----- Kombine ---------------------------------------- */
 ImageStackSnifs * ImageStackStack::Kombine(char* OutName) {
 
-  ImageStackSnifs* outStack = new ImageStackSnifs(fStack[0][0],OutName,"",fNLinesMem);
+  ImageStackSnifs* outStack = new ImageStackSnifs(fStacks[0]->GetImages()[0],OutName,"",fNLinesMem);
 
-  int nimages=rint( (sqrt(9+8*fStack[0].size()) - 3) /2 );
+  unsigned int nimages= int (rint( (sqrt(9+8*fStacks[0]->GetImages().size()) - 3) /2 ));
 
   gsl_vector * vals=gsl_vector_calloc(nimages);
-  gsl_matrix * vars=gsl_vector_calloc(nimages,nimages);
+  gsl_matrix * vars=gsl_matrix_calloc(nimages,nimages);
   gsl_vector * sumwx=gsl_vector_calloc(nimages);
-  gsl_matrix * sumw=gsl_vector_calloc(nimages,nimages);
+  gsl_matrix * sumw=gsl_matrix_calloc(nimages,nimages);
 
 
   // loop on pixels row-wise
-  for (int j=0;j<fStack[0][0]->Ny();j++) {
+  for (int j=0;j<fStacks[0]->GetImages()[0]->Ny();j++) {
     if (VERBOSE)
-      print_progress("Kombining",(j+1.0)*100.0/Ny(),1.0);  
-    for (int i=0;i<fStack[0][0]->Nx();i++) {
+      print_progress("Kombining",(j+1.0)*100.0/fStacks[0]->GetImages()[0]->Ny(),1.0);  
+    for (int i=0;i<fStacks[0]->GetImages()[0]->Nx();i++) {
 
       // these vectors have to be set to 0...
       gsl_vector_set_zero(sumwx);
       gsl_matrix_set_zero(sumw);
 
-      for (unsigned int n=0;n<fStack.size();n++) {
+      for (unsigned int n=0;n<fStacks.size();n++) {
 	int count=0;
 	for (unsigned int k=0;k<nimages;k++) {
-	  gsl_vector_set(vals,k,fStack[n][k]->RdFrame(i,j));
+	  gsl_vector_set(vals,k,fStacks[n]->GetImages()[k]->RdFrame(i,j));
 	  count++;
 	}
-	for (int ki=0;ki<nimage;ki++) {
-	  for (int kj=ki;kj<nimage;kj++) {
-	    gsl_matrix_set(vars,ki,kj,fStack[n][count]);
-	    gsl_matrix_set(vars,kj,ki,fStack[n][count]);
+	for (unsigned int ki=0;ki<nimages;ki++) {
+	  for (unsigned int kj=ki;kj<nimages;kj++) {
+	    gsl_matrix_set(vars,ki,kj,fStacks[n]->GetImages()[count]->RdFrame(i,j));
+	    gsl_matrix_set(vars,kj,ki,fStacks[n]->GetImages()[count]->RdFrame(i,j));
 	    count++;
 	  }
 	}
@@ -461,12 +466,12 @@ ImageStackSnifs * ImageStackStack::Kombine(char* OutName) {
       // store result
       int count=0;
       for (unsigned int k=0;k<nimages;k++) {
-	outStack[count]->WrFrame(i,j,gsl_vector_get(vals,k));
-	count++
+	outStack->GetImages()[count]->WrFrame(i,j,gsl_vector_get(vals,k));
+	count++;
       }
-      for (int ki=0;ki<nimage;ki++) {
-	for (int kj=ki;kj<nimage;kj++) {
-	  outStack[count]->WrFrame(i,j,gsl_matrix_get(sumw,ki,kj));
+      for (unsigned int ki=0;ki<nimages;ki++) {
+	for (unsigned int kj=ki;kj<nimages;kj++) {
+	  outStack->GetImages()[count]->WrFrame(i,j,gsl_matrix_get(sumw,ki,kj));
 	  count++;
 	}
       }

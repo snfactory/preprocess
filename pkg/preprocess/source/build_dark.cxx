@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
   else {
     darkMaps= new ImageStackSnifs();
   }
-  for (iter=darkMaps->GetImages()->begin();iter!=darkMaps->GetImages()->end();++iter) {
+  for (iter=darkMaps->GetImages().begin();iter!=darkMaps->GetImages().end();++iter) {
     darks.push_back(*iter);
   }
   
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
   
   // loading now the input stack
   ImageStackSnifs* inStack=new ImageStackSnifs(&inCat,"IO",nlines);
-  ins=inStack->GetImages();
+  ins=&inStack->GetImages();
 
   // Now taking the first coefficients
   ScaleBy(ins,&darks,cut);
