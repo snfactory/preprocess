@@ -19,6 +19,7 @@ class BiChipSnifs;
 class ImageSnifs;
 class OverscanSnifs;
 class DarkModel;
+class imagestacksnifs;
 
 #include "algocams.hxx"
 #include "iomethod.hxx"
@@ -62,7 +63,7 @@ class Preprocessor {
     ImageSnifs * PreprocessAssemble(char* name, char* outName);
     ImageSnifs * PreprocessDark(char* name, char* outName,ImageSnifs* bias=0, DarkModel *biasModel=0, DarkModel *darkModel=0);
     ImageSnifs * PreprocessFlat(char* name, char* outName,ImageSnifs* bias=0, ImageSnifs* dark=0);
-  ImageSnifs* Preprocess(char* name, char* OutName,ImageSnifs *bias=0,ImageSnifs *dark=0,ImageSnifs* flat=0, DarkModel *biasModel=0, DarkModel *darkModel=0) ;
+  ImageSnifs* Preprocess(char* name, char* OutName,ImageSnifs *bias=0,ImageSnifs *dark=0,ImageSnifs* flat=0, DarkModel *biasModel=0, DarkModel *darkModel=0, ImageStackSnifs* darkStack=0) ;
   
     
   

@@ -369,6 +369,7 @@ void ImageSnifs::SubstractDarkModel(DarkModel *Model) {
   delete[] toremove;
 }
 
+
 /* -----  SubstractDark ------------------------------------------------- */
 void ImageSnifs::SubstractDark(ImageSnifs* Dark) {
   // substracts a dark image
@@ -415,6 +416,49 @@ void ImageSnifs::SubstractDark(ImageSnifs* Dark) {
 
 }
 
+/* -----  SubstractDark ------------------------------------------------- */
+void ImageSnifs::SubstractDarkMap(ImageStackSnifs* Dark,DarkModel* Model) {
+  // substracts a dark pattern employing the new scheme
+  int darkDone,overscanDone,darkFrame;
+  double exptime,darktime;
+
+  if (ParanoMode()) {
+    // check dark was not already substracted
+    if ( RdIfDesc("DARKDONE",INT, 1, &darkDone) >= 0 
+         && darkDone ){
+      print_error("ImageSnifs::SubstractDark already substracted for %s",Name());
+      return;
+    }
+
+    // check overscan was already substracted
+    RdDesc("OVSCDONE",INT, 1, &overscanDone);
+    if (!overscanDone ){
+      print_error("ImageSnifs::SubstractDark Overscan was not substracted yet for %s\n",Name());
+      return;
+    }
+
+    // check images are of the same size
+    if (Nx()!=Dark->GetImages()[0]->Nx() || Ny()!=Dark->GetImages()[0]->Ny()) {
+      print_error("ImageSnifs::SubstractDark : images are not of same size");
+      return;
+    }
+  }
+
+  // do the real job
+  // Get model parameters
+
+  ValuesGetterDarkFitter getter(Model);
+  gsl_vector_alloc * values = gsl_vector_alloc(getter.NParams());
+  getter.GetValues(Image(),values);
+
+  for (int i=0; i<getter.NParams();i++)
+    Image()->Add(Dark->GetImages(i),-gsl_vector_get(values,i));
+
+  darkDone=1;
+  WrDesc("DARKDONE",INT,1,&darkDone);
+  gsl_vector_free(values);
+
+}
 
 /* -----  ApplyFlat     ------------------------------------------------- */
 void ImageSnifs::ApplyFlat(ImageSnifs* Flat) {

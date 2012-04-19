@@ -344,7 +344,7 @@ ImageSnifs * Preprocessor::PreprocessFlat(char* name, char* outName,ImageSnifs* 
 }
 
 /* ----- Preprocess ------------------------------------------------ */
-ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,ImageSnifs *dark,ImageSnifs* flat,DarkModel * biasModel, DarkModel* darkModel) {
+ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,ImageSnifs *dark,ImageSnifs* flat,DarkModel * biasModel, DarkModel* darkModel, ImageStackSnifs* darkStack) {
 
   ImageSnifs* out = PreprocessAssemble(name, outName);
   if (bias) 
@@ -354,6 +354,8 @@ ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,
     out->SubstractBiasModel(biasModel);
   if (dark) 
     out->SubstractDark( dark);
+  if (darkStack)
+    out->SubstractDarkMap(darkStack,darkModel);
   if (darkModel)
     out->SubstractDarkModel(darkModel);
   if (flat) 

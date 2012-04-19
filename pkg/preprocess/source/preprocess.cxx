@@ -17,6 +17,7 @@
 #include "catorfile.hxx"
 #include "preprocessor.hxx"
 #include "darkmodel.hxx"
+#include "imagestacksnifs.hxx"
 
 /* ----- main ---------------------------------------- */
 
@@ -56,10 +57,22 @@ int main(int argc, char **argv) {
   if (is_set(argval[8]))
     darkModel = new DarkModel(argval[8]);
 
+  // Switch between dark subtraciton versions
+  ImageSnifs *dark=0;
+  ImageStackSnifs *darkStack=0;
+  if (is_set(argval[3])) {
+    char hduName[lg_name+1];
+    sprintf(hduName,"%s[image%03d]",Name,i);
+    if (exist(hduName) && darkModel)
+      darkStack = new ImageStackSnifs(0,argval[5]);
+    else
+      dark= new imageSnifs(argval[5]);
+    }
+
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     
     print_msg("Processing %s",inName);
-    ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat,biasModel,darkModel);
+    ImageSnifs *out = P.Preprocess(inName,outName,bias,dark,flat,biasModel,darkModel,darkStack);
     delete out;
   }
 

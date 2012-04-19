@@ -402,7 +402,7 @@ ImageStackStack::ImageStackStack(CatOrFile* Cat, char * Mode,  int NLines){
   
 }
 
-/* ----- ~ImageStackSnifs  -------------------------------------------------- */
+/* ----- ~ImageStackStack  -------------------------------------------------- */
 
 ImageStackStack::~ImageStackStack(){
   vector<ImageStackSnifs*>::iterator iter;

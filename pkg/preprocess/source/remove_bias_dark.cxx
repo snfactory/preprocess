@@ -23,6 +23,7 @@ using namespace std;
 #include "imagesnifs.hxx"
 #include "catorfile.hxx"
 #include "darkmodel.hxx"
+#include "imagestacksnifs.hxx"
 
 /* ----- main ---------------------------------------- */
 
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
   char **argval, **arglabel;
   char inName[lg_name+1],outName[lg_name+1];
 
-  set_arglist("-in none -out none -bm null -dm null -bias null -timeon null");
+  set_arglist("-in none -out none -bm null -dm null -bias null -dark null -timeon null");
   init_session(argv,argc,&arglabel,&argval);
 
   CatOrFile inCat(argval[0]);
@@ -45,17 +46,25 @@ int main(int argc, char **argv) {
     darkModel = new DarkModel(argval[3]);
 
   ImageSnifs *bias=0;
-  ImageSnifs *dark=0;
   if (is_set(argval[4]))
     bias = new ImageSnifs(argval[4]);
 
-
+  ImageSnifs *dark=0;
+  ImageStackSnifs *darkStack=0;
+  if (is_set(argval[5])) {
+    char hduName[lg_name+1];
+    sprintf(hduName,"%s[image%03d]",Name,i);
+    if (exist(hduName) && darkModel)
+      darkStack = new ImageStackSnifs(0,argval[5]);
+    else
+      dark= new imageSnifs(argval[5]);
+    }
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
     ImageSnifs *in = new ImageSnifs(inName,"I");
     ImageSnifs *out = new ImageSnifs(*in,outName,0,1);
 
-    if (is_set(argval[5])) 
+    if (is_set(argval[6])) 
       out->WrDesc("TIMEON",CHAR,lg_name+1,argval[3]);
 
     if (biasModel)
@@ -66,6 +75,8 @@ int main(int argc, char **argv) {
       out->SubstractDarkModel(darkModel);
     if (dark) 
       out->SubstractDark(dark);
+    if (darkStack && darkModel)
+      out->SubstrackDarkMap(darkStack,darkModel);
 
     delete in;
     delete out;
