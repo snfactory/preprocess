@@ -19,7 +19,7 @@ class BiChipSnifs;
 class ImageSnifs;
 class OverscanSnifs;
 class DarkModel;
-class imagestacksnifs;
+class ImageStackSnifs;
 
 #include "algocams.hxx"
 #include "iomethod.hxx"

@@ -22,6 +22,7 @@ The input catalog is supposed to be of homogeneous
 
 #include "gsl/gsl_linalg.h"
 #include "gsl/gsl_blas.h"
+#include "gsl/gsl_eigen.h"
 
 #include "utils.h"
 #include "catorfile.hxx"
@@ -74,9 +75,8 @@ ImageStackSnifs::ImageStackSnifs(CatOrFile* Cat, char * Mode,  int NLines){
 
 
 /* ----- ImageStackSnifs  -------------------------------------------------- */
-ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, char * Mode, int NLines){
-  /* open as a stack a frame made of imageNNN varianceNNN 
-   image is 0 in case of an open file, but will be used as a template when crating new files*/
+ImageStackSnifs::ImageStackSnifs(char* Name, char * Mode, int NLines){
+  /* open as a stack a frame made of imageNNN varianceNNN */
 
   fNLinesMem = NLines; 
 
@@ -86,10 +86,7 @@ ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, char * Mode, int
   for (i=0 ; ; i++) {
     sprintf(hduName,"%s[image%03d]",Name,i);
     if (exist(hduName)) {
-      if (Image)
-	out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
-      else
-	out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
+      out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
       fImages.push_back(out);
     }
     else
@@ -105,18 +102,38 @@ ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, char * Mode, int
   for (i=0 ; ; i++) {
     sprintf(hduName,"%s[variance%03d]",Name,i);
     if (exist(hduName)) {
-      if (Image)
-	out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
-      else
-	out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
+      out = new ImageSnifs(hduName,Mode,kIoSlice,fNLinesMem);
       fImages.push_back(out);
     }
     else
       break;
   }
-  if (i != 0 || i != (nImages * (nImages +1) / 2)) {
+  if (i != 0 && i != (nImages * (nImages +1) / 2)) {
     print_error("ImageStackSnifs::ImageStackSnifs : expect 0 or %d variance terms", (nImages * (nImages +1) / 2));
     return;
+  }
+}
+
+/* ----- ImageStackSnifs  -------------------------------------------------- */
+ImageStackSnifs::ImageStackSnifs(ImageSnifs *Image, char* Name, int NImages, int NLines){
+  /* creates a stack a frame made of imageNNN varianceNNN 
+   image is used as a template when crating new files*/
+
+  fNLinesMem = NLines; 
+
+  char hduName[lg_name+1];
+  ImageSnifs * out;
+  int i;
+  for (i=0 ; i<NImages; i++) {
+    sprintf(hduName,"%s[image%03d]",Name,i);
+    out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
+    fImages.push_back(out);
+  }
+
+  for (i=0 ; i< NImages*(NImages+1)/2; i++) {
+    sprintf(hduName,"%s[variance%03d]",Name,i);
+    out = new ImageSnifs(*Image,hduName,FLOAT,0,kIoSlice,fNLinesMem);
+    fImages.push_back(out);
   }
 }
 
@@ -173,7 +190,7 @@ ImageStackSnifs* ImageStackSnifs::KombineFitND(char* OutName,  KombinatorFitND *
     }
   }
 #endif
-  ImageStackSnifs * outStack = new ImageStackSnifs(fImages[0],OutName,"",fNLinesMem);
+  ImageStackSnifs * outStack = new ImageStackSnifs(fImages[0],OutName,K->NParam(),fNLinesMem);
 
   vector<ImageSimple * > imList, outList, outvarList;
   for (unsigned int i=0;i<fImages.size();i++) {
@@ -387,7 +404,7 @@ ImageStackStack::ImageStackStack(CatOrFile* Cat, char * Mode,  int NLines){
     //}
 
     // loads the stack/image
-    ImageStackSnifs * stack = new ImageStackSnifs(0,fileName,Mode,fNLinesMem);
+    ImageStackSnifs * stack = new ImageStackSnifs(fileName,Mode,fNLinesMem);
     fStacks.push_back(stack);
     //if (!nDone) {
     //imRef = image;
@@ -417,15 +434,18 @@ ImageStackStack::~ImageStackStack(){
 /* ----- Kombine ---------------------------------------- */
 ImageStackSnifs * ImageStackStack::Kombine(char* OutName) {
 
-  ImageStackSnifs* outStack = new ImageStackSnifs(fStacks[0]->GetImages()[0],OutName,"",fNLinesMem);
-
   unsigned int nimages= int (rint( (sqrt(9+8*fStacks[0]->GetImages().size()) - 3) /2 ));
+  ImageStackSnifs* outStack = new ImageStackSnifs(fStacks[0]->GetImages()[0],OutName,nimages,fNLinesMem);
 
   gsl_vector * vals=gsl_vector_calloc(nimages);
   gsl_matrix * vars=gsl_matrix_calloc(nimages,nimages);
   gsl_vector * sumwx=gsl_vector_calloc(nimages);
   gsl_matrix * sumw=gsl_matrix_calloc(nimages,nimages);
 
+  gsl_eigen_symm_workspace * workspace= gsl_eigen_symm_alloc(nimages);
+  gsl_vector * eigvals=gsl_vector_calloc(nimages);
+  gsl_matrix * copy=gsl_matrix_alloc(nimages,nimages);
+  int *badimages = new int[fStacks.size()];
 
   // loop on pixels row-wise
   for (int j=0;j<fStacks[0]->GetImages()[0]->Ny();j++) {
@@ -452,10 +472,26 @@ ImageStackSnifs * ImageStackStack::Kombine(char* OutName) {
 	}
 
 	// but we do want sum W and sum WX
-	gsl_linalg_cholesky_decomp(vars);
-	gsl_linalg_cholesky_invert(vars);
-	gsl_blas_dsymv(CblasUpper, 1.0, vars, vals, 1.0, sumwx);
-	gsl_matrix_add(sumw,vars);
+	// Unfortunately, due to some numerical traps, vars may be non pos def !
+	gsl_matrix_memcpy(copy,vars);
+	gsl_eigen_symm(copy,eigvals,workspace);
+	unsigned int k;
+	for (k=0;k<nimages;k++) {
+	  if (gsl_vector_get(eigvals,k)<= 1e-12) { // rounding error
+	    if (VERBOSE and badimages[n]==0) {
+	      print_warning("dropping image %d, pixel %d,%d",n,i,j);
+	      badimages[n]=1;
+	    }
+	    break;
+	  }
+	}
+	// ok, we can invert the matrix
+	if (k==nimages) {
+	  gsl_linalg_cholesky_decomp(vars);
+	  gsl_linalg_cholesky_invert(vars);
+	  gsl_blas_dsymv(CblasUpper, 1.0, vars, vals, 1.0, sumwx);
+	  gsl_matrix_add(sumw,vars);
+	}
       }	// loop on stacks
        
       // here : invert the solution and store it.
@@ -482,6 +518,11 @@ ImageStackSnifs * ImageStackStack::Kombine(char* OutName) {
   gsl_vector_free(sumwx);
   gsl_matrix_free(vars);
   gsl_matrix_free(sumw);
+
+  gsl_eigen_symm_free(workspace);
+  gsl_vector_free(eigvals);
+  gsl_matrix_free(copy);
+  delete[] badimages;
 
   return outStack;
 }

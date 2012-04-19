@@ -37,7 +37,8 @@ class ImageStackSnifs  {
 
     ImageStackSnifs(int NLines=1){fNLinesMem = NLines;}
     ImageStackSnifs(CatOrFile * Cat, char * Mode="I", int NLines = 5000);
-    ImageStackSnifs(ImageSnifs* image, char* Name, char * Mode="I", int NLines = 5000) ;
+    ImageStackSnifs(char* Name, char * Mode="I", int NLines = 5000) ;
+    ImageStackSnifs(ImageSnifs* image, char* Name, int NImages, int NLines = 5000) ;
     ~ImageStackSnifs();
   
     ImageSnifs* Kombine(char *outName,Kombinator* k);

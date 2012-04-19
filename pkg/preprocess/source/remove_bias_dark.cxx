@@ -53,11 +53,11 @@ int main(int argc, char **argv) {
   ImageStackSnifs *darkStack=0;
   if (is_set(argval[5])) {
     char hduName[lg_name+1];
-    sprintf(hduName,"%s[image%03d]",Name,i);
+    sprintf(hduName,"%s[image%03d]",argval[5],0);
     if (exist(hduName) && darkModel)
-      darkStack = new ImageStackSnifs(0,argval[5]);
+      darkStack = new ImageStackSnifs(argval[5]);
     else
-      dark= new imageSnifs(argval[5]);
+      dark= new ImageSnifs(argval[5]);
     }
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     if (dark) 
       out->SubstractDark(dark);
     if (darkStack && darkModel)
-      out->SubstrackDarkMap(darkStack,darkModel);
+      out->SubstractDarkMap(darkStack,darkModel);
 
     delete in;
     delete out;

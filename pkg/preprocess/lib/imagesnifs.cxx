@@ -23,6 +23,8 @@
 #include "snifs_const.h"
 #include "analyser.hxx"
 #include "darkmodel.hxx"
+#include "imagestacksnifs.hxx"
+#include "valuegetter.hxx"
 
 //static const char kChannelName[4][lg_name+1]={"Blue channel","Red channel","Photometry","Guiding"} ;
 
@@ -419,8 +421,7 @@ void ImageSnifs::SubstractDark(ImageSnifs* Dark) {
 /* -----  SubstractDark ------------------------------------------------- */
 void ImageSnifs::SubstractDarkMap(ImageStackSnifs* Dark,DarkModel* Model) {
   // substracts a dark pattern employing the new scheme
-  int darkDone,overscanDone,darkFrame;
-  double exptime,darktime;
+  int darkDone,overscanDone;
 
   if (ParanoMode()) {
     // check dark was not already substracted
@@ -448,11 +449,11 @@ void ImageSnifs::SubstractDarkMap(ImageStackSnifs* Dark,DarkModel* Model) {
   // Get model parameters
 
   ValuesGetterDarkFitter getter(Model);
-  gsl_vector_alloc * values = gsl_vector_alloc(getter.NParams());
+  gsl_vector * values = gsl_vector_alloc(getter.NParams());
   getter.GetValues(Image(),values);
 
   for (int i=0; i<getter.NParams();i++)
-    Image()->Add(Dark->GetImages(i),-gsl_vector_get(values,i));
+    Image()->Add(Dark->GetImages()[i],-gsl_vector_get(values,i));
 
   darkDone=1;
   WrDesc("DARKDONE",INT,1,&darkDone);

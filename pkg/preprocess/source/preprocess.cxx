@@ -34,13 +34,14 @@ int main(int argc, char **argv) {
   CatOrFile outCat(argval[1]);
   
   ImageSnifs * bias=0;
-  ImageSnifs *dark=0, *flat=0;
+  ImageSnifs  *flat=0;
 
   // Load once auxilliary files
   if (is_set(argval[2]))
     bias = new ImageSnifs(argval[2]);
-  if (is_set(argval[3]))
-    dark = new ImageSnifs(argval[3]);
+  // See later
+  //if (is_set(argval[3]))
+  //  dark = new ImageSnifs(argval[3]);
   if (is_set(argval[4]))
     flat = new ImageSnifs(argval[4]);
 
@@ -62,11 +63,11 @@ int main(int argc, char **argv) {
   ImageStackSnifs *darkStack=0;
   if (is_set(argval[3])) {
     char hduName[lg_name+1];
-    sprintf(hduName,"%s[image%03d]",Name,i);
+    sprintf(hduName,"%s[image%03d]",argval[3],0);
     if (exist(hduName) && darkModel)
-      darkStack = new ImageStackSnifs(0,argval[5]);
+      darkStack = new ImageStackSnifs(argval[5]);
     else
-      dark= new imageSnifs(argval[5]);
+      dark= new ImageSnifs(argval[5]);
     }
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {

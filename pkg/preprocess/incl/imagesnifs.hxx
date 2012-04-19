@@ -26,6 +26,7 @@
 #include "image.hxx"
 class AlgoCams;
 class DarkModel;
+class ImageStackSnifs;
 
 /* ===== CHANNEL ======================================== */
 /* the right comparison shall not be channel = kBlue
