@@ -94,11 +94,19 @@ double ValueDark::GetValue(ImageSimple* Image){
 /* ===== constructor/destructor ======================================= */
 
 /* ----- constructor  ----------------------------------*/
-ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model){
+ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model,int * activate){
   if (Model->GetNsec() != 1)
     print_error("ValuesGetterDarkFitter : needs a 1-section model");
   fDarkModel = Model;
-  
+  fNParams=0;
+  for (i=0;i<3;i++) {
+    if (activate && !activate[i]) 
+      fActive[i]=0;      
+    else {
+      fActive[i]=1;
+      fNParams+=1;
+    }
+  }
 }
 
 /* ===== methods ======================================= */
@@ -123,7 +131,18 @@ void ValuesGetterDarkFitter::GetValues(ImageSimple* Image, gsl_vector* retValues
     print_error("%s has a bad time on",image->Name());
   }
 
-  gsl_vector_set(retValues,0,fDarkModel->GetI0(0)*texp);
-  gsl_vector_set(retValues,1,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0));
-  gsl_vector_set(retValues,2,fDarkModel->GetI2(0)*fDarkModel->TempTerm(temp)*texp);
+  int count=0;
+  if (fActive[0]) {
+    gsl_vector_set(retValues,count,fDarkModel->GetI0(0)*texp);
+    count++;
+  }
+  if (fActive[1]) {
+    gsl_vector_set(retValues,count,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0));
+    count++;
+  }
+  if (fActive[2]) {
+    gsl_vector_set(retValues,count,fDarkModel->GetI0(0)*texp);
+    count++;
+  }
+
 }
