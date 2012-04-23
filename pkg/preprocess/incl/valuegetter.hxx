@@ -77,7 +77,7 @@ class ValuesGetter  {
 class ValuesGetterDarkFitter : public ValuesGetter {
   // Dark fitter needs 0=1 1=timeonterm 2 =timeonterm^2 3=tempterm
   public :
-  ValuesGetterDarkFitter(DarkModel* Model, int* activate=0);
+  ValuesGetterDarkFitter(DarkModel* Model, int* activate=0,double offseton=0,double offsetT=0);
   virtual ~ValuesGetterDarkFitter() {};
   virtual void GetValues(ImageSimple* image, gsl_vector* retValues);
   virtual int NParams() {return fNParams;};
@@ -87,6 +87,7 @@ class ValuesGetterDarkFitter : public ValuesGetter {
   DarkModel* fDarkModel;
   int fNParams;
   int fActive[3];
+  double fOffseton,fOffsetT;
 };
 
 
