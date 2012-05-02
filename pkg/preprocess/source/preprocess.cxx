@@ -65,9 +65,9 @@ int main(int argc, char **argv) {
     char hduName[lg_name+1];
     sprintf(hduName,"%s[image%03d]",argval[3],0);
     if (exist(hduName) && darkModel)
-      darkStack = new ImageStackSnifs(argval[5]);
+      darkStack = new ImageStackSnifs(argval[3]);
     else
-      dark= new ImageSnifs(argval[5]);
+      dark= new ImageSnifs(argval[3]);
     }
 
   while (inCat.NextFile(inName) && outCat.NextFile(outName)) {
