@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 
   char **argval, **arglabel;
   
-  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -darkmodel none -dflag 1 -active 1,1,1 -offseton None -offsetT None");
+  set_arglist("-in none -out none -sigcut 3.0 -nlines 4100 -darkmodel none -dflag 1 -active 1,1,1 -offseton null -offsetT null");
   init_session(argv,argc,&arglabel,&argval);
 
 
@@ -29,19 +29,19 @@ int main(int argc, char **argv) {
   get_argval(5,"%d",&dflag);
 
   int active[3];
-  int nargs = sscanf(argval[6],"%d,%d",active,active+1,active+2);
+  int nargs = sscanf(argval[6],"%d,%d,%d",active,active+1,active+2);
   if (nargs<3) {
-    print_error(dark_fit : expect -active <int>,<int>,<int> option);
+    print_error("dark_fit : expect -active <int>,<int>,<int> option");
     exit_session(1);
   }
 
   double offseton=0;
-  if (is_set(argval(7))) {
+  if (is_set(argval[7])) {
     get_argval(7,"%lf", &offseton);
   }
 
   double offsetT=0;
-  if (is_set(argval(8))) {
+  if (is_set(argval[8])) {
     get_argval(8,"%lf", &offsetT);
   }
 

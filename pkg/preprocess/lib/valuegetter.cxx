@@ -94,12 +94,12 @@ double ValueDark::GetValue(ImageSimple* Image){
 /* ===== constructor/destructor ======================================= */
 
 /* ----- constructor  ----------------------------------*/
-ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model,int * activate,double offseton,double offsetT){
+ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model,int * activate, double offseton,double offsetT){
   if (Model->GetNsec() != 1)
     print_error("ValuesGetterDarkFitter : needs a 1-section model");
   fDarkModel = Model;
   fNParams=0;
-  for (i=0;i<3;i++) {
+  for (int i=0;i<3;i++) {
     if (activate && !activate[i]) 
       fActive[i]=0;      
     else {
@@ -107,8 +107,6 @@ ValuesGetterDarkFitter::ValuesGetterDarkFitter(DarkModel* Model,int * activate,d
       fNParams+=1;
     }
   }
-  fOffseton=offseton;
-  fOffsetT=offsetT;
 }
 
 /* ===== methods ======================================= */
@@ -139,11 +137,11 @@ void ValuesGetterDarkFitter::GetValues(ImageSimple* Image, gsl_vector* retValues
     count++;
   }
   if (fActive[1]) {
-    gsl_vector_set(retValues,count,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0) - fOffseton);
+    gsl_vector_set(retValues,count,fDarkModel->GetI1(0)*fDarkModel->DarkTimeTerm(timeon,texp,0));
     count++;
   }
   if (fActive[2]) {
-    gsl_vector_set(retValues,count,fDarkModel->GetI0(0)*texp - fOffsetT);
+    gsl_vector_set(retValues,count,fDarkModel->GetI2(0)*fDarkModel->TempTerm(temp)*texp);
     count++;
   }
 
