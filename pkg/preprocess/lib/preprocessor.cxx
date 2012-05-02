@@ -317,14 +317,8 @@ ImageSnifs * Preprocessor::PreprocessAssemble(char* name, char* outName){
   SetIoMethod(mode);
   ImageSnifs *out = bichip->Assemble(outName,fMode,kIoAll);
   delete bichip;
-  // repair hot zone
-  out->SpecialRedCosmetics();
-  // remove bad lines ... order matters here.
-  out->HandleCosmetics();
-  // Special request from Yannick
-  out->CheatCosmetics();
-  return out;
-  
+
+  return out;  
 }
 
 /* ----- PreprocessFlat ------------------------------------------------ */
@@ -349,7 +343,9 @@ ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,
   ImageSnifs* out = PreprocessAssemble(name, outName);
   if (bias) 
     out->SubstractBias(bias);
+
   out->AddPoissonNoise();
+
   if (biasModel)
     out->SubstractBiasModel(biasModel);
   if (dark) 
@@ -358,6 +354,10 @@ ImageSnifs* Preprocessor::Preprocess(char* name, char* outName,ImageSnifs *bias,
     out->SubstractDarkMap(darkStack,darkModel);
   if (darkModel)
     out->SubstractDarkModel(darkModel);
+
+  // do it before multiplicative issues.
+  out->HandleCosmetics();
+
   if (flat) 
     out->ApplyFlat(flat);
   else if (!FastMode())

@@ -454,16 +454,6 @@ void BiChipSnifs::CreateVarianceFrame(char* VarianceNameRecipee)
   }
 }
 
-#ifdef OLD
-/* ----- AddOverscanVariance ---------------------------------------- */
-void BiChipSnifs::AddOverscanVariance() {
-  // substracts the odd-even from 2 chips
-  for (int chip=0;chip<NChips();chip++) {
-    fChip[chip]->AddOverscanVariance();
-  }
-  
-}
-#endif
 
 /* ----- HandleSaturation ---------------------------------------- */
 void BiChipSnifs::HandleSaturation() {
@@ -472,55 +462,6 @@ void BiChipSnifs::HandleSaturation() {
     fChip[chip]->HandleSaturation();
   } 
 }
-
-
- 
-/* ----- PreprocessBias ------------------------------------------------ */
-#ifdef OLD
-void BiChipSnifs::PreprocessBias() {
-  CreateVarianceFrame();
-  HandleSaturation();
-  HackFitsKeywords();
-  OddEvenCorrect();
-  AddOverscanVariance();
-  SubstractOverscan();
-}
-
-/* ----- PreprocessDark ------------------------------------------------ */
-ImageSnifs* BiChipSnifs::PreprocessAssemble(char* OutName,BiChipSnifs *bias) {
-  PreprocessBias();
-  if (bias) SubstractBias(bias);
-  HackGainRatio();
-  ImageSnifs *out = Assemble(OutName);
-  return out;
-}
-
-/* ----- PreprocessDark ------------------------------------------------ */
-ImageSnifs* BiChipSnifs::PreprocessDark(char* OutName,BiChipSnifs *bias) {
-  ImageSnifs *out = PreprocessAssemble(OutName,bias);
-  out->AddPoissonNoise();
-  return out;
-}
-
-/* ----- PreprocessFlat ------------------------------------------------ */
-ImageSnifs* BiChipSnifs::PreprocessFlat(char* OutName,BiChipSnifs *bias,ImageSnifs *dark) {
-  ImageSnifs* out = PreprocessDark(OutName,bias);
-  if (dark) 
-    out->SubstractDark( dark );
-  out->BuildFlat();
-  return out;
-}
-
-/* ----- Preprocess ------------------------------------------------ */
-ImageSnifs* BiChipSnifs::Preprocess(char* OutName,BiChipSnifs *bias,ImageSnifs *dark,ImageSnifs* flat) {
-  ImageSnifs* out = PreprocessDark(OutName,bias);
-  if (dark) 
-    out->SubstractDark( dark );
-  if (flat) 
-    out->ApplyFlat(flat);
-  return out;
-}
-#endif
   
 
 /* ===== Ugly part ====================================================== */

@@ -105,6 +105,7 @@ class ImageSnifs :public ImageSimple {
     void AddPoissonNoise();
     void HandleSaturation();
     void HandleCosmetics();
+    void FlagCosmetics();
     void CheatCosmetics();
     void SpecialRedCosmetics();
     void CustomFlat();

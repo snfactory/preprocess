@@ -594,6 +594,9 @@ void ImageSnifs::AddPoissonNoise() {
   //
   // Side effect : image is bounded to reject negative values.
 
+  // TODO : (in another life) : bail out if the file fclass is BIAS ...
+  // but I'll need to check first if there is dark current content on it.
+  
   int poisNoise=0;
 
   // by-pass check
@@ -639,6 +642,17 @@ void ImageSnifs::HandleSaturation() {
 
 /* -----  HandleCosmetics ----------------------------------------------- */
 void ImageSnifs::HandleCosmetics() {
+  // repair hot zone
+  SpecialRedCosmetics();
+  // remove bad lines ... order matters here.
+  FlagCosmetics();
+  // Special request from Yannick for visual look
+  CheatCosmetics();
+}
+				   
+
+/* -----  HandleCosmetics ----------------------------------------------- */
+void ImageSnifs::FlagCosmetics() {
   // puts variance to infinity for some definite pixels
   if (Image()->Variance()) {
 

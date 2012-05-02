@@ -34,32 +34,15 @@ int main(int argc, char **argv) {
   get_argval(4,"%d",&nlines);
   
   if (is_set(argval[2])) {
-    /*
-    BiChipStackSnifs * outStack = new BiChipStackSnifs(nlines);
-  
-    while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
-      print_msg("Opening %s",inName);
-      P.SetIoMethod(kIoSlice);
-      BiChipSnifs * tmpOut = P.PreprocessBias(inName,outName);
-      outStack->AddBiChip(tmpOut);
-    }
-    
-    double sigma;
-    get_argval(3,"%lf", &sigma);
-    KGauss k(sigma);
-    BiChipSnifs* out = outStack->Kombine(argval[2],&k);
-
-    delete outStack;
-    delete out;
-  */
-  
     
     ImageStackSnifs * outStack = new ImageStackSnifs(nlines);
   
     while (catIn.NextFile(inName) && catOut.NextFile(outName)) {
       print_msg("Opening %s",inName);
       P.SetIoMethod(kIoSlice);
+      // Don't want to add Poisson Noise on it.
       ImageSnifs * tmpOut = P.PreprocessAssemble(inName,outName);
+      tmpOut->HandleCosmetics();
       outStack->AddImage(tmpOut);
     }
     

@@ -275,57 +275,6 @@ BiChipStackSnifs::~BiChipStackSnifs(){
 
 /* ===== method ======================================= */
 
-#ifdef OLD
-/* ----- PreprocessBias ---------------------------------------- */
-BiChipStackSnifs* BiChipStackSnifs::PreprocessBias(CatOrFile * Out, int NLines) {
-
-  char fileName[lg_name+1];
-  unsigned int iFile=0,nlines;
-  BiChipStackSnifs* outStack = new BiChipStackSnifs(NLines);
-  while(Out->NextFile(fileName) && iFile < fBiChips.size()) {
-    // load all the file for fast processing
-    if (fBiChips[iFile]->Chip(0)->Ny() > fBiChips[iFile]->Chip(1)->Ny())
-      nlines = fBiChips[iFile]->Chip(0)->Ny();
-    else
-      nlines = fBiChips[iFile]->Chip(1)->Ny();
-    BiChipSnifs * out = new BiChipSnifs(*fBiChips[iFile],fileName,FLOAT,1,kIoSlice,nlines);
-    // free some memory
-    fBiChips[iFile]->SetNLines(1);
-    out->PreprocessBias();
-    outStack->AddBiChip(out);
-    iFile++;
-  }
-  return outStack;
-  
-}
-
-/* ----- PreprocessDark ---------------------------------------- */
-ImageStackSnifs* BiChipStackSnifs::PreprocessDark(CatOrFile * Out, BiChipSnifs* bias, int NLines) {
-
-  char fileName[lg_name+1];
-  unsigned int iFile=0,nlines;
-  ImageStackSnifs* outStack = new ImageStackSnifs(NLines);
-  while(Out->NextFile(fileName) && iFile < fBiChips.size()) {
-    // load all the file for fast processing
-    if (fBiChips[iFile]->Chip(0)->Ny() > fBiChips[iFile]->Chip(1)->Ny())
-      nlines = fBiChips[iFile]->Chip(0)->Ny();
-    else
-      nlines = fBiChips[iFile]->Chip(1)->Ny();
-    BiChipSnifs * tmpBi = new BiChipSnifs(*fBiChips[iFile],"mem://tmp.fits",FLOAT,1,kIoPlain);
-    // free some memory
-    fBiChips[iFile]->SetNLines(1);
-        ImageSnifs * out = tmpBi->PreprocessAssemble(fileName,bias);
-    delete tmpBi;
-    out->Assembled2Dark();
-    outStack->AddImage(out);
-    iFile++;
-  }
-  return outStack;
-  
-}
-#endif
-
-
 
 /* ----- Kombine ---------------------------------------- */
 BiChipSnifs* BiChipStackSnifs::Kombine(char* OutName,  Kombinator * K) {
