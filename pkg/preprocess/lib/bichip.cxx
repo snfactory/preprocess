@@ -320,8 +320,9 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
     // propagate the saturation level
     fChip[chip]->RdDesc("SATURATE",DOUBLE,1,&satur);
     fChip[chip]->RdDesc("OVSCMAX",DOUBLE,1,&ovscmax);
-    fChip[chip]->RdDesc("OEPARAM",DOUBLE,2,oeparam);
-    saturate[chip]=satur-ovscmax-fabs(MAX(oeparam[0],oeparam[0]+oeparam[1]*compound->Ny()));
+    // fChip[chip]->RdDesc("OEPARAM",DOUBLE,2,oeparam);
+    // saturate[chip]=satur-ovscmax-fabs(MAX(oeparam[0],oeparam[0]+oeparam[1]*compound->Ny()));
+    saturate[chip]=satur-ovscmax;
     saturate[chip]*=gain*0.99; // security parameter 
     // and some more
     char aKey[lg_name+1],aString[lg_name+1];
