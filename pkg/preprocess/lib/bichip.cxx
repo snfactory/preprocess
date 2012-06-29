@@ -171,26 +171,6 @@ void BiChipSnifs::UpdateFClass() {
   
 }
 
-
-/* ----- Overscan ----------------------------------------------------- */
-#ifdef OLD
-void BiChipSnifs::SubstractOverscan() {
-  // Substracts the overscan from NChips() chips
-  // We want a crash if chips not already set !
-  for (int chip=0;chip<NChips();chip++) {
-    fChip[chip]->SubstractOverscan();
-  }
-}
-
-/* ----- odd-Even ----------------------------------------------------- */
-void BiChipSnifs::OddEvenCorrect() {
-  // substracts the odd-even from NChips() chips
-  for (int chip=0;chip<NChips();chip++) {
-    fChip[chip]->OddEvenCorrect();
-  }
-}
-#endif 
-
 /* ----- substract bias ------------------------------------------------ */
 void BiChipSnifs::SubstractBias( BiChipSnifs* Bias) {
   // substracts the bias from NChips() chips
@@ -365,9 +345,6 @@ ImageSnifs* BiChipSnifs::Assemble(char* ImageName,IoMethod_t Io, int Nlines) {
   } else {
     compound->WrDesc("CCDSEC",CHAR,lg_name+1,"Undefined");
   }
-  
-  
-  
 
   compound->WrDesc("RDNOISE",DOUBLE,NChips(),rdnoise);
   compound->WrDesc("OVSCMED",DOUBLE,NChips(),ovscmed);

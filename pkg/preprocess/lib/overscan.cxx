@@ -479,8 +479,7 @@ void OverscanSnifs::Correct(BiChipSnifs* BiChip) {
 void OverscanSnifs::Correct(ImageSnifs* Image) {
 
   SetImage(Image);
-  if (fOddEven)
-    OddEvenCorrect();
+  OddEvenCorrect();
   // after odd-even correction : removal of the odd-even improves the noise
   AddOverscanVariance(); 
   SubstractOffset();  
@@ -527,22 +526,25 @@ void OverscanSnifs::OddEvenCorrect() {
   // odd-even substraction
   //
   double param[2];
+  param[0]=param[1]=0;
   
-  if (Image()->ParanoMode()) {
-    // check fcalsses !
+  if (fOddEven) {
+    if (Image()->ParanoMode()) {
+      // check fcalsses !
     
-    // check type of CCD (is operation allowed ?)
+      // check type of CCD (is operation allowed ?)
 
-    // check overscan was not already substracted
+      // check overscan was not already substracted
     // returns 0 if not done !
-    if ( fImage->RdIfDesc("OEPARAM",DOUBLE, 2, param) > 0 ){
-      print_error("OverscanSnifs::OddEvenCorrect Odd-Even already substracted for %s\n",fImage->Name());
-      print_error("Nothing Done\n");
-      return;
+      if ( fImage->RdIfDesc("OEPARAM",DOUBLE, 2, param) > 0 ){
+	print_error("OverscanSnifs::OddEvenCorrect Odd-Even already substracted for %s\n",fImage->Name());
+	print_error("Nothing Done\n");
+	return;
+      }
     }
-  }
 
-  SubstractOddEven(param,0);
+    SubstractOddEven(param,0);
+  }
 
   fImage->WrDesc("OEPARAM",DOUBLE, 2, param);
 
@@ -694,5 +696,9 @@ double OverscanFromData::OverscanNoise() {
 void OverscanFromData::OddEvenCorrect() {
 
   // no odd-even correction
+  double param[2];
+  param[0]=param[1]=0;
+  fImage->WrDesc("OEPARAM",DOUBLE, 2, param);
+
   return ;
 }
