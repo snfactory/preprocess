@@ -1,3 +1,7 @@
+2015-03-10  Yannick Copin  <ycopin@lyonovae03.in2p3.fr>
+
+	* pkg/preprocess/lib/imagesnifs.cxx (UpdateFClass): add SCALA case.
+
 2007-10-26  yannick.copin  <yannick.copin@laposte.net>
 
 	* pkg/pipeline/quick/quick_bias.sh: new option '-C' to use an

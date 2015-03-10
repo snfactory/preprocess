@@ -327,6 +327,8 @@ void ImageSnifs::UpdateFClass() {
     SetFClass(PRE_OBJ_FRAME);
   if (GetFClass()==RAW_DOM_FRAME)
     SetFClass(PRE_DOM_FRAME);
+  if (GetFClass()==RAW_SCA_FRAME)
+    SetFClass(PRE_SCA_FRAME);
 }
 
 /* -----  SubstractDarkModel ------------------------------------------------- */
