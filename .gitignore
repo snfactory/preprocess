@@ -1,0 +1,9 @@
+# latex products
+doc/*.aux
+doc/*.dvi
+doc/*.log
+doc/*.pdf
+doc/*.toc
+
+# emacs
+*~
