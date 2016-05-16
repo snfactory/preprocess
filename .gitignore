@@ -7,3 +7,5 @@ doc/*.toc
 
 # emacs
 *~
+
+obj/

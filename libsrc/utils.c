@@ -11,11 +11,11 @@ This files contains some generic utilities
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_sort.h>
 #include "IFU_io.h"
-#include "IFU_math.h"
+// #include "IFU_math.h"
 /* ----- Specific IFU includes ----- */
 #include "data_io.h"
 #ifdef FITS
-#include "fitsio.h"
+#include <fitsio.h>
 #endif
 
 /* Removing MIDAS by hand - not really clean, but should allow to compile with an IFU with --disable-midas enabled*/

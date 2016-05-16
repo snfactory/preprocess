@@ -1,0 +1,97 @@
+##-*- Makefile -*-####################################################
+## Filename:      makedefs
+## Version:       1.0
+## Description:   General makedefs
+## Author:        $Author$
+## Created at:    $Date$
+######################################################################
+
+# ifuio static libraries (not installed)
+IOLIB = $(topdir)/../ifuio/obj/libio.a $(topdir)/../ifuio/obj/libgen.a
+IOINC = $(topdir)/../ifuio/incl
+
+# Maths TODO: replace?
+STATLIB = $(C_mathLIBS_PATH)/C_libs/obj/libstat.a
+MATHLIB = $(STATLIB)
+
+
+# Format ==============================
+SEL_OBJ = *.o
+FANSI = -DANSI
+FITS_FLAG = -DFITS
+
+
+
+# Includes ==============================
+
+LINC = $(C_mathLIBS_PATH)/incl
+
+
+PKG_INC = $(topdir)/include
+#LOCAL_INC =  /usr/local/include
+
+MISC_INC = $(topdir)/../Snifs_misc/incl/
+
+# Compilation commands ==============================
+
+CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(LINC) -I$(IOINC) $(C_OPT) $(FANSI) $(FITS_FLAG) -DSYSV -I$(MISC_INC)
+
+C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+
+CXXCOMPILE = $(CXX) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+CXXLD = $(CXX)
+CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
+		$(ADD_LIBS) $(DISLIB)
+
+LDF = -lm
+
+# Lex & Yacc ==============================
+LEXOUTPUT = y.tab.o
+CYACC_OUTPUT = y.tab.c
+OYACC_OUTPUT = y.tab.o
+
+# Directories ==============================
+E = $(topdir)/user/bin
+O = $(topdir)/obj
+L = $(topdir)/user/lib
+
+OBJ =
+EXE =
+
+
+.SUFFIXES: .o .c .for .h .l .y
+
+all : OUT
+
+dirobj :
+	@ if [ ! -d $(O) ]; then (mkdir -p $(O);) fi
+
+dirlib :
+	@ if [ ! -d $(L) ]; then (mkdir -p $(L);) fi
+
+dirbin :
+	@ if [ ! -d $(E) ]; then (mkdir -p $(E);) fi
+
+clean :
+	$(RM) $(EXE) $(OBJ)
+
+distdir :
+	@for file in `ls -a`; do \
+        if test -d $$file ; then continue; fi; \
+        if ls $$file | grep stamp >> /dev/null; then \
+                continue; \
+        fi; \
+        if ls $$file | grep tclIndex >> /dev/null; then \
+                continue; \
+        fi; \
+        if file $file | grep -i executable >> /dev/null; then \
+                continue; \
+        fi; \
+               if file $file | grep -i object >> /dev/null; then \
+                continue; \
+        fi; \
+               if file $file | grep -i relocable >> /dev/null; then \
+                continue; \
+               fi; \
+        cp $$file $$distdir/$$file;  \
+        done             
