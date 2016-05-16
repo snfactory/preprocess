@@ -30,7 +30,7 @@ LINC = $(C_mathLIBS_PATH)/incl
 PKG_INC = $(topdir)/include
 #LOCAL_INC =  /usr/local/include
 
-MISC_INC = $(topdir)/../Snifs_misc/incl/
+MISC_INC = $(topdir)/extern
 
 # Compilation commands ==============================
 
