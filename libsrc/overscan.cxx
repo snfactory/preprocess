@@ -13,8 +13,6 @@
 
 /* ----- IFU include ----- */
 // IFU_io.h because SPECTRUM is needed by IFU_math.h
-#include "IFU_io.h"
-#include "IFU_math.h"
 #include "gsl/gsl_fit.h"
 
 /* ----- local includes -----*/
@@ -331,7 +329,7 @@ void OverscanBase::ImproveLinesMedian(double* ov, double * var) {
     for (int iCol=col-nLines; iCol<=col+nLines;iCol++) {
       buffer[iCol-col+nLines] = ovColRaw[iCol];
     }
-    ov[col-S->YFirst()]=median(buffer,nLines*2+1,index);
+    ov[col-S->YFirst()]=ut_median(buffer,nLines*2+1);
   } // for col
 
  // And now the effect on the variance :
