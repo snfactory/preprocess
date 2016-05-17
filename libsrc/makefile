@@ -48,7 +48,7 @@ $(CCOBJ) : $(O)/%.o : %.cxx makefile
 
 # Library
 $(LIB) : $(OBJ)
-	$(AR) rv $(LIB) $(OBJ)
+	ar rv $(LIB) $(OBJ)
 	$(RANLIB) $@
 
 .PHONY : OUT all

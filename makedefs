@@ -38,12 +38,14 @@ CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(LINC) -I$(IOINC) $(C_OPT) $(FANSI) $(FITS_
 
 C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
 
-CXXCOMPILE = $(CXX) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
+CXXCOMPILE = $(CXX) $(DEBUG) $(CFLAGS) -Wno-write-strings -c $< && mv $(@F) $@
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(LDF) -o $@ $< $(LOCLIB) $(IOLIB) $(MATHLIB) \
 		$(ADD_LIBS) $(DISLIB)
 
 LDF = -lm
+
+RANLIB = ranlib
 
 # Lex & Yacc ==============================
 LEXOUTPUT = y.tab.o
