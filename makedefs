@@ -1,94 +1,27 @@
-##-*- Makefile -*-####################################################
-## Filename:      makedefs
-## Version:       1.0
-## Description:   General makedefs
-## Author:        $Author$
-## Created at:    $Date$
-######################################################################
+# This file is included by sub-directory makefiles after defining `topdir`
+# to be path to this file.
 
-# ifuio static libraries (not installed)
-IOLIB = $(topdir)/../ifuio/obj/libio.a $(topdir)/../ifuio/obj/libgen.a
-IOINC = $(topdir)/../ifuio/incl
-
-
-# Format ==============================
-SEL_OBJ = *.o
-FANSI = -DANSI
-FITS_FLAG = -DFITS
-
-
-
-# Includes ==============================
-
-LINC = $(C_mathLIBS_PATH)/incl
-
-
-PKG_INC = $(topdir)/include
-#LOCAL_INC =  /usr/local/include
-
-MISC_INC = $(topdir)/extern
+# include user-defined definitions if make.user exists
+ifeq (exists, $(shell [ -e $(topdir)/make.user ] && echo exists ))
+include $(topdir)/make.user
+endif
 
 # list of all files in include directory (dependency for compilation)
 HEADERS = $(shell find $(topdir)/include -type f)
 
-# Compilation commands ==============================
+# Target library
+LIB = $(O)/libpreprocess.a
 
-CFLAGS = $(C_ADDOPT) -I$(PKG_INC) -I$(LINC) -I$(IOINC) $(C_OPT) $(FANSI) $(FITS_FLAG) -DSYSV -I$(MISC_INC)
-
-C_COMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
-
+CFLAGS = -DANSI -DFITS -DSYSV -I$(topdir)/include -I$(topdir)/extern -I$(IFUIO_INC)
+CCOMPILE = $(CC) $(DEBUG) $(CFLAGS) -c $< && mv $(@F) $@
 CXXCOMPILE = $(CXX) $(DEBUG) $(CFLAGS) -Wno-write-strings -c $< && mv $(@F) $@
-CXXLD = $(CXX)
-CXXLINK = $(CXXLD) -o $@ $< $(LOCLIB) $(IOLIB) -lc -lm -lwcs -lcfitsio -lgsl -lcblas
-
-#LDF = -lc -lm -lwcs -lcfitsio
+CXXLINK = $(CXX) -o $@ $< $(LIB) $(IFUIO_LIBS) -lc -lm -lwcs -lcfitsio -lgsl -lcblas
 
 RANLIB = ranlib
 STRIP = strip
+AR = ar
 
-# Lex & Yacc ==============================
-LEXOUTPUT = y.tab.o
-CYACC_OUTPUT = y.tab.c
-OYACC_OUTPUT = y.tab.o
-
-# Directories ==============================
+# output directories
 E = $(topdir)/exec
 O = $(topdir)/obj
 
-
-
-.SUFFIXES: .o .c .for .h .l .y
-
-
-dirobj :
-	@ if [ ! -d $(O) ]; then (mkdir -p $(O);) fi
-
-dirlib :
-	@ if [ ! -d $(L) ]; then (mkdir -p $(L);) fi
-
-dirbin :
-	@ if [ ! -d $(E) ]; then (mkdir -p $(E);) fi
-
-clean :
-	$(RM) $(EXE) $(OBJ)
-
-distdir :
-	@for file in `ls -a`; do \
-        if test -d $$file ; then continue; fi; \
-        if ls $$file | grep stamp >> /dev/null; then \
-                continue; \
-        fi; \
-        if ls $$file | grep tclIndex >> /dev/null; then \
-                continue; \
-        fi; \
-        if file $file | grep -i executable >> /dev/null; then \
-                continue; \
-        fi; \
-               if file $file | grep -i object >> /dev/null; then \
-                continue; \
-        fi; \
-               if file $file | grep -i relocable >> /dev/null; then \
-                continue; \
-               fi; \
-        cp $$file $$distdir/$$file;  \
-        done             
