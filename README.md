@@ -18,7 +18,7 @@ is done by creating a `make.user` file with contents:
 
 ```
 IFUIO_LIBS = /path/to/ifuio/obj/libio.a /path/to/ifuio/obj/libgen.a
-IFUIO_INC = /path/to/ifuio/incl
+IFUIO_INC = /path/to/ifuio/include
 ```
 
 Be sure to use *absolute paths*, as these variables are used when
